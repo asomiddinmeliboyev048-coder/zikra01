@@ -68,3 +68,50 @@ body {
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
 }
+
+
+/* ===== Mobil: pastki navigatsiya mavjud bo'lsa kontentga joy qoldirish ===== */
+@media (max-width: 767px) {
+  body:has(.zikra-bottom-nav) {
+    padding-bottom: 4.75rem;
+  }
+}
+
+/* ===== Dizayn yordamchilari ===== */
+.text-gradient {
+  background: linear-gradient(90deg, #534ab7 0%, #1d9e75 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Nuqtali fon naqshi */
+.bg-dots {
+  background-image: radial-gradient(rgba(83, 74, 183, 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Shisha (glass) effekti */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Suzuvchi "blob" animatsiyasi */
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(20px, -30px) scale(1.08); }
+  66% { transform: translate(-15px, 15px) scale(0.95); }
+}
+.animate-blob {
+  animation: blob 12s ease-in-out infinite;
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float-soft 5s ease-in-out infinite;
+}

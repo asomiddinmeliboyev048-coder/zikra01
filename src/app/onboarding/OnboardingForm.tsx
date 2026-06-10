@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useRef } from "react";
 import Image from "next/image";
 import type { Skill } from "@/lib/types";
 import { saveProfileAction, type ProfileState } from "@/app/actions/profile";
 import SkillSelector from "@/components/SkillSelector";
 import SubmitButton from "@/components/SubmitButton";
 import { avatarFallback } from "@/lib/utils";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 const initial: ProfileState = {};
 
@@ -28,33 +29,70 @@ export default function OnboardingForm({ skills, defaults }: Props) {
   const [learn, setLearn] = useState<string[]>(defaults.learn);
   const [name, setName] = useState(defaults.full_name);
   const [avatar, setAvatar] = useState(defaults.avatar_url);
+  const [uploading, setUploading] = useState(false);
+  const [uploadErr, setUploadErr] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleAvatarFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadErr("");
+    setUploading(true);
+    try {
+      const res = await uploadImageToCloudinary(file);
+      setAvatar(res.secure_url);
+    } catch (err) {
+      setUploadErr(err instanceof Error ? err.message : "Rasm yuklanmadi.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <form action={formAction} className="space-y-7">
-      {/* Avatar oldindan ko'rish */}
+      {/* Avatar — fayl/galereyadan yuklash */}
       <div className="flex items-center gap-4">
-        <Image
-          src={avatar || avatarFallback(name || "Zikra")}
-          alt="Avatar"
-          width={72}
-          height={72}
-          className="h-[72px] w-[72px] rounded-2xl border border-gray-100 object-cover"
-          unoptimized
-        />
-        <div className="flex-1">
-          <label htmlFor="avatar_url" className="label">
-            Profil rasmi (havola) — ixtiyoriy
-          </label>
-          <input
-            id="avatar_url"
-            name="avatar_url"
-            type="url"
-            value={avatar}
-            onChange={(e) => setAvatar(e.target.value)}
-            placeholder="https://... (rasm havolasi)"
-            className="input"
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="group relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-2xl border border-gray-100"
+          title="Rasmni o'zgartirish"
+        >
+          <Image
+            src={avatar || avatarFallback(name || "Zikra")}
+            alt="Avatar"
+            width={72}
+            height={72}
+            className="h-[72px] w-[72px] object-cover"
+            unoptimized
           />
+          <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+            {uploading ? "..." : "O'zgartirish"}
+          </span>
+        </button>
+        <div className="flex-1">
+          <label className="label">Profil rasmi — ixtiyoriy</label>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="btn-outline"
+          >
+            {uploading ? "Yuklanmoqda..." : "📷 Rasm tanlash (galereya/fayl)"}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarFile}
+            className="hidden"
+          />
+          {uploadErr && (
+            <p className="mt-1 text-xs text-accent-700">{uploadErr}</p>
+          )}
         </div>
+        {/* Server action uchun yashirin maydon */}
+        <input type="hidden" name="avatar_url" value={avatar} />
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">

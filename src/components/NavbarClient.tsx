@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
 import { avatarFallback, cn } from "@/lib/utils";
+import BottomNav from "@/components/BottomNav";
+import NotificationListener from "@/components/NotificationListener";
 
 interface Props {
   profile: {
@@ -45,6 +47,12 @@ export default function NavbarClient({ profile, unread }: Props) {
 
   return (
     <>
+      {/* Tovushli bildirishnoma kuzatuvchisi (real-time) */}
+      <NotificationListener userId={profile.id} />
+
+      {/* Mobil pastki navigatsiya */}
+      <BottomNav profileId={profile.id} />
+
       {/* Desktop nav */}
       <nav className="hidden items-center gap-1 md:flex">
         {NAV.map((item) => (

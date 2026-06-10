@@ -15,6 +15,7 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
 
   function reset() {
     setTitle("");
@@ -22,6 +23,7 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
     setFile(null);
     setProgress(0);
     setError("");
+    setDone(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -43,8 +45,7 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
       if (res.error) {
         setError(res.error);
       } else {
-        reset();
-        setOpen(false);
+        setDone(true);
         router.refresh();
       }
     } catch (err) {
@@ -75,6 +76,25 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
               </button>
             </div>
 
+            {done ? (
+              <div className="flex flex-col items-center gap-3 py-6 text-center">
+                <span className="text-4xl">✅</span>
+                <p className="font-semibold text-gray-900">Video yuklandi!</p>
+                <p className="text-sm text-gray-500">
+                  Videongiz <b>moderator tasdig&apos;idan</b> so&apos;ng boshqa
+                  foydalanuvchilarga ko&apos;rinadi. Bu odatda tez bo&apos;ladi.
+                </p>
+                <button
+                  onClick={() => {
+                    reset();
+                    setOpen(false);
+                  }}
+                  className="btn-primary mt-2"
+                >
+                  Yopish
+                </button>
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="label">Dars nomi *</label>
@@ -110,6 +130,9 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand hover:file:bg-brand-100"
                 />
+                <p className="mt-1 text-xs text-gray-400">
+                  Telefon yoki kompyuter galereyangizdan video tanlang. Tasdiqlangach ko&apos;rinadi.
+                </p>
               </div>
 
               {busy && (
@@ -145,6 +168,7 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}

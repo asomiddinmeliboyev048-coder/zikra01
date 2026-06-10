@@ -32,7 +32,8 @@ export async function saveVideoAction(data: {
     cloudinary_url: data.cloudinaryUrl,
     thumbnail_url: data.thumbnailUrl || null,
     duration: data.duration ?? null,
-    status: "published",
+    // Moderatsiya: video admin tasdig'idan keyin ('published') ko'rinadi
+    status: "pending",
   });
 
   if (error) return { error: error.message };
