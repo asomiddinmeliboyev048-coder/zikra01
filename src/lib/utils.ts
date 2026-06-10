@@ -1,0 +1,50 @@
+// Umumiy yordamchi funksiyalar
+
+/** Tailwind klasslarni shartli birlashtirish */
+export function cn(...classes: (string | false | null | undefined)[]): string {
+  return classes.filter(Boolean).join(" ");
+}
+
+/** Ikki user id'dan barqaror conversation_id hosil qilish */
+export function conversationId(a: string, b: string): string {
+  return [a, b].sort().join("_");
+}
+
+/** Avatar yo'q bo'lsa ism harflaridan avatar URL */
+export function avatarFallback(name: string): string {
+  const initials = encodeURIComponent(name || "Zikra");
+  return `https://ui-avatars.com/api/?name=${initials}&background=534AB7&color=fff&bold=true`;
+}
+
+/** Soniyani "5:30" formatiga o'tkazish */
+export function formatDuration(seconds: number | null): string {
+  if (!seconds || seconds <= 0) return "—";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/** Sanani o'zbekcha nisbiy formatda ko'rsatish */
+export function timeAgo(dateStr: string): string {
+  const date = new Date(dateStr);
+  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+
+  if (diff < 60) return "hozirgina";
+  if (diff < 3600) return `${Math.floor(diff / 60)} daqiqa oldin`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} soat oldin`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} kun oldin`;
+
+  return date.toLocaleDateString("uz-UZ", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/** Vaqtni soat:daqiqa ko'rinishida */
+export function formatTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString("uz-UZ", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
