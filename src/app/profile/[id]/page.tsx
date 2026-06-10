@@ -7,6 +7,7 @@ import StarRating from "@/components/StarRating";
 import LevelProgress from "@/components/LevelProgress";
 import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
+import ReviewButton from "./ReviewButton";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfileWithSkills } from "@/lib/queries";
 import { avatarFallback, timeAgo } from "@/lib/utils";
@@ -100,12 +101,18 @@ export default async function ProfilePage({
                     Profilni tahrirlash
                   </Link>
                 ) : (
-                  <Link
-                    href={`/chat?with=${profile.id}`}
-                    className="btn-primary"
-                  >
-                    Bog&apos;lanish
-                  </Link>
+                  <>
+                    <ReviewButton
+                      ratedId={profile.id}
+                      ratedName={profile.full_name}
+                    />
+                    <Link
+                      href={`/chat?with=${profile.id}`}
+                      className="btn-primary"
+                    >
+                      Bog&apos;lanish
+                    </Link>
+                  </>
                 )}
               </div>
             </div>

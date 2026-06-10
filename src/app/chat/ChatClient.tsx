@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessageAction } from "@/app/actions/chat";
+import { uploadChatMedia } from "@/lib/storage";
 import { avatarFallback, formatTime, timeAgo, cn } from "@/lib/utils";
 import MatchBadge from "@/components/MatchBadge";
 import type { Message } from "@/lib/types";
@@ -36,7 +37,9 @@ export default function ChatClient({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const mediaRef = useRef<HTMLInputElement>(null);
 
   const active = conversations.find((c) => c.partner.id === activeId) ?? null;
 
@@ -96,6 +99,22 @@ export default function ChatClient({
   function shareVideoLink() {
     const url = prompt("Video dars havolasini kiriting:");
     if (url) setText((t) => (t ? t + " " : "") + url);
+  }
+
+  async function handleMediaPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f || !activeId) return;
+    setUploadingMedia(true);
+    try {
+      const url = await uploadChatMedia(f);
+      const res = await sendMessageAction(activeId, url);
+      if (res.error) alert(res.error);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Yuklashda xatolik.");
+    } finally {
+      setUploadingMedia(false);
+    }
   }
 
   return (
@@ -221,9 +240,7 @@ export default function ChatClient({
                           : "rounded-bl-sm bg-white text-gray-800 shadow-sm"
                       )}
                     >
-                      <p className="whitespace-pre-wrap break-words">
-                        {linkify(m.content)}
-                      </p>
+                      {renderMessageContent(m.content)}
                       <span
                         className={cn(
                           "mt-1 block text-[10px]",
@@ -242,13 +259,30 @@ export default function ChatClient({
             {/* Xabar yozish */}
             <form
               onSubmit={handleSend}
-              className="flex items-center gap-2 border-t border-gray-100 p-3"
+              className="flex items-center gap-1.5 border-t border-gray-100 p-3"
             >
+              {/* Rasm/video biriktirish (galereya/fayl) */}
+              <button
+                type="button"
+                onClick={() => mediaRef.current?.click()}
+                disabled={uploadingMedia}
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+                title="Rasm yoki video yuborish"
+              >
+                {uploadingMedia ? "⏳" : "📎"}
+              </button>
+              <input
+                ref={mediaRef}
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleMediaPick}
+                className="hidden"
+              />
               <button
                 type="button"
                 onClick={shareVideoLink}
                 className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-                title="Video dars havolasini ulashish"
+                title="Video havolasini ulashish"
               >
                 🎬
               </button>
@@ -278,6 +312,62 @@ export default function ChatClient({
         )}
       </section>
     </div>
+  );
+}
+
+/** Xabar matnini media (rasm/video) yoki matn sifatida ko'rsatish */
+function renderMessageContent(content: string) {
+  const url = content.trim();
+  const isSingleUrl = /^https?:\/\/\S+$/.test(url);
+
+  if (isSingleUrl) {
+    if (/\.(jpe?g|png|gif|webp)(\?.*)?$/i.test(url)) {
+      return (
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={url}
+            alt="rasm"
+            className="max-h-60 w-full rounded-lg object-cover"
+          />
+        </a>
+      );
+    }
+    if (/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(url)) {
+      return (
+        <video
+          src={url}
+          controls
+          className="max-h-60 w-full rounded-lg"
+          preload="metadata"
+        />
+      );
+    }
+    const yt = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/
+    );
+    if (yt) {
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block overflow-hidden rounded-lg"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg`}
+            alt="YouTube video"
+            className="max-h-48 w-full object-cover"
+          />
+          <span className="mt-1 block text-xs underline">▶ Videoni ochish</span>
+        </a>
+      );
+    }
+  }
+
+  return (
+    <p className="whitespace-pre-wrap break-words">{linkify(content)}</p>
   );
 }
 

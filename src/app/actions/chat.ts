@@ -32,5 +32,32 @@ export async function sendMessageAction(
   });
 
   if (error) return { error: error.message };
+
+  // Suhbat o'rnatilganda (bir necha xabardan keyin) har ikki tomonga
+  // "baholang" eslatmasini bir marta yuboramiz.
+  const { count } = await supabase
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("conversation_id", convId);
+
+  if (count === 4) {
+    await supabase.from("notifications").insert([
+      {
+        user_id: user.id,
+        type: "rating",
+        message:
+          "💬 Suhbatdoshingiz bilan tanishdingiz! Profiliga kirib, uni baholang va izoh qoldiring.",
+        link: `/profile/${receiverId}`,
+      },
+      {
+        user_id: receiverId,
+        type: "rating",
+        message:
+          "💬 Suhbatdoshingiz bilan tanishdingiz! Profiliga kirib, uni baholang va izoh qoldiring.",
+        link: `/profile/${user.id}`,
+      },
+    ]);
+  }
+
   return {};
 }

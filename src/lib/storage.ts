@@ -73,3 +73,11 @@ export async function uploadVideo(
   const url = await uploadToBucket("videos", file);
   return { url, duration };
 }
+
+/** Chat uchun rasm/video yuklash */
+export async function uploadChatMedia(file: File): Promise<string> {
+  if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+    throw new Error("Faqat rasm yoki video yuborish mumkin.");
+  }
+  return uploadToBucket("chat", file);
+}
