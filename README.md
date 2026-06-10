@@ -17,7 +17,7 @@ Admin panel alohida repozitoriyada joylashadi.
 - **Discovery** — moslik algoritmi (o'zaro almashinuv = 100%), qidiruv va filtrlar
 - **Ommaviy profil** — ko'nikmalar, reyting, nishonlar, daraja/XP, video darslar, izohlar
 - **Real-time chat** — Supabase Realtime orqali, video havola ulashish
-- **Video darslar** — Cloudinary'ga to'g'ridan-to'g'ri yuklash
+- **Video darslar** — Supabase Storage'ga to'g'ridan-to'g'ri yuklash
 - **Ikki tomonlama baholash** — 1–5 yulduz, ikkala tomon baholaganda ko'rinadi
 - **Gamifikatsiya** — XP, 5 daraja, avtomatik nishonlar, streak (DB triggerlari orqali)
 - **Bildirishnomalar** — real-time, sayt ichida
@@ -29,7 +29,7 @@ Admin panel alohida repozitoriyada joylashadi.
 | Frontend + Backend | Next.js 15 (App Router, Server Actions) |
 | Dizayn | Tailwind CSS |
 | Ma'lumotlar bazasi / Auth / Realtime | Supabase (PostgreSQL) |
-| Video | Cloudinary (bepul tier) |
+| Rasm / Video | Supabase Storage (bepul) |
 | Deploy | Vercel |
 
 Brend ranglari: `#534AB7` (binafsha), `#1D9E75` (yashil), `#D85A30` (to'q sariq).
@@ -54,10 +54,11 @@ npm install
 4. **Authentication → URL Configuration** da redirect URL sifatida
    `http://localhost:3000/auth/callback` (va prod manzilingizni) qo'shing.
 
-### 3. Cloudinary'ni sozlash (video uchun)
+### 3. Storage'ni sozlash (rasm + video uchun)
 
-1. [cloudinary.com](https://cloudinary.com) da bepul hisob oching.
-2. **Settings → Upload** bo'limida `zikra_unsigned` nomli **unsigned upload preset** yarating.
+Cloudinary KERAK EMAS. Rasm va video **Supabase Storage**'ga yuklanadi.
+**SQL Editor**'da `supabase/storage-setup.sql` faylini ishga tushiring —
+u `avatars` va `videos` bucketlarini va kerakli qoidalarni yaratadi.
 
 ### 4. Muhit o'zgaruvchilari
 
@@ -70,8 +71,6 @@ cp .env.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=...
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=zikra_unsigned
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 

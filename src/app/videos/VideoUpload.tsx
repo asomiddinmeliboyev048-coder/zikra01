@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Skill } from "@/lib/types";
-import { uploadVideoToCloudinary } from "@/lib/cloudinary";
+import { uploadVideo } from "@/lib/storage";
 import { saveVideoAction } from "@/app/actions/video";
 
 export default function VideoUpload({ skills }: { skills: Skill[] }) {
@@ -33,13 +33,15 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
     if (!title.trim()) return setError("Dars nomini kiriting.");
 
     setBusy(true);
+    setProgress(40);
     try {
-      const result = await uploadVideoToCloudinary(file, setProgress);
+      const result = await uploadVideo(file);
+      setProgress(90);
       const res = await saveVideoAction({
         title,
         skillId,
-        cloudinaryUrl: result.secure_url,
-        thumbnailUrl: result.thumbnail_url,
+        cloudinaryUrl: result.url,
+        thumbnailUrl: undefined,
         duration: result.duration,
       });
       if (res.error) {

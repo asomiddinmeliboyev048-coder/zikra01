@@ -7,7 +7,7 @@ import { saveProfileAction, type ProfileState } from "@/app/actions/profile";
 import SkillSelector from "@/components/SkillSelector";
 import SubmitButton from "@/components/SubmitButton";
 import { avatarFallback } from "@/lib/utils";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { uploadAvatar } from "@/lib/storage";
 
 const initial: ProfileState = {};
 
@@ -39,8 +39,8 @@ export default function OnboardingForm({ skills, defaults }: Props) {
     setUploadErr("");
     setUploading(true);
     try {
-      const res = await uploadImageToCloudinary(file);
-      setAvatar(res.secure_url);
+      const url = await uploadAvatar(file);
+      setAvatar(url);
     } catch (err) {
       setUploadErr(err instanceof Error ? err.message : "Rasm yuklanmadi.");
     } finally {
