@@ -245,10 +245,75 @@ export default async function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-100 bg-white py-8">
-        <div className="container-app flex flex-col items-center justify-between gap-4 text-sm text-gray-500 sm:flex-row">
-          <Logo size="sm" />
-          <p>© {new Date().getFullYear()} Zikra. Learn. Teach. Be remembered.</p>
+      <footer className="bg-gray-900 py-12 text-gray-300">
+        <div className="container-app">
+          <div className="grid gap-8 md:grid-cols-3">
+            {/* Brend */}
+            <div>
+              <span className="inline-flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
+                  Z
+                </span>
+                <span className="text-xl font-bold text-white">Zikra</span>
+              </span>
+              <p className="mt-3 max-w-xs text-sm text-gray-400">
+                O&apos;zbekistondagi birinchi bepul P2P ko&apos;nikma almashish
+                platformasi. Learn. Teach. Be remembered.
+              </p>
+            </div>
+
+            {/* Tezkor havolalar */}
+            <div>
+              <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white">
+                Havolalar
+              </h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/register" className="hover:text-white">Ro&apos;yxatdan o&apos;tish</Link></li>
+                <li><Link href="/login" className="hover:text-white">Kirish</Link></li>
+              </ul>
+            </div>
+
+            {/* Support bilan bog'lanish */}
+            <div>
+              <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white">
+                Support bilan bog&apos;lanish
+              </h4>
+              <p className="mb-3 text-sm text-gray-400">
+                Savol yoki taklif bormi? Biz bilan bog&apos;laning:
+              </p>
+              <div className="flex flex-col gap-2.5">
+                <a
+                  href="tel:+998918917007"
+                  className="flex items-center gap-3 text-sm text-gray-200 hover:text-white"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-success/20 text-success">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  +998 91 891 70 07
+                </a>
+
+                <a
+                  href="https://t.me/asomiddinmeliboyev"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-sm text-gray-200 hover:text-white"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#229ED9]/20 text-[#229ED9]">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M21.95 4.46 18.66 19.9c-.25 1.1-.9 1.37-1.82.85l-5.03-3.71-2.43 2.34c-.27.27-.5.5-1 .5l.36-5.12 9.3-8.4c.4-.36-.09-.56-.63-.2L5.58 13.2.62 11.65c-1.08-.34-1.1-1.08.23-1.6L20.55 2.9c.9-.34 1.69.2 1.4 1.56z" />
+                    </svg>
+                  </span>
+                  Telegram: @asomiddinmeliboyev
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
+            © {new Date().getFullYear()} Zikra. Barcha huquqlar himoyalangan. Learn. Teach. Be remembered.
+          </div>
         </div>
       </footer>
     </div>

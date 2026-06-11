@@ -6,10 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
 import { avatarFallback, cn } from "@/lib/utils";
-import BottomNav from "@/components/BottomNav";
 import ThemeToggle from "@/components/ThemeToggle";
-import NotificationListener from "@/components/NotificationListener";
-import SupportWidget from "@/components/SupportWidget";
 
 interface Props {
   profile: {
@@ -48,15 +45,6 @@ export default function NavbarClient({ profile, unread }: Props) {
 
   return (
     <>
-      {/* Tovushli bildirishnoma kuzatuvchisi (real-time) */}
-      <NotificationListener userId={profile.id} />
-
-      {/* Qo'llab-quvvatlash floating widget */}
-      <SupportWidget userId={profile.id} />
-
-      {/* Mobil pastki navigatsiya */}
-      <BottomNav profileId={profile.id} unread={unread} />
-
       {/* Desktop nav (faqat md+) */}
       <nav className="hidden items-center gap-1 md:flex">
         {NAV.map((item) => (

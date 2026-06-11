@@ -60,10 +60,13 @@ export default function ChatClient({
       return;
     }
     const supabase = createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("message_reactions")
       .select("message_id, user_id, emoji")
       .in("message_id", msgIds);
+
+    // Xatolik bo'lsa (masalan jadval yo'q yoki RLS) — joriy holatni saqlaymiz
+    if (error) return;
 
     const map: Record<string, ReactionAgg[]> = {};
     for (const r of (data as { message_id: string; user_id: string; emoji: string }[]) ?? []) {
@@ -87,12 +90,11 @@ export default function ChatClient({
   }, [messages]);
 
   async function react(messageId: string, emoji: string) {
-    // optimistik
+    // optimistik (immutable — obyektlarni nusxalaymiz)
     setReactions((prev) => {
-      const arr = [...(prev[messageId] ?? [])];
+      const arr = (prev[messageId] ?? []).map((a) => ({ ...a }));
       const mineExisting = arr.find((a) => a.mine);
       if (mineExisting && mineExisting.emoji === emoji) {
-        // olib tashlash
         mineExisting.count -= 1;
         mineExisting.mine = false;
       } else {
@@ -110,7 +112,8 @@ export default function ChatClient({
       }
       return { ...prev, [messageId]: arr.filter((a) => a.count > 0) };
     });
-    await setReactionAction(messageId, emoji);
+    const res = await setReactionAction(messageId, emoji);
+    if (res?.error) alert(res.error);
   }
 
   // Yangi xabarlar kelganda pastga aylantirish
