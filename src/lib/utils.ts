@@ -48,3 +48,15 @@ export function formatTime(dateStr: string): string {
     minute: "2-digit",
   });
 }
+
+/** To'liq sana va vaqt */
+export function formatDateTime(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleString("uz-UZ", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
