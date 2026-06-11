@@ -91,3 +91,72 @@ export async function getUnreadCount(userId: string): Promise<number> {
     .eq("is_read", false);
   return count ?? 0;
 }
+
+
+/** Bir nechta video uchun like/ko'rish soni va joriy foydalanuvchi like bosganmi */
+export async function getVideoStats(
+  videoIds: string[],
+  userId?: string
+): Promise<Map<string, { likes: number; views: number; liked: boolean }>> {
+  const map = new Map<string, { likes: number; views: number; liked: boolean }>();
+  videoIds.forEach((id) => map.set(id, { likes: 0, views: 0, liked: false }));
+  if (videoIds.length === 0) return map;
+
+  const supabase = await createClient();
+  const [likesRes, viewsRes, mineRes] = await Promise.all([
+    supabase.from("video_likes").select("video_id").in("video_id", videoIds),
+    supabase.from("video_views").select("video_id").in("video_id", videoIds),
+    userId
+      ? supabase
+          .from("video_likes")
+          .select("video_id")
+          .eq("user_id", userId)
+          .in("video_id", videoIds)
+      : Promise.resolve({ data: [] as { video_id: string }[] }),
+  ]);
+
+  for (const r of (likesRes.data as { video_id: string }[]) ?? []) {
+    const s = map.get(r.video_id);
+    if (s) s.likes += 1;
+  }
+  for (const r of (viewsRes.data as { video_id: string }[]) ?? []) {
+    const s = map.get(r.video_id);
+    if (s) s.views += 1;
+  }
+  for (const r of (mineRes.data as { video_id: string }[]) ?? []) {
+    const s = map.get(r.video_id);
+    if (s) s.liked = true;
+  }
+  return map;
+}
+
+/** Profil uchun obunachilar/obunalar soni va joriy foydalanuvchi obuna bo'lganmi */
+export async function getFollowInfo(
+  profileId: string,
+  viewerId?: string
+): Promise<{ followers: number; following: number; isFollowing: boolean }> {
+  const supabase = await createClient();
+  const [followers, following, mine] = await Promise.all([
+    supabase
+      .from("follows")
+      .select("id", { count: "exact", head: true })
+      .eq("following_id", profileId),
+    supabase
+      .from("follows")
+      .select("id", { count: "exact", head: true })
+      .eq("follower_id", profileId),
+    viewerId
+      ? supabase
+          .from("follows")
+          .select("id", { count: "exact", head: true })
+          .eq("follower_id", viewerId)
+          .eq("following_id", profileId)
+      : Promise.resolve({ count: 0 }),
+  ]);
+
+  return {
+    followers: followers.count ?? 0,
+    following: following.count ?? 0,
+    isFollowing: (mine.count ?? 0) > 0,
+  };
+}

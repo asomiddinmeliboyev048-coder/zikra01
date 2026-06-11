@@ -30,7 +30,6 @@ const NAV = [
 export default function NavbarClient({ profile, unread }: Props) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   if (!profile) {
     return (
@@ -53,7 +52,7 @@ export default function NavbarClient({ profile, unread }: Props) {
       {/* Mobil pastki navigatsiya */}
       <BottomNav profileId={profile.id} />
 
-      {/* Desktop nav */}
+      {/* Desktop nav (faqat md+) */}
       <nav className="hidden items-center gap-1 md:flex">
         {NAV.map((item) => (
           <Link
@@ -71,11 +70,12 @@ export default function NavbarClient({ profile, unread }: Props) {
         ))}
       </nav>
 
-      <div className="flex items-center gap-2">
-        {/* Bildirishnomalar */}
+      {/* O'ng amallar guruhi — barcha ekran o'lchamlarida ko'rinadi, siqilmaydi */}
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        {/* Bildirishnomalar — HAR DOIM ko'rinadi (mobil ham) */}
         <Link
           href="/notifications"
-          className="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+          className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
           aria-label="Bildirishnomalar"
         >
           <BellIcon />
@@ -87,10 +87,10 @@ export default function NavbarClient({ profile, unread }: Props) {
         </Link>
 
         {/* Avatar dropdown */}
-        <div className="relative">
+        <div className="relative shrink-0">
           <button
             onClick={() => setMenuOpen((o) => !o)}
-            className="flex items-center gap-2 rounded-xl p-1 pr-2 hover:bg-gray-100"
+            className="flex items-center gap-2 rounded-xl p-1 pr-1.5 hover:bg-gray-100 sm:pr-2"
           >
             <Image
               src={profile.avatar_url || avatarFallback(profile.full_name)}
@@ -146,39 +146,7 @@ export default function NavbarClient({ profile, unread }: Props) {
             </>
           )}
         </div>
-
-        {/* Mobile menu toggle */}
-        <button
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-label="Menyu"
-        >
-          <MenuIcon />
-        </button>
       </div>
-
-      {/* Mobile nav drawer */}
-      {mobileOpen && (
-        <div className="absolute left-0 right-0 top-16 z-30 border-b border-gray-100 bg-white px-4 py-3 md:hidden">
-          <nav className="flex flex-col gap-1">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium",
-                  pathname.startsWith(item.href)
-                    ? "bg-brand-50 text-brand"
-                    : "text-gray-600 hover:bg-gray-100"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
     </>
   );
 }
@@ -192,19 +160,6 @@ function BellIcon() {
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function MenuIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 6h16M4 12h16M4 18h16"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
       />
     </svg>
   );

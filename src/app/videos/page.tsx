@@ -5,7 +5,7 @@ import VideoCard from "@/components/VideoCard";
 import VideoUpload from "./VideoUpload";
 import VideoFilter from "./VideoFilter";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile, getSkills } from "@/lib/queries";
+import { getCurrentProfile, getSkills, getVideoStats } from "@/lib/queries";
 import type { Video } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Video darslar" };
@@ -35,6 +35,20 @@ export default async function VideosPage({
   ]);
 
   const videos = (videosData as unknown as Video[]) ?? [];
+
+  // Like/ko'rish statistikasi
+  const stats = await getVideoStats(
+    videos.map((v) => v.id),
+    me.id
+  );
+  for (const v of videos) {
+    const s = stats.get(v.id);
+    if (s) {
+      v.likes = s.likes;
+      v.views = s.views;
+      v.liked = s.liked;
+    }
+  }
 
   return (
     <div className="min-h-screen">

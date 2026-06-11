@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Video } from "@/lib/types";
 import { formatDuration, timeAgo, avatarFallback } from "@/lib/utils";
+import VideoThumbLink from "@/components/VideoThumbLink";
+import VideoStats from "@/components/VideoStats";
 
 export default function VideoCard({
   video,
@@ -31,17 +33,15 @@ export default function VideoCard({
             {formatDuration(video.duration)}
           </span>
         ) : null}
-        <a
-          href={video.cloudinary_url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <VideoThumbLink
+          videoId={video.id}
+          url={video.cloudinary_url}
           className="absolute inset-0 flex items-center justify-center bg-black/0 transition hover:bg-black/20"
-          aria-label="Videoni ochish"
         >
           <span className="rounded-full bg-white/90 p-3 opacity-0 transition group-hover:opacity-100">
             <PlayIcon dark />
           </span>
-        </a>
+        </VideoThumbLink>
       </div>
 
       <div className="p-4">
@@ -54,10 +54,18 @@ export default function VideoCard({
           )}
         </div>
 
+        {/* Like + ko'rishlar */}
+        <VideoStats
+          videoId={video.id}
+          initialLikes={video.likes ?? 0}
+          initialLiked={video.liked ?? false}
+          initialViews={video.views ?? 0}
+        />
+
         {showUploader && video.uploader && (
           <Link
             href={`/profile/${video.uploader.id}`}
-            className="mt-3 flex items-center gap-2"
+            className="mt-3 flex items-center gap-2 border-t border-gray-50 pt-3"
           >
             <Image
               src={

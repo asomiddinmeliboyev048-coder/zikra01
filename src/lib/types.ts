@@ -104,6 +104,24 @@ export interface Video {
   created_at: string;
   skill?: Skill;
   uploader?: Pick<Profile, "id" | "full_name" | "avatar_url">;
+  // Ijtimoiy statistika (sahifa tomonidan to'ldiriladi)
+  likes?: number;
+  views?: number;
+  liked?: boolean;
+}
+
+export interface Follow {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+}
+
+export interface VideoLike {
+  id: string;
+  video_id: string;
+  user_id: string;
+  created_at: string;
 }
 
 export type NotificationType =
@@ -111,7 +129,10 @@ export type NotificationType =
   | "rating"
   | "badge"
   | "streak"
-  | "match";
+  | "match"
+  | "new_follower"
+  | "new_like"
+  | "new_video_from_following";
 
 export interface AppNotification {
   id: string;

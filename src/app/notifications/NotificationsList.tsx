@@ -13,6 +13,9 @@ const ICON: Record<NotificationType, string> = {
   badge: "🏅",
   streak: "🔥",
   match: "🤝",
+  new_follower: "👤",
+  new_like: "❤️",
+  new_video_from_following: "🎬",
 };
 
 export default function NotificationsList({

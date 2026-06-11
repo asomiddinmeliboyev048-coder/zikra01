@@ -116,3 +116,15 @@ supabase/schema.sql           # To'liq DB sxemasi (jadvallar, RLS, triggerlar)
 ---
 
 © Zikra. Learn. Teach. Be remembered.
+
+
+---
+
+## 🧩 Qo'shimcha SQL migratsiyalar (tartib bilan ishga tushiring)
+
+Supabase **SQL Editor**'da quyidagilarni shu tartibda ishga tushiring:
+
+1. `supabase/schema.sql` — asosiy jadvallar, RLS, triggerlar
+2. `supabase/storage-setup.sql` — rasm/video uchun Storage bucketlari (`avatars`, `videos`, `chat`)
+3. `supabase/reviews-update.sql` — profilga to'g'ridan-to'g'ri baho/izoh
+4. `supabase/social-features.sql` — **obuna (follow), video like, ko'rishlar** + bildirishnoma triggerlari

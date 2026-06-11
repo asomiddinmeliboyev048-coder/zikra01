@@ -8,8 +8,9 @@ import LevelProgress from "@/components/LevelProgress";
 import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
 import ReviewButton from "./ReviewButton";
+import FollowButton from "@/components/FollowButton";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, getProfileWithSkills } from "@/lib/queries";
+import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo } from "@/lib/queries";
 import { avatarFallback, timeAgo } from "@/lib/utils";
 import type { UserBadge, Video, Rating } from "@/lib/types";
 
@@ -67,6 +68,20 @@ export default async function ProfilePage({
   const badges = (badgesRes.data as unknown as UserBadge[]) ?? [];
   const videos = (videosRes.data as unknown as Video[]) ?? [];
 
+  // Obuna ma'lumotlari va video statistikasi
+  const [follow, vstats] = await Promise.all([
+    getFollowInfo(profile.id, me?.id),
+    getVideoStats(videos.map((v) => v.id), me?.id),
+  ]);
+  for (const v of videos) {
+    const s = vstats.get(v.id);
+    if (s) {
+      v.likes = s.likes;
+      v.views = s.views;
+      v.liked = s.liked;
+    }
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -102,6 +117,11 @@ export default async function ProfilePage({
                   </Link>
                 ) : (
                   <>
+                    <FollowButton
+                      profileId={profile.id}
+                      initialFollowing={follow.isFollowing}
+                      initialFollowers={follow.followers}
+                    />
                     <ReviewButton
                       ratedId={profile.id}
                       ratedName={profile.full_name}
@@ -120,6 +140,22 @@ export default async function ProfilePage({
             {profile.bio && (
               <p className="mt-4 max-w-2xl text-gray-600">{profile.bio}</p>
             )}
+
+            {/* Obunachilar / obunalar */}
+            <div className="mt-3 flex gap-4 text-sm text-gray-600">
+              <Link
+                href={`/profile/${profile.id}/connections?tab=followers`}
+                className="hover:text-brand"
+              >
+                <b className="text-gray-900">{follow.followers}</b> obunachi
+              </Link>
+              <Link
+                href={`/profile/${profile.id}/connections?tab=following`}
+                className="hover:text-brand"
+              >
+                <b className="text-gray-900">{follow.following}</b> obuna
+              </Link>
+            </div>
 
             {/* Statistika qatori */}
             <div className="mt-5 grid grid-cols-3 gap-3 sm:max-w-md">
