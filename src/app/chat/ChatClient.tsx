@@ -6,10 +6,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessageAction } from "@/app/actions/chat";
+import { setReactionAction } from "@/app/actions/social";
 import { uploadChatMedia } from "@/lib/storage";
 import { avatarFallback, formatTime, timeAgo, cn } from "@/lib/utils";
 import MatchBadge from "@/components/MatchBadge";
 import type { Message } from "@/lib/types";
+
+const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+
+interface ReactionAgg {
+  emoji: string;
+  count: number;
+  mine: boolean;
+}
 
 export interface Conversation {
   partner: { id: string; full_name: string; avatar_url: string | null };
@@ -38,10 +47,71 @@ export default function ChatClient({
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, ReactionAgg[]>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLInputElement>(null);
 
   const active = conversations.find((c) => c.partner.id === activeId) ?? null;
+
+  // Reaksiyalarni yuklash
+  async function loadReactions(msgIds: string[]) {
+    if (msgIds.length === 0) {
+      setReactions({});
+      return;
+    }
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("message_reactions")
+      .select("message_id, user_id, emoji")
+      .in("message_id", msgIds);
+
+    const map: Record<string, ReactionAgg[]> = {};
+    for (const r of (data as { message_id: string; user_id: string; emoji: string }[]) ?? []) {
+      if (!map[r.message_id]) map[r.message_id] = [];
+      const arr = map[r.message_id];
+      const found = arr.find((a) => a.emoji === r.emoji);
+      if (found) {
+        found.count += 1;
+        if (r.user_id === meId) found.mine = true;
+      } else {
+        arr.push({ emoji: r.emoji, count: 1, mine: r.user_id === meId });
+      }
+    }
+    setReactions(map);
+  }
+
+  // Xabarlar o'zgarsa reaksiyalarni qayta yuklash
+  useEffect(() => {
+    loadReactions(messages.map((m) => m.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  async function react(messageId: string, emoji: string) {
+    // optimistik
+    setReactions((prev) => {
+      const arr = [...(prev[messageId] ?? [])];
+      const mineExisting = arr.find((a) => a.mine);
+      if (mineExisting && mineExisting.emoji === emoji) {
+        // olib tashlash
+        mineExisting.count -= 1;
+        mineExisting.mine = false;
+      } else {
+        if (mineExisting) {
+          mineExisting.count -= 1;
+          mineExisting.mine = false;
+        }
+        const target = arr.find((a) => a.emoji === emoji);
+        if (target) {
+          target.count += 1;
+          target.mine = true;
+        } else {
+          arr.push({ emoji, count: 1, mine: true });
+        }
+      }
+      return { ...prev, [messageId]: arr.filter((a) => a.count > 0) };
+    });
+    await setReactionAction(messageId, emoji);
+  }
 
   // Yangi xabarlar kelganda pastga aylantirish
   useEffect(() => {
@@ -74,12 +144,26 @@ export default function ChatClient({
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message_reactions" },
+        () => {
+          loadReactions(messagesRef.current.map((m) => m.id));
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
+
+  // Eng so'nggi xabarlar ro'yxatiga ref (realtime ichida ishlatish uchun)
+  const messagesRef = useRef<Message[]>(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -225,34 +309,15 @@ export default function ChatClient({
                   Suhbatni boshlang — birinchi xabarni yuboring 👋
                 </p>
               )}
-              {messages.map((m) => {
-                const mine = m.sender_id === meId;
-                return (
-                  <div
-                    key={m.id}
-                    className={cn("flex", mine ? "justify-end" : "justify-start")}
-                  >
-                    <div
-                      className={cn(
-                        "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                        mine
-                          ? "rounded-br-sm bg-brand text-white"
-                          : "rounded-bl-sm bg-white text-gray-800 shadow-sm"
-                      )}
-                    >
-                      {renderMessageContent(m.content)}
-                      <span
-                        className={cn(
-                          "mt-1 block text-[10px]",
-                          mine ? "text-brand-100" : "text-gray-400"
-                        )}
-                      >
-                        {formatTime(m.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+              {messages.map((m) => (
+                <MessageRow
+                  key={m.id}
+                  message={m}
+                  mine={m.sender_id === meId}
+                  aggs={reactions[m.id] ?? []}
+                  onReact={react}
+                />
+              ))}
               <div ref={bottomRef} />
             </div>
 
@@ -311,6 +376,109 @@ export default function ChatClient({
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+/** Bitta xabar qatori — pufakcha, reaksiya tugmasi va reaksiya chiplari */
+function MessageRow({
+  message,
+  mine,
+  aggs,
+  onReact,
+}: {
+  message: Message;
+  mine: boolean;
+  aggs: ReactionAgg[];
+  onReact: (messageId: string, emoji: string) => void;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const trigger = (
+    <div className="relative self-center">
+      <button
+        onClick={() => setPickerOpen((o) => !o)}
+        className="rounded-full p-1 text-gray-300 opacity-0 transition hover:bg-gray-100 hover:text-gray-500 group-hover:opacity-100"
+        aria-label="Reaksiya"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" strokeLinecap="round" />
+        </svg>
+      </button>
+      {pickerOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
+          <div
+            className={cn(
+              "absolute bottom-8 z-20 flex gap-1 rounded-full border border-gray-100 bg-white p-1 shadow-card-hover",
+              mine ? "right-0" : "left-0"
+            )}
+          >
+            {REACTION_EMOJIS.map((e) => (
+              <button
+                key={e}
+                onClick={() => {
+                  onReact(message.id, e);
+                  setPickerOpen(false);
+                }}
+                className="rounded-full px-1.5 text-lg transition hover:scale-125"
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <div className={cn("group flex", mine ? "justify-end" : "justify-start")}>
+      <div className={cn("flex max-w-[80%] flex-col", mine ? "items-end" : "items-start")}>
+        <div className="flex items-center gap-1">
+          {mine && trigger}
+          <div
+            className={cn(
+              "rounded-2xl px-4 py-2 text-sm",
+              mine
+                ? "rounded-br-sm bg-brand text-white"
+                : "rounded-bl-sm bg-white text-gray-800 shadow-sm"
+            )}
+          >
+            {renderMessageContent(message.content)}
+            <span
+              className={cn(
+                "mt-1 block text-[10px]",
+                mine ? "text-brand-100" : "text-gray-400"
+              )}
+            >
+              {formatTime(message.created_at)}
+            </span>
+          </div>
+          {!mine && trigger}
+        </div>
+
+        {aggs.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {aggs.map((a) => (
+              <button
+                key={a.emoji}
+                onClick={() => onReact(message.id, a.emoji)}
+                className={cn(
+                  "flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition",
+                  a.mine
+                    ? "border-brand bg-brand-50 text-brand-700"
+                    : "border-gray-200 bg-white text-gray-600"
+                )}
+              >
+                <span>{a.emoji}</span>
+                {a.count > 1 && <span>{a.count}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

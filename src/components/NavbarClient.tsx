@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
 import { avatarFallback, cn } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
+import ThemeToggle from "@/components/ThemeToggle";
 import NotificationListener from "@/components/NotificationListener";
 
 interface Props {
@@ -50,7 +51,7 @@ export default function NavbarClient({ profile, unread }: Props) {
       <NotificationListener userId={profile.id} />
 
       {/* Mobil pastki navigatsiya */}
-      <BottomNav profileId={profile.id} />
+      <BottomNav profileId={profile.id} unread={unread} />
 
       {/* Desktop nav (faqat md+) */}
       <nav className="hidden items-center gap-1 md:flex">
@@ -72,6 +73,8 @@ export default function NavbarClient({ profile, unread }: Props) {
 
       {/* O'ng amallar guruhi — barcha ekran o'lchamlarida ko'rinadi, siqilmaydi */}
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <ThemeToggle />
+
         {/* Bildirishnomalar — HAR DOIM ko'rinadi (mobil ham) */}
         <Link
           href="/notifications"

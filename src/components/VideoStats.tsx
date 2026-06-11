@@ -50,16 +50,19 @@ export default function VideoStats({
   }, [videoId]);
 
   async function toggle() {
+    if (busy) return;
     setBusy(true);
     const prev = liked;
+    // Faqat tugma holatini optimistik o'zgartiramiz.
+    // Like SONI faqat realtime orqali yangilanadi — shunda ikki marta sanalmaydi.
     setLiked(!prev);
-    setLikes((c) => (prev ? Math.max(0, c - 1) : c + 1));
     const res = await toggleLikeAction(videoId);
     setBusy(false);
     if (res.error) {
       setLiked(prev);
-      setLikes((c) => (prev ? c + 1 : Math.max(0, c - 1)));
       alert(res.error);
+    } else if (typeof res.liked === "boolean") {
+      setLiked(res.liked);
     }
   }
 

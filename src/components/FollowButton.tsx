@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toggleFollowAction } from "@/app/actions/social";
 import { cn } from "@/lib/utils";
@@ -15,7 +14,6 @@ export default function FollowButton({
   initialFollowing: boolean;
   initialFollowers: number;
 }) {
-  const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [followers, setFollowers] = useState(initialFollowers);
   const [busy, setBusy] = useState(false);
@@ -50,20 +48,18 @@ export default function FollowButton({
   }, [profileId]);
 
   async function toggle() {
+    if (busy) return;
     setBusy(true);
-    // optimistik
     const prev = following;
+    // Faqat holatni optimistik o'zgartiramiz; obunachilar SONI realtime orqali.
     setFollowing(!prev);
-    setFollowers((c) => (prev ? Math.max(0, c - 1) : c + 1));
     const res = await toggleFollowAction(profileId);
     setBusy(false);
     if (res.error) {
-      // qaytarish
       setFollowing(prev);
-      setFollowers((c) => (prev ? c + 1 : Math.max(0, c - 1)));
       alert(res.error);
-    } else {
-      router.refresh();
+    } else if (typeof res.following === "boolean") {
+      setFollowing(res.following);
     }
   }
 

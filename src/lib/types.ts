@@ -132,7 +132,28 @@ export type NotificationType =
   | "match"
   | "new_follower"
   | "new_like"
-  | "new_video_from_following";
+  | "new_video_from_following"
+  | "new_comment";
+
+export interface VideoComment {
+  id: string;
+  video_id: string;
+  user_id: string;
+  parent_id: string | null;
+  content: string;
+  created_at: string;
+  author?: Pick<Profile, "id" | "full_name" | "avatar_url">;
+  likes?: number;
+  liked?: boolean;
+  replies?: VideoComment[];
+}
+
+export interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+}
 
 export interface AppNotification {
   id: string;

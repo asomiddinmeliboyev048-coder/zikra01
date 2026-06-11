@@ -128,3 +128,4 @@ Supabase **SQL Editor**'da quyidagilarni shu tartibda ishga tushiring:
 2. `supabase/storage-setup.sql` — rasm/video uchun Storage bucketlari (`avatars`, `videos`, `chat`)
 3. `supabase/reviews-update.sql` — profilga to'g'ridan-to'g'ri baho/izoh
 4. `supabase/social-features.sql` — **obuna (follow), video like, ko'rishlar** + bildirishnoma triggerlari
+5. `supabase/interactions.sql` — **video izohlari (+ javob, yurakcha)** va **chat emoji reaksiyalari**

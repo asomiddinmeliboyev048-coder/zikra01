@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Video } from "@/lib/types";
 import { formatDuration, timeAgo, avatarFallback } from "@/lib/utils";
-import VideoThumbLink from "@/components/VideoThumbLink";
 import VideoStats from "@/components/VideoStats";
 
 export default function VideoCard({
@@ -33,22 +32,25 @@ export default function VideoCard({
             {formatDuration(video.duration)}
           </span>
         ) : null}
-        <VideoThumbLink
-          videoId={video.id}
-          url={video.cloudinary_url}
+        <Link
+          href={`/videos/${video.id}`}
           className="absolute inset-0 flex items-center justify-center bg-black/0 transition hover:bg-black/20"
+          aria-label="Videoni ochish"
         >
           <span className="rounded-full bg-white/90 p-3 opacity-0 transition group-hover:opacity-100">
             <PlayIcon dark />
           </span>
-        </VideoThumbLink>
+        </Link>
       </div>
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 font-semibold text-gray-900">
+          <Link
+            href={`/videos/${video.id}`}
+            className="line-clamp-2 font-semibold text-gray-900 hover:text-brand"
+          >
             {video.title}
-          </h3>
+          </Link>
           {video.skill && (
             <span className="tag-teach shrink-0">{video.skill.name}</span>
           )}

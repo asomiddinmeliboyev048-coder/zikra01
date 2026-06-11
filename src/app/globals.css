@@ -115,3 +115,48 @@ body {
 .animate-float {
   animation: float-soft 5s ease-in-out infinite;
 }
+
+
+/* ============================================================
+   DARK MODE — global remap (komponentlarni avtomatik moslashtirish)
+   ============================================================ */
+.dark body {
+  background-color: #0e1525;
+  color: #e2e8f0;
+}
+
+/* Yuzalar (cards, sections) */
+.dark .bg-white { background-color: #161d31 !important; }
+.dark .bg-white\/70 { background-color: rgba(22, 29, 49, 0.7) !important; }
+.dark .bg-white\/80 { background-color: rgba(22, 29, 49, 0.8) !important; }
+.dark .bg-white\/85 { background-color: rgba(22, 29, 49, 0.85) !important; }
+.dark .bg-white\/90 { background-color: rgba(22, 29, 49, 0.9) !important; }
+.dark .bg-white\/95 { background-color: rgba(22, 29, 49, 0.95) !important; }
+
+.dark .bg-gray-50 { background-color: #0e1525 !important; }
+.dark .bg-gray-50\/40 { background-color: rgba(14, 21, 37, 0.5) !important; }
+.dark .bg-gray-50\/50 { background-color: rgba(14, 21, 37, 0.6) !important; }
+.dark .bg-gray-50\/60 { background-color: rgba(14, 21, 37, 0.6) !important; }
+.dark .bg-gray-100 { background-color: #232c44 !important; }
+.dark .bg-gray-900 { background-color: #0b1120 !important; }
+
+/* Matn ranglari */
+.dark .text-gray-900 { color: #f1f5f9 !important; }
+.dark .text-gray-800 { color: #e2e8f0 !important; }
+.dark .text-gray-700 { color: #cbd5e1 !important; }
+.dark .text-gray-600 { color: #94a3b8 !important; }
+.dark .text-gray-500 { color: #94a3b8 !important; }
+.dark .text-gray-400 { color: #64748b !important; }
+
+/* Chegaralar */
+.dark .border-gray-100 { border-color: #232c44 !important; }
+.dark .border-gray-200 { border-color: #2f3a57 !important; }
+.dark .border-gray-300 { border-color: #3a4565 !important; }
+
+/* Inputlar */
+.dark .input { background-color: #161d31 !important; border-color: #2f3a57 !important; color: #f1f5f9 !important; }
+.dark .input::placeholder { color: #64748b !important; }
+
+/* Hover holatlari */
+.dark .hover\:bg-gray-50:hover { background-color: #1a2238 !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #232c44 !important; }

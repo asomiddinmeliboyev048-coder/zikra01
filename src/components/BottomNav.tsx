@@ -8,14 +8,20 @@ import { cn } from "@/lib/utils";
  * Mobil qurilmalar uchun pastki navigatsiya paneli (faqat md dan kichik ekranlarda).
  * Har bir asosiy bo'lim alohida tugma sifatida pastda joylashadi.
  */
-export default function BottomNav({ profileId }: { profileId: string }) {
+export default function BottomNav({
+  profileId,
+  unread = 0,
+}: {
+  profileId: string;
+  unread?: number;
+}) {
   const pathname = usePathname();
 
   const items = [
     { href: "/discovery", label: "Kashf", icon: DiscoverIcon },
-    { href: "/lessons", label: "Darslar", icon: LessonIcon },
     { href: "/videos", label: "Video", icon: VideoIcon },
     { href: "/chat", label: "Suhbat", icon: ChatIcon },
+    { href: "/notifications", label: "Bildirish", icon: BellIcon, badge: unread },
     { href: `/profile/${profileId}`, label: "Profil", icon: UserIcon },
   ];
 
@@ -27,16 +33,24 @@ export default function BottomNav({ profileId }: { profileId: string }) {
             ? pathname.startsWith("/profile")
             : pathname.startsWith(item.href);
         const Icon = item.icon;
+        const badge = "badge" in item ? (item.badge as number) : 0;
         return (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition",
+              "relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition",
               active ? "text-brand" : "text-gray-400"
             )}
           >
-            <Icon active={active} />
+            <span className="relative">
+              <Icon active={active} />
+              {badge > 0 && (
+                <span className="absolute -right-2 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-accent px-0.5 text-[8px] font-bold text-white">
+                  {badge > 9 ? "9+" : badge}
+                </span>
+              )}
+            </span>
             {item.label}
           </Link>
         );
@@ -53,10 +67,10 @@ function DiscoverIcon({ active }: { active: boolean }) {
     </svg>
   );
 }
-function LessonIcon({ active }: { active: boolean }) {
+function BellIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
-      <path d="M4 5h16v14H4zM4 9h16" strokeLinejoin="round" />
+      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

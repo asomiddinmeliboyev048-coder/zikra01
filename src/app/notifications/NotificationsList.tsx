@@ -16,6 +16,7 @@ const ICON: Record<NotificationType, string> = {
   new_follower: "👤",
   new_like: "❤️",
   new_video_from_following: "🎬",
+  new_comment: "💭",
 };
 
 export default function NotificationsList({
