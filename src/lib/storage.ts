@@ -81,3 +81,16 @@ export async function uploadChatMedia(file: File): Promise<string> {
   }
   return uploadToBucket("chat", file);
 }
+
+/** Hikoya (story) uchun rasm/video yuklash */
+export async function uploadStoryMedia(
+  file: File
+): Promise<{ url: string; type: "image" | "video" }> {
+  const isImage = file.type.startsWith("image/");
+  const isVideo = file.type.startsWith("video/");
+  if (!isImage && !isVideo) {
+    throw new Error("Faqat rasm yoki video yuklash mumkin.");
+  }
+  const url = await uploadToBucket("stories", file);
+  return { url, type: isVideo ? "video" : "image" };
+}

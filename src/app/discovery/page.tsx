@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import StoriesBar from "@/components/StoriesBar";
 import DiscoveryClient from "./DiscoveryClient";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getUserSkills } from "@/lib/queries";
@@ -75,6 +76,7 @@ export default async function DiscoveryPage() {
     <div className="min-h-screen">
       <Navbar />
       <main className="container-app py-8">
+        <StoriesBar />
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Hamkor toping</h1>
           <p className="mt-1 text-sm text-gray-500">

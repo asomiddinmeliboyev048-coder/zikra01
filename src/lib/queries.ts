@@ -160,3 +160,56 @@ export async function getFollowInfo(
     isFollowing: (mine.count ?? 0) > 0,
   };
 }
+
+
+/** Stories feed — foydalanuvchilar bo'yicha guruhlangan faol hikoyalar */
+export async function getStoriesFeed(meId: string): Promise<{
+  groups: import("@/lib/types").StoryGroup[];
+}> {
+  const supabase = await createClient();
+
+  const { data: storiesData } = await supabase
+    .from("stories")
+    .select(
+      "*, user:profiles!stories_user_id_fkey(id, full_name, avatar_url)"
+    )
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: true });
+
+  type Row = import("@/lib/types").Story & {
+    user: { id: string; full_name: string; avatar_url: string | null };
+  };
+  const rows = (storiesData as unknown as Row[]) ?? [];
+
+  // Mening ko'rganlarim
+  const { data: views } = await supabase
+    .from("story_views")
+    .select("story_id")
+    .eq("viewer_id", meId);
+  const viewedSet = new Set((views ?? []).map((v) => v.story_id));
+
+  const map = new Map<string, import("@/lib/types").StoryGroup>();
+  for (const r of rows) {
+    if (!map.has(r.user_id)) {
+      map.set(r.user_id, {
+        user: r.user,
+        stories: [],
+        hasUnviewed: false,
+        isMe: r.user_id === meId,
+      });
+    }
+    const g = map.get(r.user_id)!;
+    g.stories.push({
+      id: r.id,
+      user_id: r.user_id,
+      media_url: r.media_url,
+      media_type: r.media_type,
+      caption: r.caption,
+      created_at: r.created_at,
+      expires_at: r.expires_at,
+    });
+    if (!viewedSet.has(r.id) && r.user_id !== meId) g.hasUnviewed = true;
+  }
+
+  return { groups: Array.from(map.values()) };
+}

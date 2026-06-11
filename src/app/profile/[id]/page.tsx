@@ -82,6 +82,35 @@ export default async function ProfilePage({
     }
   }
 
+  // "Hikoyalarim" — faqat o'z profilida, faol hikoyalar + ko'rish/like soni
+  type MyStory = { id: string; media_url: string; media_type: string; created_at: string; views: number; likes: number };
+  let myStories: MyStory[] = [];
+  if (isOwn) {
+    const { data: st } = await supabase
+      .from("stories")
+      .select("id, media_url, media_type, created_at")
+      .eq("user_id", profile.id)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false });
+    const sList = (st as { id: string; media_url: string; media_type: string; created_at: string }[]) ?? [];
+    if (sList.length > 0) {
+      const sIds = sList.map((s) => s.id);
+      const [{ data: vw }, { data: lk }] = await Promise.all([
+        supabase.from("story_views").select("story_id").in("story_id", sIds),
+        supabase.from("story_likes").select("story_id").in("story_id", sIds),
+      ]);
+      const vc = new Map<string, number>();
+      const lc = new Map<string, number>();
+      for (const r of (vw as { story_id: string }[]) ?? []) vc.set(r.story_id, (vc.get(r.story_id) ?? 0) + 1);
+      for (const r of (lk as { story_id: string }[]) ?? []) lc.set(r.story_id, (lc.get(r.story_id) ?? 0) + 1);
+      myStories = sList.map((s) => ({
+        ...s,
+        views: vc.get(s.id) ?? 0,
+        likes: lc.get(s.id) ?? 0,
+      }));
+    }
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -212,6 +241,33 @@ export default async function ProfilePage({
                 </div>
               </div>
             </section>
+
+          {/* Hikoyalarim (faqat o'z profil) */}
+            {isOwn && myStories.length > 0 && (
+              <section className="card p-6">
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                  Hikoyalarim ({myStories.length} faol)
+                </h2>
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                  {myStories.map((s) => (
+                    <div key={s.id} className="overflow-hidden rounded-xl border border-gray-100">
+                      <div className="relative aspect-[9/16] bg-gray-900">
+                        {s.media_type === "video" ? (
+                          <video src={s.media_url} className="h-full w-full object-cover" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={s.media_url} alt="" className="h-full w-full object-cover" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-around p-1.5 text-xs text-gray-500">
+                        <span>👁 {s.views}</span>
+                        <span>❤ {s.likes}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Video darslar */}
             <section className="card p-6">

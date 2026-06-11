@@ -155,6 +155,23 @@ export interface MessageReaction {
   emoji: string;
 }
 
+export interface Story {
+  id: string;
+  user_id: string;
+  media_url: string;
+  media_type: "image" | "video";
+  caption: string | null;
+  created_at: string;
+  expires_at: string;
+}
+
+export interface StoryGroup {
+  user: Pick<Profile, "id" | "full_name" | "avatar_url">;
+  stories: Story[];
+  hasUnviewed: boolean;
+  isMe: boolean;
+}
+
 export interface AppNotification {
   id: string;
   user_id: string;

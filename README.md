@@ -129,3 +129,6 @@ Supabase **SQL Editor**'da quyidagilarni shu tartibda ishga tushiring:
 3. `supabase/reviews-update.sql` — profilga to'g'ridan-to'g'ri baho/izoh
 4. `supabase/social-features.sql` — **obuna (follow), video like, ko'rishlar** + bildirishnoma triggerlari
 5. `supabase/interactions.sql` — **video izohlari (+ javob, yurakcha)** va **chat emoji reaksiyalari**
+6. `supabase/stories-support.sql` — **Stories (hikoyalar)** + **Qo'llab-quvvatlash chat** (cron, storage bucket, triggerlar)
+
+> ⚠️ `stories-support.sql` `public.is_admin()` funksiyasiga tayanadi — uni ZikraAdmin `admin-schema.sql` yaratadi. Avtomatik o'chirish uchun Supabase'da **pg_cron** extension yoqilgan bo'lsin (Database → Extensions).

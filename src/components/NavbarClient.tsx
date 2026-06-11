@@ -9,6 +9,7 @@ import { avatarFallback, cn } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationListener from "@/components/NotificationListener";
+import SupportWidget from "@/components/SupportWidget";
 
 interface Props {
   profile: {
@@ -49,6 +50,9 @@ export default function NavbarClient({ profile, unread }: Props) {
     <>
       {/* Tovushli bildirishnoma kuzatuvchisi (real-time) */}
       <NotificationListener userId={profile.id} />
+
+      {/* Qo'llab-quvvatlash floating widget */}
+      <SupportWidget userId={profile.id} />
 
       {/* Mobil pastki navigatsiya */}
       <BottomNav profileId={profile.id} unread={unread} />
