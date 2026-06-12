@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessageAction } from "@/app/actions/chat";
 import { setReactionAction } from "@/app/actions/social";
+import { saveItemAction, forwardMessageAction } from "@/app/actions/saved";
 import { uploadChatMedia } from "@/lib/storage";
 import { avatarFallback, formatTime, timeAgo, cn } from "@/lib/utils";
 import MatchBadge from "@/components/MatchBadge";
@@ -116,6 +117,19 @@ export default function ChatClient({
     if (res?.error) alert(res.error);
   }
 
+  const [forwardContent, setForwardContent] = useState<string | null>(null);
+
+  async function saveMsg(content: string) {
+    const res = await saveItemAction(content, "text");
+    alert(res.error ? res.error : "📌 Saqlangan xabarlarga qo'shildi");
+  }
+
+  async function doForward(content: string, toUserId: string) {
+    const res = await forwardMessageAction(content, toUserId);
+    setForwardContent(null);
+    alert(res.error ? res.error : "Yuborildi ✓");
+  }
+
   // Yangi xabarlar kelganda pastga aylantirish
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -217,6 +231,21 @@ export default function ChatClient({
           <h2 className="font-semibold text-gray-900">Suhbatlar</h2>
         </div>
         <div className="max-h-[calc(100vh-12rem)] overflow-y-auto">
+          {/* Saqlangan xabarlar — har doim yuqorida */}
+          <Link
+            href="/saved"
+            className="flex items-center gap-3 border-b border-gray-50 px-4 py-3 transition hover:bg-gray-50"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-lg text-white">
+              📌
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-gray-900">
+                Saqlangan xabarlar
+              </p>
+              <p className="truncate text-xs text-gray-500">Faqat siz ko&apos;rasiz</p>
+            </div>
+          </Link>
           {conversations.length === 0 ? (
             <p className="p-4 text-sm text-gray-400">
               Hali suhbatlar yo&apos;q. Kashf etish sahifasidan kimnidir toping!
@@ -319,6 +348,8 @@ export default function ChatClient({
                   mine={m.sender_id === meId}
                   aggs={reactions[m.id] ?? []}
                   onReact={react}
+                  onSave={saveMsg}
+                  onForward={(c) => setForwardContent(c)}
                 />
               ))}
               <div ref={bottomRef} />
@@ -379,6 +410,42 @@ export default function ChatClient({
           </div>
         )}
       </section>
+
+      {/* Forward modal — suhbat tanlash */}
+      {forwardContent !== null && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-card-hover">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Kimga yuborish</h3>
+              <button onClick={() => setForwardContent(null)} className="text-gray-400">✕</button>
+            </div>
+            {conversations.length === 0 ? (
+              <p className="py-4 text-center text-sm text-gray-400">Suhbatlar yo&apos;q.</p>
+            ) : (
+              <ul className="max-h-80 space-y-1 overflow-y-auto">
+                {conversations.map((c) => (
+                  <li key={c.partner.id}>
+                    <button
+                      onClick={() => doForward(forwardContent, c.partner.id)}
+                      className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-gray-50"
+                    >
+                      <Image
+                        src={c.partner.avatar_url || avatarFallback(c.partner.full_name)}
+                        alt=""
+                        width={36}
+                        height={36}
+                        className="h-9 w-9 rounded-full object-cover"
+                        unoptimized
+                      />
+                      <span className="text-sm text-gray-800">{c.partner.full_name}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -389,11 +456,15 @@ function MessageRow({
   mine,
   aggs,
   onReact,
+  onSave,
+  onForward,
 }: {
   message: Message;
   mine: boolean;
   aggs: ReactionAgg[];
   onReact: (messageId: string, emoji: string) => void;
+  onSave: (content: string) => void;
+  onForward: (content: string) => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -430,6 +501,27 @@ function MessageRow({
                 {e}
               </button>
             ))}
+            <span className="mx-0.5 w-px bg-gray-200" />
+            <button
+              onClick={() => {
+                onSave(message.content);
+                setPickerOpen(false);
+              }}
+              title="Saqlash"
+              className="rounded-full px-1.5 text-base transition hover:scale-125"
+            >
+              📌
+            </button>
+            <button
+              onClick={() => {
+                onForward(message.content);
+                setPickerOpen(false);
+              }}
+              title="Forward"
+              className="rounded-full px-1.5 text-base transition hover:scale-125"
+            >
+              ↪
+            </button>
           </div>
         </>
       )}

@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import PWAInstall from "@/components/PWAInstall";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,11 +17,25 @@ export const metadata: Metadata = {
   description:
     "Zikra — O'zbekistondagi birinchi bepul P2P ko'nikma almashish platformasi. Sen menga Python o'rgat, men senga Ingliz tili o'rgataman.",
   keywords: ["Zikra", "ko'nikma almashish", "bepul ta'lim", "P2P", "Uzbekistan"],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "Zikra",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
   openGraph: {
     title: "Zikra — Learn. Teach. Be remembered.",
     description: "Bepul P2P ko'nikma almashish platformasi.",
     type: "website",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#534AB7",
 };
 
 export default function RootLayout({
@@ -37,6 +52,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-[#f7f7fb] font-sans text-gray-900 antialiased dark:bg-[#0e1525] dark:text-gray-100">
         {children}
+        <PWAInstall />
       </body>
     </html>
   );

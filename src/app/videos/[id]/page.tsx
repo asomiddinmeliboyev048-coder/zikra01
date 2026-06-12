@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import VideoStats from "@/components/VideoStats";
+import VideoPlayer from "@/components/VideoPlayer";
+import SaveVideoButton from "@/components/SaveVideoButton";
 import VideoComments, { type CommentView } from "@/components/VideoComments";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getVideoStats } from "@/lib/queries";
@@ -12,13 +14,6 @@ import type { Video } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Video dars" };
 export const dynamic = "force-dynamic";
-
-function youtubeId(url: string): string | null {
-  const m = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/
-  );
-  return m ? m[1] : null;
-}
 
 interface RawComment {
   id: string;
@@ -50,10 +45,7 @@ export default async function VideoDetailPage({
   if (!videoData) notFound();
   const video = videoData as unknown as Video;
 
-  // Ko'rish yozish (+1)
-  await supabase.from("video_views").insert({ video_id: id, user_id: me.id });
-
-  // Like / ko'rish statistikasi
+  // Like / ko'rish statistikasi (ko'rish VideoPlayer ichida, reklamadan keyin yoziladi)
   const stats = (await getVideoStats([id], me.id)).get(id) ?? {
     likes: 0,
     views: 0,
@@ -111,9 +103,6 @@ export default async function VideoDetailPage({
     }
   }
 
-  const yt = youtubeId(video.cloudinary_url);
-  const isFile = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(video.cloudinary_url);
-
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -122,38 +111,14 @@ export default async function VideoDetailPage({
           ← Video darslar
         </Link>
 
-        {/* Pleyer */}
+        {/* Pleyer (reklama + asl video + watch tracking) */}
         <div className="mt-4 overflow-hidden rounded-2xl bg-black">
-          <div className="relative aspect-video">
-            {yt ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${yt}`}
-                title={video.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-              />
-            ) : isFile ? (
-              <video src={video.cloudinary_url} controls className="absolute inset-0 h-full w-full" />
-            ) : (
-              <a
-                href={video.cloudinary_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand to-brand-700 text-white"
-              >
-                ▶ Videoni ochish
-              </a>
-            )}
-          </div>
+          <VideoPlayer videoId={video.id} url={video.cloudinary_url} />
         </div>
 
         {/* Sarlavha + statistika */}
         <div className="card mt-4 p-5">
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="text-xl font-bold text-gray-900">{video.title}</h1>
-            {video.skill && <span className="tag-teach shrink-0">{video.skill.name}</span>}
-          </div>
+          <h1 className="text-xl font-bold text-gray-900">{video.title}</h1>
 
           <VideoStats
             videoId={video.id}
@@ -161,6 +126,10 @@ export default async function VideoDetailPage({
             initialLiked={stats.liked}
             initialViews={stats.views}
           />
+
+          <div className="mt-2">
+            <SaveVideoButton url={video.cloudinary_url} />
+          </div>
 
           {video.uploader && (
             <Link

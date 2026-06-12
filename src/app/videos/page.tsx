@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import VideoCard from "@/components/VideoCard";
 import VideoUpload from "./VideoUpload";
-import VideoFilter from "./VideoFilter";
+import VideoBrowser from "./VideoBrowser";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getSkills, getVideoStats } from "@/lib/queries";
 import type { Video } from "@/lib/types";
@@ -11,36 +10,41 @@ import type { Video } from "@/lib/types";
 export const metadata: Metadata = { title: "Video darslar" };
 export const dynamic = "force-dynamic";
 
-export default async function VideosPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ skill?: string }>;
-}) {
+export default async function VideosPage() {
   const me = await getCurrentProfile();
   if (!me) redirect("/login");
 
-  const { skill } = await searchParams;
   const supabase = await createClient();
 
-  let query = supabase
-    .from("videos")
-    .select("*, skill:skills(*), uploader:profiles!videos_uploader_id_fkey(id, full_name, avatar_url)")
-    .eq("status", "published");
-
-  if (skill) query = query.eq("skill_id", skill);
-
   const [{ data: videosData }, skills] = await Promise.all([
-    query.order("created_at", { ascending: false }),
+    supabase
+      .from("videos")
+      .select("*, uploader:profiles!videos_uploader_id_fkey(id, full_name, avatar_url)")
+      .eq("status", "published")
+      .order("created_at", { ascending: false }),
     getSkills(),
   ]);
 
   const videos = (videosData as unknown as Video[]) ?? [];
+  const ids = videos.map((v) => v.id);
 
   // Like/ko'rish statistikasi
-  const stats = await getVideoStats(
-    videos.map((v) => v.id),
-    me.id
-  );
+  const stats = await getVideoStats(ids, me.id);
+
+  // "Sifatli ko'rish" (70%+) sonini hisoblash — algoritm uchun
+  const qualityViews = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: vw } = await supabase
+      .from("video_views")
+      .select("video_id, watch_percentage")
+      .in("video_id", ids)
+      .gte("watch_percentage", 70);
+    for (const r of (vw as { video_id: string }[]) ?? []) {
+      qualityViews.set(r.video_id, (qualityViews.get(r.video_id) ?? 0) + 1);
+    }
+  }
+
+  const now = Date.now();
   for (const v of videos) {
     const s = stats.get(v.id);
     if (s) {
@@ -49,6 +53,18 @@ export default async function VideosPage({
       v.liked = s.liked;
     }
   }
+
+  // YouTube uslubidagi tartiblash:
+  //   1) eng ko'p oxirigacha ko'rilgan (sifatli ko'rishlar)
+  //   2) eng ko'p like
+  //   3) eng yangi
+  const score = (v: Video) => {
+    const quality = qualityViews.get(v.id) ?? 0;
+    const ageDays = (now - new Date(v.created_at).getTime()) / 86400000;
+    const recencyBoost = Math.max(0, 7 - ageDays); // 1 haftagacha yangi bonus
+    return quality * 5 + (v.likes ?? 0) * 3 + (v.views ?? 0) * 1 + recencyBoost;
+  };
+  videos.sort((a, b) => score(b) - score(a));
 
   return (
     <div className="min-h-screen">
@@ -64,23 +80,7 @@ export default async function VideosPage({
           <VideoUpload skills={skills} />
         </div>
 
-        <VideoFilter skills={skills} active={skill ?? ""} />
-
-        {videos.length > 0 ? (
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {videos.map((v) => (
-              <VideoCard key={v.id} video={v} />
-            ))}
-          </div>
-        ) : (
-          <div className="card mt-6 flex flex-col items-center gap-2 py-16 text-center">
-            <span className="text-4xl">🎬</span>
-            <p className="font-medium text-gray-700">Hali video darslar yo&apos;q</p>
-            <p className="text-sm text-gray-500">
-              Birinchi bo&apos;lib o&apos;z darsingizni yuklang!
-            </p>
-          </div>
-        )}
+        <VideoBrowser videos={videos} />
       </main>
     </div>
   );

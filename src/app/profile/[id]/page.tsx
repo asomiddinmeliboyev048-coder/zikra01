@@ -9,6 +9,7 @@ import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
 import ReviewButton from "./ReviewButton";
 import FollowButton from "@/components/FollowButton";
+import Linkify from "@/components/Linkify";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo } from "@/lib/queries";
 import { avatarFallback, timeAgo } from "@/lib/utils";
@@ -133,6 +134,9 @@ export default async function ProfilePage({
                   <h1 className="text-2xl font-bold text-gray-900">
                     {profile.full_name}
                   </h1>
+                  {profile.username && (
+                    <p className="text-sm font-medium text-brand">@{profile.username}</p>
+                  )}
                   <p className="text-sm text-gray-500">
                     {profile.city || "Shahar ko'rsatilmagan"}
                   </p>
@@ -167,7 +171,9 @@ export default async function ProfilePage({
             </div>
 
             {profile.bio && (
-              <p className="mt-4 max-w-2xl text-gray-600">{profile.bio}</p>
+              <p className="mt-4 max-w-2xl whitespace-pre-wrap text-gray-600">
+                <Linkify text={profile.bio} />
+              </p>
             )}
 
             {/* Obunachilar / obunalar */}

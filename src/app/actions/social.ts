@@ -71,7 +71,7 @@ export async function toggleLikeAction(videoId: string): Promise<SocialResult> {
   return { liked: true };
 }
 
-/** Video ko'rilganda +1 ko'rish (har foydalanuvchi har ochganda) */
+/** Video ko'rilganda — foydalanuvchiga FAQAT 1 marta hisoblanadi (unique) */
 export async function recordViewAction(videoId: string): Promise<void> {
   const supabase = await createClient();
   const {
@@ -80,7 +80,31 @@ export async function recordViewAction(videoId: string): Promise<void> {
   if (!user) return;
   await supabase
     .from("video_views")
-    .insert({ video_id: videoId, user_id: user.id });
+    .upsert(
+      { video_id: videoId, user_id: user.id },
+      { onConflict: "video_id,user_id", ignoreDuplicates: true }
+    );
+}
+
+/** Ko'rish davomiyligini yangilash (YouTube algoritmi uchun) */
+export async function updateWatchProgressAction(
+  videoId: string,
+  durationSeconds: number,
+  percentage: number
+): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from("video_views")
+    .update({
+      watch_duration: Math.round(durationSeconds),
+      watch_percentage: Math.min(100, Math.round(percentage)),
+    })
+    .eq("video_id", videoId)
+    .eq("user_id", user.id);
 }
 
 

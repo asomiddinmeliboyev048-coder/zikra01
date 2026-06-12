@@ -79,11 +79,10 @@ export default async function ChatPage({
     return new Date(b.last_at).getTime() - new Date(a.last_at).getTime();
   });
 
-  // Aktiv hamkor
+  // Aktiv hamkor — faqat `with` orqali kelganda tanlanadi.
+  // Aks holda null (mobil va desktopda avval suhbatlar ro'yxati ko'rinadi).
   const activeId =
-    withId && partnerIds.has(withId)
-      ? withId
-      : conversations[0]?.partner.id ?? null;
+    withId && partnerIds.has(withId) ? withId : null;
 
   // Aktiv suhbat xabarlari + moslik
   let activeMessages: Message[] = [];

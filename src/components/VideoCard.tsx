@@ -51,9 +51,6 @@ export default function VideoCard({
           >
             {video.title}
           </Link>
-          {video.skill && (
-            <span className="tag-teach shrink-0">{video.skill.name}</span>
-          )}
         </div>
 
         {/* Like + ko'rishlar */}

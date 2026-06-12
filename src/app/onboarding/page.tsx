@@ -41,6 +41,7 @@ export default async function OnboardingPage() {
             skills={skills}
             defaults={{
               full_name: profile.full_name,
+              username: profile.username ?? "",
               city: profile.city ?? "",
               bio: profile.bio ?? "",
               avatar_url: profile.avatar_url ?? "",

@@ -7,6 +7,7 @@ export type SkillType = "teach" | "learn";
 export interface Profile {
   id: string;
   full_name: string;
+  username: string | null;
   city: string | null;
   bio: string | null;
   avatar_url: string | null;
