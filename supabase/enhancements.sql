@@ -7,10 +7,16 @@
 create extension if not exists "pgcrypto";
 
 -- 1) VIDEO VIEWS — bir foydalanuvchi = bitta ko'rish (unique)
+-- Dublikatlarni o'chiramiz (eng erta ko'rishni qoldirib). min(uuid) mavjud emas,
+-- shuning uchun row_number() ishlatamiz.
 delete from public.video_views v
-where v.id not in (
-  select min(id) from public.video_views group by video_id, user_id
-);
+using (
+  select id, row_number() over (
+    partition by video_id, user_id order by viewed_at
+  ) as rn
+  from public.video_views
+) d
+where v.id = d.id and d.rn > 1;
 alter table public.video_views add column if not exists watch_duration integer default 0;
 alter table public.video_views add column if not exists watch_percentage integer default 0;
 do $$ begin
