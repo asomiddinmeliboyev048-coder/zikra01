@@ -260,6 +260,21 @@ export default async function LandingPage() {
                 O&apos;zbekistondagi birinchi bepul P2P ko&apos;nikma almashish
                 platformasi. Learn. Teach. Be remembered.
               </p>
+              {/* Ilovani yuklab olish — footerda doim ko'rinadi */}
+              <Link
+                href="/download"
+                className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-100"
+              >
+                📱 Ilovani yuklab olish
+              </Link>
+              <div className="mt-3 flex gap-2 text-gray-400">
+                <span className="inline-flex items-center gap-1 text-xs">
+                  <span>▶</span> Google Play
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs">
+                  <span></span> App Store
+                </span>
+              </div>
             </div>
 
             {/* Tezkor havolalar */}
@@ -270,6 +285,7 @@ export default async function LandingPage() {
               <ul className="space-y-2 text-sm">
                 <li><Link href="/register" className="hover:text-white">Ro&apos;yxatdan o&apos;tish</Link></li>
                 <li><Link href="/login" className="hover:text-white">Kirish</Link></li>
+                <li><Link href="/download" className="hover:text-white">📱 Ilovani yuklab olish</Link></li>
               </ul>
             </div>
 

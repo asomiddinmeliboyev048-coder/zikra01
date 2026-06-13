@@ -1,13 +1,17 @@
 {
+  "id": "/",
   "name": "Zikra — Learn. Teach. Be remembered.",
   "short_name": "Zikra",
   "description": "Bepul P2P ko'nikma almashish platformasi.",
+  "lang": "uz",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#534AB7",
+  "categories": ["education", "social"],
   "icons": [
     {
       "src": "/icon.svg",
@@ -20,6 +24,23 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Suhbatlar",
+      "short_name": "Chat",
+      "url": "/chat"
+    },
+    {
+      "name": "Video darslar",
+      "short_name": "Video",
+      "url": "/videos"
+    },
+    {
+      "name": "Kashf etish",
+      "short_name": "Kashf",
+      "url": "/discovery"
     }
   ]
 }

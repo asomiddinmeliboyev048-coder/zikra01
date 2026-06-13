@@ -64,6 +64,7 @@ export default async function ChatPage({
           id: partner.id,
           full_name: partner.full_name,
           avatar_url: partner.avatar_url,
+          username: partner.username,
         },
         conversation_id: conversationId(me.id, pid),
         last_message: last?.content ?? null,
@@ -109,7 +110,7 @@ export default async function ChatPage({
   return (
     <div className="flex h-screen flex-col">
       <Navbar />
-      <main className="container-app flex min-h-0 flex-1 py-6">
+      <main className="flex min-h-0 flex-1 px-0 py-0 sm:container-app sm:py-6">
         <ChatClient
           meId={me.id}
           conversations={conversations}

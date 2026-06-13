@@ -7,11 +7,12 @@ import StarRating from "@/components/StarRating";
 import LevelProgress from "@/components/LevelProgress";
 import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
+import VideoUpload from "@/app/videos/VideoUpload";
 import ReviewButton from "./ReviewButton";
 import FollowButton from "@/components/FollowButton";
 import Linkify from "@/components/Linkify";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo } from "@/lib/queries";
+import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo, getSkills } from "@/lib/queries";
 import { avatarFallback, timeAgo } from "@/lib/utils";
 import type { UserBadge, Video, Rating } from "@/lib/types";
 
@@ -112,6 +113,9 @@ export default async function ProfilePage({
     }
   }
 
+  // Video yuklash modal uchun ko'nikmalar — faqat o'z profilida kerak bo'ladi
+  const skills = isOwn ? await getSkills() : [];
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -143,7 +147,8 @@ export default async function ProfilePage({
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              {/* Amal tugmalari — mobilda to'liq kenglikda ustma-ust, desktopda yonma-yon */}
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row [&>*]:w-full sm:[&>*]:w-auto">
                 {isOwn ? (
                   <Link href="/onboarding" className="btn-outline">
                     Profilni tahrirlash
@@ -277,9 +282,13 @@ export default async function ProfilePage({
 
             {/* Video darslar */}
             <section className="card p-6">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                Video darslar ({videos.length})
-              </h2>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Video darslar ({videos.length})
+                </h2>
+                {/* Video yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
+                {isOwn && <VideoUpload skills={skills} />}
+              </div>
               {videos.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {videos.map((v) => (
@@ -288,7 +297,9 @@ export default async function ProfilePage({
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">
-                  Hali video dars yuklanmagan.
+                  {isOwn
+                    ? "Hali video dars yuklamadingiz. Yuqoridagi tugma orqali birinchi darsingizni qo'shing."
+                    : "Hali video dars yuklanmagan."}
                 </p>
               )}
             </section>

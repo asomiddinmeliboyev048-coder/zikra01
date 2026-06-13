@@ -33,6 +33,8 @@ export default function PWAInstall() {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BIPEvent);
+      // Global saqlash — /download sahifasidagi tugmalar ham foydalanishi uchun
+      (window as unknown as { __zikraBIP?: BIPEvent }).__zikraBIP = e as BIPEvent;
       setShow(true);
     };
     window.addEventListener("beforeinstallprompt", handler);
