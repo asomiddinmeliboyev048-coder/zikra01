@@ -22,10 +22,18 @@ interface ReactionAgg {
 }
 
 export interface Conversation {
-  partner: { id: string; full_name: string; avatar_url: string | null };
+  partner: { id: string; full_name: string; avatar_url: string | null; username?: string | null };
   conversation_id: string;
   last_message: string | null;
   last_at: string | null;
+}
+
+/** Qidiruv natijasidagi foydalanuvchi (yangi suhbat boshlash uchun) */
+interface SearchProfile {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  username: string | null;
 }
 
 interface Props {
@@ -49,10 +57,52 @@ export default function ChatClient({
   const [sending, setSending] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [reactions, setReactions] = useState<Record<string, ReactionAgg[]>>({});
+  // Qidiruv holati (suhbat va foydalanuvchi qidirish)
+  const [query, setQuery] = useState("");
+  const [userResults, setUserResults] = useState<SearchProfile[]>([]);
+  const [searching, setSearching] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLInputElement>(null);
 
   const active = conversations.find((c) => c.partner.id === activeId) ?? null;
+
+  // Qidiruvga mos mavjud suhbatlar (ism yoki @username bo'yicha)
+  const q = query.trim().toLowerCase();
+  const filteredConversations = q
+    ? conversations.filter(
+        (c) =>
+          c.partner.full_name.toLowerCase().includes(q) ||
+          (c.partner.username ?? "").toLowerCase().includes(q)
+      )
+    : conversations;
+
+  // Foydalanuvchilarni Supabase'dan real-time qidirish (debounce bilan)
+  useEffect(() => {
+    const term = query.trim();
+    if (term.length < 1) {
+      setUserResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const t = setTimeout(async () => {
+      const supabase = createClient();
+      const pattern = `%${term}%`;
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, username")
+        .or(`username.ilike.${pattern},full_name.ilike.${pattern}`)
+        .neq("id", meId)
+        .limit(10);
+      setUserResults((data as SearchProfile[]) ?? []);
+      setSearching(false);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [query, meId]);
+
+  // Mavjud suhbat hamkorlari — qidiruv natijasidan ularni ajratish uchun
+  const partnerIdSet = new Set(conversations.map((c) => c.partner.id));
+  const newUserResults = userResults.filter((u) => !partnerIdSet.has(u.id));
 
   // Reaksiyalarni yuklash
   async function loadReactions(msgIds: string[]) {
@@ -219,7 +269,7 @@ export default function ChatClient({
   }
 
   return (
-    <div className="card flex w-full overflow-hidden">
+    <div className="card flex w-full overflow-hidden rounded-none border-0 sm:rounded-2xl sm:border">
       {/* Chap panel: suhbatlar */}
       <aside
         className={cn(
@@ -227,64 +277,151 @@ export default function ChatClient({
           activeId ? "hidden sm:block" : "block"
         )}
       >
-        <div className="border-b border-gray-100 px-4 py-3">
-          <h2 className="font-semibold text-gray-900">Suhbatlar</h2>
-        </div>
-        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto">
-          {/* Saqlangan xabarlar — har doim yuqorida */}
-          <Link
-            href="/saved"
-            className="flex items-center gap-3 border-b border-gray-50 px-4 py-3 transition hover:bg-gray-50"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-lg text-white">
-              📌
+        <div className="sticky top-0 z-10 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur">
+          <h2 className="mb-2 font-semibold text-gray-900">Suhbatlar</h2>
+          {/* Qidiruv inputi — real-time filtr */}
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+              </svg>
             </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-900">
-                Saqlangan xabarlar
-              </p>
-              <p className="truncate text-xs text-gray-500">Faqat siz ko&apos;rasiz</p>
-            </div>
-          </Link>
-          {conversations.length === 0 ? (
-            <p className="p-4 text-sm text-gray-400">
-              Hali suhbatlar yo&apos;q. Kashf etish sahifasidan kimnidir toping!
-            </p>
-          ) : (
-            conversations.map((c) => (
-              <Link
-                key={c.partner.id}
-                href={`/chat?with=${c.partner.id}`}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50",
-                  c.partner.id === activeId && "bg-brand-50"
-                )}
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Suhbat yoki foydalanuvchi qidirish..."
+              className="input py-2 pl-9 pr-9 text-sm"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100"
+                aria-label="Tozalash"
               >
-                <Image
-                  src={
-                    c.partner.avatar_url || avatarFallback(c.partner.full_name)
-                  }
-                  alt={c.partner.full_name}
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 rounded-full object-cover"
-                  unoptimized
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
-                    {c.partner.full_name}
-                  </p>
-                  <p className="truncate text-xs text-gray-500">
-                    {c.last_message ?? "Suhbatni boshlang"}
-                  </p>
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
+          {/* Saqlangan xabarlar — faqat qidiruv bo'sh bo'lganda yuqorida */}
+          {!q && (
+            <Link
+              href="/saved"
+              className="flex items-center gap-3 border-b border-gray-50 px-4 py-3 transition hover:bg-gray-50"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-lg text-white">
+                📌
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-gray-900">
+                  Saqlangan xabarlar
+                </p>
+                <p className="truncate text-xs text-gray-500">Faqat siz ko&apos;rasiz</p>
+              </div>
+            </Link>
+          )}
+
+          {/* (a) Mavjud suhbatlar */}
+          {filteredConversations.length > 0 && (
+            <>
+              {q && (
+                <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  Suhbatlar
+                </p>
+              )}
+              {filteredConversations.map((c) => (
+                <Link
+                  key={c.partner.id}
+                  href={`/chat?with=${c.partner.id}`}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50",
+                    c.partner.id === activeId && "bg-brand-50"
+                  )}
+                >
+                  <Image
+                    src={c.partner.avatar_url || avatarFallback(c.partner.full_name)}
+                    alt={c.partner.full_name}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full object-cover"
+                    unoptimized
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      {c.partner.full_name}
+                    </p>
+                    <p className="truncate text-xs text-gray-500">
+                      {c.last_message ?? "Suhbatni boshlang"}
+                    </p>
+                  </div>
+                  {c.last_at && (
+                    <span className="shrink-0 text-[10px] text-gray-400">
+                      {timeAgo(c.last_at)}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </>
+          )}
+
+          {/* (b) Yangi suhbat boshlash uchun foydalanuvchilar */}
+          {q && newUserResults.length > 0 && (
+            <>
+              <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                Yangi suhbat
+              </p>
+              {newUserResults.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center gap-3 px-4 py-3 transition hover:bg-gray-50"
+                >
+                  <Image
+                    src={u.avatar_url || avatarFallback(u.full_name)}
+                    alt={u.full_name}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full object-cover"
+                    unoptimized
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      {u.full_name}
+                    </p>
+                    {u.username && (
+                      <p className="truncate text-xs text-gray-500">@{u.username}</p>
+                    )}
+                  </div>
+                  <Link
+                    href={`/chat?with=${u.id}`}
+                    className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-600"
+                  >
+                    Xabar yozish
+                  </Link>
                 </div>
-                {c.last_at && (
-                  <span className="shrink-0 text-[10px] text-gray-400">
-                    {timeAgo(c.last_at)}
-                  </span>
-                )}
-              </Link>
-            ))
+              ))}
+            </>
+          )}
+
+          {/* Bo'sh holatlar */}
+          {!q && conversations.length === 0 && (
+            <p className="p-4 text-sm text-gray-400">
+              Hali suhbatlar yo&apos;q. Yuqoridagi qidiruv orqali foydalanuvchi toping!
+            </p>
+          )}
+          {q &&
+            !searching &&
+            filteredConversations.length === 0 &&
+            newUserResults.length === 0 && (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                <span className="text-3xl">🔍</span>
+                <p className="text-sm font-medium text-gray-600">Hech narsa topilmadi</p>
+                <p className="text-xs text-gray-400">Boshqa nom yoki @username bilan qidiring.</p>
+              </div>
+            )}
+          {q && searching && (
+            <p className="px-4 py-4 text-center text-xs text-gray-400">Qidirilmoqda...</p>
           )}
         </div>
       </aside>
@@ -358,7 +495,7 @@ export default function ChatClient({
             {/* Xabar yozish */}
             <form
               onSubmit={handleSend}
-              className="flex items-center gap-1.5 border-t border-gray-100 p-3"
+              className="flex items-center gap-1.5 border-t border-gray-100 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-3"
             >
               {/* Rasm/video biriktirish (galereya/fayl) */}
               <button

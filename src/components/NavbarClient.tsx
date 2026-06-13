@@ -129,6 +129,23 @@ export default function NavbarClient({ profile, unread }: Props) {
                 >
                   Profilni tahrirlash
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.dispatchEvent(new Event("zikra:setup-pin"));
+                  }}
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  🔒 PIN kod o&apos;rnatish
+                </button>
+                <Link
+                  href="/download"
+                  onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  📱 Ilovani yuklab olish
+                </Link>
                 <form action={signOutAction}>
                   <button
                     type="submit"
