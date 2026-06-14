@@ -56,3 +56,25 @@ export async function updateLastLoginAction(): Promise<void> {
     .update({ last_login: new Date().toISOString() })
     .eq("id", user.id);
 }
+
+/**
+ * Hisob PIN-kodini tiklash (unutilganda).
+ * Serverdagi pin_code = NULL qilinadi. Shundan so'ng foydalanuvchi tizimdan
+ * chiqariladi va qayta kirganda /welcome'da YANGI PIN o'rnatadi.
+ * Faqat tizimga kirgan (sessiyasi faol) foydalanuvchi o'z PIN'ini tiklay oladi.
+ */
+export async function resetAccountPinAction(): Promise<PinState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ pin_code: null })
+    .eq("id", user.id);
+
+  if (error) return { error: "PIN tiklanmadi: " + error.message };
+  return { success: true };
+}
