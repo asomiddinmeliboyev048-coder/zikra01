@@ -5,6 +5,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { avatarFallback, cn, conversationId } from "@/lib/utils";
 import { startRingback, startRingtone, stopRing } from "@/lib/ringtone";
+import { notifyIncomingCallAction } from "@/app/actions/push";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 /**
@@ -240,6 +241,9 @@ export default function CallProvider({ userId }: { userId: string }) {
           .select("id")
           .single();
         callIdRef.current = (data as { id: string } | null)?.id ?? null;
+
+        // Callee'ga push bildirishnoma (ilova yopiq bo'lsa ham keladi — FCM sozlangach)
+        notifyIncomingCallAction(callee.id, type).catch(() => {});
 
         // Javob bo'lmasa — "missed"
         ringTimer.current = setTimeout(async () => {

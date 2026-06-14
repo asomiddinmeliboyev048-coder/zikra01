@@ -26,15 +26,17 @@ if (config.projectId && config.appId && config.messagingSenderId) {
   firebase.initializeApp(config);
   const messaging = firebase.messaging();
 
-  // Ilova fon'da/yopiq bo'lganda kelgan xabarlar
+  // Ilova fon'da/yopiq bo'lganda kelgan xabarlar (DATA-only)
   messaging.onBackgroundMessage((payload) => {
-    const title = (payload.notification && payload.notification.title) || "Zikra";
-    const body = (payload.notification && payload.notification.body) || "";
-    const link = (payload.data && payload.data.link) || "/";
-    self.registration.showNotification(title, {
-      body,
+    const d = payload.data || {};
+    const link = d.link || "/";
+    self.registration.showNotification(d.title || "Zikra", {
+      body: d.body || "",
       icon: "/icon.svg",
       badge: "/icon.svg",
+      // bir xil tag — sahifadagi bildirishnoma bilan takrorlanmaydi
+      tag: link.indexOf("call=1") !== -1 ? "zikra-call" : "zikra-notif",
+      renotify: true,
       data: { link },
     });
   });

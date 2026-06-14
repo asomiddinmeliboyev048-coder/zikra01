@@ -76,6 +76,9 @@ export default function NotificationListener({ userId }: { userId: string }) {
         },
         (payload) => {
           const n = payload.new as { message: string; link?: string | null };
+          // Qo'ng'iroq bildirishnomasini o'tkazib yuboramiz — CallProvider o'zi
+          // to'liq ekran kiruvchi qo'ng'iroqni ko'rsatadi (takror bo'lmasligi uchun).
+          if (n.link && n.link.includes("call=1")) return;
           playBeep();
           showToast(n.message);
           router.refresh();
