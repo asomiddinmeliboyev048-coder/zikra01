@@ -56,8 +56,11 @@ export default function PushManager({ userId }: { userId: string }) {
 
         // Foreground (ilova ochiq) xabarlar
         const stop = onMessage(messaging, (payload) => {
-          const title = payload.notification?.title || "Zikra";
-          const body = payload.notification?.body || "";
+          const d = payload.data || {};
+          // Qo'ng'iroq push'i — CallProvider o'zi ko'rsatadi, o'tkazib yuboramiz
+          if (d.link && d.link.indexOf("call=1") !== -1) return;
+          const title = d.title || payload.notification?.title || "Zikra";
+          const body = d.body || payload.notification?.body || "";
           if (Notification.permission === "granted") {
             new Notification(title, { body, icon: "/icon.svg" });
           }

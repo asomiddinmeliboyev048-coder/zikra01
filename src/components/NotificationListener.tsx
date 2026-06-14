@@ -75,16 +75,34 @@ export default function NotificationListener({ userId }: { userId: string }) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const n = payload.new as { message: string };
+          const n = payload.new as { message: string; link?: string | null };
+          // Qo'ng'iroq bildirishnomasini o'tkazib yuboramiz — CallProvider o'zi
+          // to'liq ekran kiruvchi qo'ng'iroqni ko'rsatadi (takror bo'lmasligi uchun).
+          if (n.link && n.link.includes("call=1")) return;
           playBeep();
           showToast(n.message);
           router.refresh();
-          // Brauzer bildirishnomasi (agar ruxsat berilgan bo'lsa)
+          // OS bildirishnomasi — sahifa fon'da/yopiq-emas bo'lsa ko'rsatamiz
+          // (ilovadan chiqib ketganda ham xabar ko'rinadi).
           if (
             typeof Notification !== "undefined" &&
-            Notification.permission === "granted"
+            Notification.permission === "granted" &&
+            document.visibilityState !== "visible"
           ) {
-            new Notification("Zikra", { body: n.message });
+            try {
+              const notif = new Notification("Zikra", {
+                body: n.message,
+                icon: "/icon.svg",
+                tag: "zikra-notif",
+              });
+              notif.onclick = () => {
+                window.focus();
+                if (n.link) window.location.href = n.link;
+                notif.close();
+              };
+            } catch {
+              /* ignore */
+            }
           }
         }
       )

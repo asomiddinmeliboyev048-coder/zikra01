@@ -142,9 +142,17 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           message: {
             token,
-            notification: { title: payload.title, body: payload.body },
-            data: { link: payload.link ?? "/" },
-            webpush: { fcmOptions: { link: payload.link ?? "/" } },
+            // DATA-only — ko'rsatishni to'liq Service Worker boshqaradi
+            // (notification maydoni qo'shilsa, ba'zi brauzerlarda ikki marta chiqadi).
+            data: {
+              title: payload.title,
+              body: payload.body,
+              link: payload.link ?? "/",
+            },
+            webpush: {
+              headers: { Urgency: "high", TTL: "120" },
+              fcmOptions: { link: payload.link ?? "/" },
+            },
           },
         }),
       });
