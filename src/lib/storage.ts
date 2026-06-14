@@ -82,6 +82,18 @@ export async function uploadChatMedia(file: File): Promise<string> {
   return uploadToBucket("chat", file);
 }
 
+/** Ovozli xabar (audio Blob) yuklash — public URL qaytaradi */
+export async function uploadVoiceMessage(
+  blob: Blob,
+  ext = "webm"
+): Promise<string> {
+  // MediaRecorder Blob'ini File'ga o'rab 'chat' bucket'iga yuklaymiz
+  const file = new File([blob], `voice-${Date.now()}.${ext}`, {
+    type: blob.type || "audio/webm",
+  });
+  return uploadToBucket("chat", file);
+}
+
 /** Hikoya (story) uchun rasm/video yuklash */
 export async function uploadStoryMedia(
   file: File

@@ -11,6 +11,8 @@ import { saveItemAction, forwardMessageAction } from "@/app/actions/saved";
 import { uploadChatMedia } from "@/lib/storage";
 import { avatarFallback, formatTime, timeAgo, cn } from "@/lib/utils";
 import MatchBadge from "@/components/MatchBadge";
+import VoiceRecorder from "@/components/chat/VoiceRecorder";
+import VoicePlayer from "@/components/chat/VoicePlayer";
 import type { Message } from "@/lib/types";
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
@@ -268,6 +270,13 @@ export default function ChatClient({
     }
   }
 
+  // Ovozli xabar yuborish (VoiceRecorder'dan keladi: "voice:<url>")
+  async function sendVoice(content: string) {
+    if (!activeId) return;
+    const res = await sendMessageAction(activeId, content);
+    if (res.error) alert(res.error);
+  }
+
   return (
     <div className="card flex w-full overflow-hidden rounded-none border-0 sm:rounded-2xl sm:border">
       {/* Chap panel: suhbatlar */}
@@ -466,7 +475,52 @@ export default function ChatClient({
                   <p className="text-xs text-gray-400">Profilni ko&apos;rish</p>
                 </div>
               </Link>
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-1">
+                {/* Video qo'ng'iroq */}
+                <button
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("zikra:start-call", {
+                        detail: {
+                          calleeId: active.partner.id,
+                          calleeName: active.partner.full_name,
+                          calleeAvatar: active.partner.avatar_url,
+                          callType: "video",
+                        },
+                      })
+                    )
+                  }
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-brand-50 hover:text-brand"
+                  title="Video qo'ng'iroq"
+                  aria-label="Video qo'ng'iroq"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="m23 7-7 5 7 5V7z" strokeLinejoin="round" />
+                    <rect x="1" y="5" width="15" height="14" rx="2" />
+                  </svg>
+                </button>
+                {/* Ovozli qo'ng'iroq */}
+                <button
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("zikra:start-call", {
+                        detail: {
+                          calleeId: active.partner.id,
+                          calleeName: active.partner.full_name,
+                          calleeAvatar: active.partner.avatar_url,
+                          callType: "audio",
+                        },
+                      })
+                    )
+                  }
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-brand-50 hover:text-brand"
+                  title="Ovozli qo'ng'iroq"
+                  aria-label="Ovozli qo'ng'iroq"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" strokeLinejoin="round" />
+                  </svg>
+                </button>
                 <MatchBadge score={matchScore} showLabel />
               </div>
             </div>
@@ -522,6 +576,8 @@ export default function ChatClient({
               >
                 🎬
               </button>
+              {/* Ovozli xabar */}
+              <VoiceRecorder onSend={sendVoice} disabled={uploadingMedia} />
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -678,7 +734,7 @@ function MessageRow({
                 : "rounded-bl-sm bg-white text-gray-800 shadow-sm"
             )}
           >
-            {renderMessageContent(message.content)}
+            {renderMessageContent(message.content, mine)}
             <span
               className={cn(
                 "mt-1 block text-[10px]",
@@ -715,9 +771,17 @@ function MessageRow({
   );
 }
 
-/** Xabar matnini media (rasm/video) yoki matn sifatida ko'rsatish */
-function renderMessageContent(content: string) {
-  const url = content.trim();
+/** Xabar matnini media (rasm/video/ovoz) yoki matn sifatida ko'rsatish */
+function renderMessageContent(content: string, mine: boolean) {
+  const trimmed = content.trim();
+
+  // Ovozli xabar — "voice:<url>" konventsiyasi
+  if (trimmed.startsWith("voice:")) {
+    const src = trimmed.slice("voice:".length);
+    return <VoicePlayer src={src} mine={mine} />;
+  }
+
+  const url = trimmed;
   const isSingleUrl = /^https?:\/\/\S+$/.test(url);
 
   if (isSingleUrl) {

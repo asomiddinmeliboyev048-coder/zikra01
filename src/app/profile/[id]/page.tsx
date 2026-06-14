@@ -8,6 +8,7 @@ import LevelProgress from "@/components/LevelProgress";
 import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
 import VideoUpload from "@/app/videos/VideoUpload";
+import SupportButton from "@/components/SupportButton";
 import ReviewButton from "./ReviewButton";
 import FollowButton from "@/components/FollowButton";
 import Linkify from "@/components/Linkify";
@@ -150,9 +151,13 @@ export default async function ProfilePage({
               {/* Amal tugmalari — mobilda to'liq kenglikda ustma-ust, desktopda yonma-yon */}
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row [&>*]:w-full sm:[&>*]:w-auto">
                 {isOwn ? (
-                  <Link href="/onboarding" className="btn-outline">
-                    Profilni tahrirlash
-                  </Link>
+                  <>
+                    <Link href="/onboarding" className="btn-outline">
+                      Profilni tahrirlash
+                    </Link>
+                    {/* Admin bilan bog'lanish (Support chat oynasini ochadi) */}
+                    <SupportButton />
+                  </>
                 ) : (
                   <>
                     <FollowButton
