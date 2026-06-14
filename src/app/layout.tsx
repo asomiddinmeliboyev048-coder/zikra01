@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import PWAInstall from "@/components/PWAInstall";
 import PinGate from "@/components/auth/PinGate";
+import AuthListener from "@/components/auth/AuthListener";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -58,6 +59,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#f7f7fb] font-sans text-gray-900 antialiased dark:bg-[#0e1525] dark:text-gray-100">
         {children}
         <PWAInstall />
+        <AuthListener />
         <PinGate />
       </body>
     </html>

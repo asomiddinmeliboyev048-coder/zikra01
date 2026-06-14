@@ -37,6 +37,7 @@ export async function updateSession(request: NextRequest) {
 
   // Himoyalangan yo'llar — login talab qiladi
   const protectedPaths = [
+    "/welcome",
     "/onboarding",
     "/discovery",
     "/chat",
@@ -55,8 +56,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Kirgan foydalanuvchini login/register sahifasidan discovery'ga yo'naltirish
-  if (user && (path === "/login" || path === "/register")) {
+  // Auto-login: kirgan foydalanuvchini landing/login/register'dan discovery'ga yo'naltirish
+  if (user && (path === "/" || path === "/login" || path === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/discovery";
     return NextResponse.redirect(url);

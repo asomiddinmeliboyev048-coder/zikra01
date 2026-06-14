@@ -22,11 +22,27 @@ export async function GET(request: Request) {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("onboarded")
+          .select("onboarded, pin_code")
           .eq("id", user.id)
           .single();
 
-        const dest = profile && !profile.onboarded ? "/onboarding" : next;
+        // Oxirgi kirish vaqtini yangilaymiz
+        await supabase
+          .from("profiles")
+          .update({ last_login: new Date().toISOString() })
+          .eq("id", user.id);
+
+        const p = profile as
+          | { onboarded: boolean; pin_code: string | null }
+          | null;
+
+        // 1) PIN o'rnatilmagan (yangi foydalanuvchi) → Welcome sahifasi
+        // 2) Onboarding tugamagan → onboarding
+        // 3) Aks holda → asl manzil
+        let dest = next;
+        if (!p || !p.pin_code) dest = "/welcome";
+        else if (!p.onboarded) dest = "/onboarding";
+
         return NextResponse.redirect(`${origin}${dest}`);
       }
     }
