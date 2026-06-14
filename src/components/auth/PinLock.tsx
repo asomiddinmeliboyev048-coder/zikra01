@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
@@ -83,9 +84,15 @@ export default function PinLock({
       )}
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center text-center">
-        <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-2xl font-bold text-white">
-          Z
-        </span>
+        <Image
+          src="/zikra-logo.svg"
+          alt="Zikra"
+          width={72}
+          height={72}
+          className="mb-4 rounded-full"
+          unoptimized
+          priority
+        />
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h1>
         {subtitle && (
           <p className="mt-1 max-w-xs text-sm text-gray-500">{subtitle}</p>
