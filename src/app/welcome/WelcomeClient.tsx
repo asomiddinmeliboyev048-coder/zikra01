@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PinLock from "@/components/auth/PinLock";
 import { setupAccountPinAction } from "@/app/actions/account";
-import { setPin as setLocalPin } from "@/lib/pin";
+import { setPin as setLocalPin, PIN_SETUP_DISMISSED_KEY } from "@/lib/pin";
 
 type Step = "intro" | "setup" | "confirm" | "saving";
 
@@ -135,6 +135,22 @@ export default function WelcomeClient({
         >
           PIN o&apos;rnatish →
         </button>
+
+        {/* PINsiz davom etish (keyinroq Sozlamalardan yoqish mumkin) */}
+        <button
+          onClick={() => {
+            // PinGate bannerini ham o'chiramiz, keyin asosiy sahifaga
+            localStorage.setItem(PIN_SETUP_DISMISSED_KEY, "1");
+            router.replace(next);
+          }}
+          className="btn-ghost mt-2 w-full text-gray-500"
+        >
+          Hozircha o&apos;tkazib yuborish
+        </button>
+        <p className="mt-2 text-xs text-gray-400">
+          PINni istalgan vaqtda Sozlamalar &gt; Xavfsizlik bo&apos;limidan
+          yoqishingiz mumkin.
+        </p>
       </div>
     </main>
   );

@@ -69,19 +69,26 @@ export async function signInAction(
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("onboarded, pin_code")
+      .select("onboarded, pin_code, last_login")
       .eq("id", user.id)
       .single();
+
+    const p = profile as
+      | { onboarded: boolean; pin_code: string | null; last_login: string | null }
+      | null;
+
+    // Yo'nalishni last_login yangilanishidan oldin hal qilamiz
+    let dest = redirectTo;
+    if (!p || (!p.pin_code && !p.last_login)) dest = "/welcome"; // birinchi kirish, PIN yo'q
+    else if (!p.onboarded) dest = "/onboarding";
 
     await supabase
       .from("profiles")
       .update({ last_login: new Date().toISOString() })
       .eq("id", user.id);
 
-    const p = profile as { onboarded: boolean; pin_code: string | null } | null;
     revalidatePath("/", "layout");
-    if (!p || !p.pin_code) redirect("/welcome"); // PIN o'rnatilmagan → Welcome
-    if (!p.onboarded) redirect("/onboarding");
+    redirect(dest);
   }
 
   revalidatePath("/", "layout");

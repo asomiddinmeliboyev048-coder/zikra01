@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/client";
 import { resetAccountPinAction } from "@/app/actions/account";
 import PinLock from "./PinLock";
 import {
+  isBiometricEnabled,
+  verifyBiometric,
+} from "@/lib/biometric";
+import {
   clearPin,
   getPinLength,
   isExpired,
@@ -33,6 +37,7 @@ export default function PinGate() {
   const [attempts, setAttempts] = useState(0);
   const [confirmForgot, setConfirmForgot] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [bioEnabled, setBioEnabled] = useState(false);
   const firstPinRef = useRef<string>("");
 
   const bump = () => setReset((r) => r + 1);
@@ -170,6 +175,33 @@ export default function PinGate() {
     window.location.href = "/login";
   }, []);
 
+  // --- Biometrik bilan ochish ---
+  const handleBiometric = useCallback(async () => {
+    const ok = await verifyBiometric();
+    if (ok) {
+      touchActive();
+      setError("");
+      setAttempts(0);
+      setScreen("none");
+    } else {
+      setError("Biometrik tasdiqlanmadi. PIN kiriting yoki qayta urinib ko'ring.");
+    }
+  }, []);
+
+  // Qulflanganda biometrik holatini aniqlash va avtomatik so'rash
+  useEffect(() => {
+    if (screen !== "locked") return;
+    const enabled = isBiometricEnabled();
+    setBioEnabled(enabled);
+    if (enabled) {
+      // Qulf ko'ringach biometrikni avtomatik so'raymiz (iOS uslubi)
+      const t = setTimeout(() => {
+        handleBiometric();
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [screen, handleBiometric]);
+
   function dismissSetup() {
     localStorage.setItem(PIN_SETUP_DISMISSED_KEY, "1");
     setAskSetup(false);
@@ -191,6 +223,7 @@ export default function PinGate() {
           resetSignal={reset}
           onComplete={handleUnlock}
           onForgot={handleForgot}
+          onBiometric={bioEnabled ? handleBiometric : undefined}
         />
 
         {/* PIN ni tiklashni tasdiqlash oynasi */}
@@ -280,10 +313,8 @@ export default function PinGate() {
             <div className="mt-3 flex gap-2">
               <button
                 onClick={() => {
-                  setError("");
-                  firstPinRef.current = "";
-                  setAskSetup(false);
-                  setScreen("setup");
+                  dismissSetup();
+                  window.location.href = "/settings";
                 }}
                 className="btn-primary px-3 py-1.5 text-xs"
               >

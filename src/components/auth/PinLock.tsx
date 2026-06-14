@@ -18,6 +18,8 @@ export default function PinLock({
   onForgot,
   showLengthToggle = false,
   onLengthChange,
+  onBiometric,
+  onClose,
 }: {
   title: string;
   subtitle?: string;
@@ -29,6 +31,10 @@ export default function PinLock({
   onForgot?: () => void;
   showLengthToggle?: boolean;
   onLengthChange?: (len: number) => void;
+  /** Biometrik tugma (Face ID / barmoq izi) — berilsa ko'rsatiladi */
+  onBiometric?: () => void;
+  /** Yopish/bekor qilish tugmasi (yuqori chap ✕) — berilsa ko'rsatiladi */
+  onClose?: () => void;
 }) {
   const [entered, setEntered] = useState("");
 
@@ -64,6 +70,17 @@ export default function PinLock({
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white px-6 py-10 dark:bg-[#0e1525]">
+      {/* Yopish tugmasi (ixtiyoriy) */}
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800"
+          aria-label="Yopish"
+        >
+          ✕
+        </button>
+      )}
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center text-center">
         <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-2xl font-bold text-white">
@@ -133,8 +150,29 @@ export default function PinLock({
             {k}
           </button>
         ))}
-        {/* Bo'sh katak */}
-        <span />
+        {/* Biometrik tugma (yoki bo'sh katak) */}
+        {onBiometric ? (
+          <button
+            type="button"
+            onClick={onBiometric}
+            className="flex min-h-[64px] touch-manipulation items-center justify-center rounded-2xl text-2xl text-brand transition active:scale-95"
+            aria-label="Biometrik bilan ochish"
+            title="Face ID / Barmoq izi"
+          >
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+              <path d="M12 3.5c-2 0-3.8.6-5.3 1.7" />
+              <path d="M17.3 5.2A8.5 8.5 0 0 1 20.5 12" />
+              <path d="M3.5 12c0-1.6.4-3.1 1.2-4.4" />
+              <path d="M12 7.5a4.5 4.5 0 0 0-4.5 4.5v2" />
+              <path d="M12 7.5a4.5 4.5 0 0 1 4.5 4.5v4" />
+              <path d="M12 12v3.5" />
+              <path d="M7.5 16.5c0 1 .2 2 .5 3" />
+              <path d="M16 19.5c.3-.8.5-1.6.5-2.5" />
+            </svg>
+          </button>
+        ) : (
+          <span />
+        )}
         <button
           type="button"
           onClick={() => press("0")}
