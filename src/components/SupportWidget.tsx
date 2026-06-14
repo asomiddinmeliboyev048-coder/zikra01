@@ -65,6 +65,15 @@ export default function SupportWidget({ userId }: { userId: string }) {
     }
   }, [messages, open]);
 
+  // Boshqa joydan (masalan profil sahifasidagi "Support" tugmasi) ochish
+  useEffect(() => {
+    function openHandler() {
+      setOpen(true);
+    }
+    window.addEventListener("zikra:open-support", openHandler);
+    return () => window.removeEventListener("zikra:open-support", openHandler);
+  }, []);
+
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const t = text.trim();

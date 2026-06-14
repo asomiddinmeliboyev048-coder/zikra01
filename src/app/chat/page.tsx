@@ -11,6 +11,18 @@ import type { Message, Profile } from "@/lib/types";
 export const metadata: Metadata = { title: "Suhbatlar" };
 export const dynamic = "force-dynamic";
 
+/** Suhbatlar ro'yxatidagi qisqa ko'rinish uchun media xabarlarni belgilash */
+function previewText(content: string): string {
+  const c = content.trim();
+  if (c.startsWith("voice:")) return "🎤 Ovozli xabar";
+  if (/^https?:\/\/\S+$/.test(c)) {
+    if (/\.(jpe?g|png|gif|webp)(\?.*)?$/i.test(c)) return "🖼 Rasm";
+    if (/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(c)) return "🎬 Video";
+    return "🔗 Havola";
+  }
+  return content;
+}
+
 export default async function ChatPage({
   searchParams,
 }: {
@@ -67,7 +79,7 @@ export default async function ChatPage({
           username: partner.username,
         },
         conversation_id: conversationId(me.id, pid),
-        last_message: last?.content ?? null,
+        last_message: last ? previewText(last.content) : null,
         last_at: last?.created_at ?? null,
       };
     })

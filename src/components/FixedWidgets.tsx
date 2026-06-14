@@ -3,6 +3,8 @@
 import BottomNav from "@/components/BottomNav";
 import NotificationListener from "@/components/NotificationListener";
 import SupportWidget from "@/components/SupportWidget";
+import CallProvider from "@/components/call/CallProvider";
+import PushManager from "@/components/PushManager";
 
 /**
  * Viewport'ga nisbatan fixed turishi kerak bo'lgan widgetlar.
@@ -21,6 +23,8 @@ export default function FixedWidgets({
     <>
       <NotificationListener userId={userId} />
       <SupportWidget userId={userId} />
+      <CallProvider userId={userId} />
+      <PushManager userId={userId} />
       <BottomNav profileId={userId} unread={unread} />
     </>
   );
