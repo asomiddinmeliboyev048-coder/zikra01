@@ -33,6 +33,28 @@ export async function sendMessageAction(
 
   if (error) return { error: error.message };
 
+  // Qabul qiluvchiga real-time bildirishnoma (toast + OS notification + push).
+  // Bu NotificationListener orqali, foydalanuvchi qaysi sahifada bo'lsa ham ishlaydi.
+  const { data: senderProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single();
+  const senderName =
+    (senderProfile as { full_name: string } | null)?.full_name ?? "Yangi xabar";
+
+  let preview = text;
+  if (text.startsWith("voice:")) preview = "🎤 Ovozli xabar";
+  else if (/^https?:\/\/\S+$/.test(text)) preview = "📎 Media";
+  else if (preview.length > 60) preview = preview.slice(0, 60) + "…";
+
+  await supabase.from("notifications").insert({
+    user_id: receiverId,
+    type: "message",
+    message: `💬 ${senderName}: ${preview}`,
+    link: `/chat?with=${user.id}`,
+  });
+
   // Suhbat o'rnatilganda (bir necha xabardan keyin) har ikki tomonga
   // "baholang" eslatmasini bir marta yuboramiz.
   const { count } = await supabase

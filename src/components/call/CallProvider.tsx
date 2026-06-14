@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { avatarFallback, cn, conversationId } from "@/lib/utils";
+import { startRingback, startRingtone, stopRing } from "@/lib/ringtone";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 /**
@@ -50,6 +51,7 @@ export default function CallProvider({ userId }: { userId: string }) {
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -62,6 +64,7 @@ export default function CallProvider({ userId }: { userId: string }) {
 
   // ---------- Tozalash ----------
   const cleanup = useCallback(() => {
+    stopRing(); // gudok/ringtone to'xtatiladi
     if (ringTimer.current) clearTimeout(ringTimer.current);
     ringTimer.current = null;
     pcRef.current?.getSenders().forEach((s) => s.track?.stop());
@@ -69,6 +72,7 @@ export default function CallProvider({ userId }: { userId: string }) {
     pcRef.current = null;
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
+    remoteStreamRef.current = null;
     pendingIce.current = [];
     if (sigRef.current) {
       const supabase = createClient();
@@ -99,8 +103,13 @@ export default function CallProvider({ userId }: { userId: string }) {
       };
       pc.ontrack = (e) => {
         const [remoteStream] = e.streams;
-        if (remoteVideoRef.current && remoteStream) {
-          remoteVideoRef.current.srcObject = remoteStream;
+        if (remoteStream) {
+          remoteStreamRef.current = remoteStream;
+          // Element mavjud bo'lsa darhol biriktiramiz (audio ham shu orqali eshitiladi)
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.play().catch(() => {});
+          }
         }
         setRemoteJoined(true);
       };
@@ -376,6 +385,33 @@ export default function CallProvider({ userId }: { userId: string }) {
           setStatus("incoming");
           joinSignalChannel(row.channel); // signal kanaliga ulanamiz
 
+          // Brauzer bildirishnomasi — sahifa fon'da bo'lsa ham ogohlantiradi
+          if (
+            typeof Notification !== "undefined" &&
+            Notification.permission === "granted"
+          ) {
+            try {
+              const n = new Notification(
+                `${c?.full_name ?? "Foydalanuvchi"} qo'ng'iroq qilmoqda`,
+                {
+                  body:
+                    row.call_type === "video"
+                      ? "📹 Video qo'ng'iroq"
+                      : "📞 Ovozli qo'ng'iroq",
+                  icon: "/icon.svg",
+                  tag: "zikra-call",
+                  requireInteraction: true,
+                }
+              );
+              n.onclick = () => {
+                window.focus();
+                n.close();
+              };
+            } catch {
+              /* ignore */
+            }
+          }
+
           // 35s javob bermasa modalni yopamiz
           ringTimer.current = setTimeout(() => cleanup(), RING_TIMEOUT_MS);
         }
@@ -393,6 +429,27 @@ export default function CallProvider({ userId }: { userId: string }) {
     return () => cleanup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Remote oqimni media elementga biriktirish (audio ham shu orqali eshitiladi)
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStreamRef.current) {
+      if (remoteVideoRef.current.srcObject !== remoteStreamRef.current) {
+        remoteVideoRef.current.srcObject = remoteStreamRef.current;
+      }
+      remoteVideoRef.current.play().catch(() => {});
+    }
+  }, [status, remoteJoined, callType]);
+
+  // Gudok / ringtone boshqaruvi
+  useEffect(() => {
+    if (status === "calling" && !remoteJoined) {
+      startRingback(); // qo'ng'iroq qiluvchi gudokni eshitadi
+    } else if (status === "incoming") {
+      startRingtone(); // qabul qiluvchi jiringlash + tebranish
+    } else {
+      stopRing(); // ulanganda yoki tugaganda to'xtaydi
+    }
+  }, [status, remoteJoined]);
 
   if (status === "idle") return null;
 
@@ -438,17 +495,17 @@ export default function CallProvider({ userId }: { userId: string }) {
     <div className="fixed inset-0 z-[120] flex flex-col bg-gray-900 text-white animate-fade-in">
       {/* Remote video / avatar */}
       <div className="relative flex flex-1 items-center justify-center overflow-hidden">
-        {callType === "video" ? (
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            className={cn(
-              "h-full w-full object-cover",
-              remoteJoined ? "block" : "hidden"
-            )}
-          />
-        ) : null}
+        {/* Remote media — HAR DOIM mavjud (ovozli qo'ng'iroqda yashirin, lekin
+            tovush shu element orqali eshitiladi). */}
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className={cn(
+            "h-full w-full object-cover",
+            callType === "video" && remoteJoined ? "block" : "hidden"
+          )}
+        />
 
         {(!remoteJoined || callType === "audio") && (
           <div className="flex flex-col items-center">
