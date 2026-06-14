@@ -17,7 +17,6 @@ export default function SupportWidget({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [hasUnread, setHasUnread] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   async function load() {
@@ -48,7 +47,6 @@ export default function SupportWidget({ userId }: { userId: string }) {
           setMessages((prev) =>
             prev.some((x) => x.id === m.id) ? prev : [...prev, m]
           );
-          if (m.sender_role === "admin" && !open) setHasUnread(true);
         }
       )
       .subscribe();
@@ -60,7 +58,6 @@ export default function SupportWidget({ userId }: { userId: string }) {
 
   useEffect(() => {
     if (open) {
-      setHasUnread(false);
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, open]);
@@ -90,31 +87,24 @@ export default function SupportWidget({ userId }: { userId: string }) {
 
   return (
     <>
-      {/* Floating tugma */}
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-20 right-4 z-[55] flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-card-hover transition hover:bg-brand-600 sm:bottom-6"
-        aria-label="Qo'llab-quvvatlash"
-      >
-        {open ? (
-          <span className="text-2xl leading-none">✕</span>
-        ) : (
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinejoin="round" />
-            <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 2.5M12 16h.01" strokeLinecap="round" />
-          </svg>
-        )}
-        {hasUnread && !open && (
-          <span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-accent" />
-        )}
-      </button>
+      {/* Suzuvchi tugma olib tashlandi — Support faqat profil sahifasidagi
+          "Support" tugmasi orqali ochiladi (zikra:open-support hodisasi). */}
 
       {/* Chat oynasi */}
       {open && (
-        <div className="fixed bottom-36 right-4 z-[55] flex h-[460px] w-[90vw] max-w-sm flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card-hover dark:border-gray-800 dark:bg-gray-900 sm:bottom-24">
-          <div className="bg-brand px-4 py-3 text-white">
-            <p className="font-semibold">Zikra Qo&apos;llab-quvvatlash</p>
-            <p className="text-xs text-brand-100">Odatda tez javob beramiz</p>
+        <div className="fixed bottom-24 right-4 z-[55] flex h-[460px] w-[90vw] max-w-sm flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card-hover dark:border-gray-800 dark:bg-gray-900 sm:bottom-6">
+          <div className="flex items-center justify-between bg-brand px-4 py-3 text-white">
+            <div>
+              <p className="font-semibold">Zikra Qo&apos;llab-quvvatlash</p>
+              <p className="text-xs text-brand-100">Odatda tez javob beramiz</p>
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-xl leading-none transition hover:bg-white/15"
+              aria-label="Yopish"
+            >
+              ✕
+            </button>
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50/60 p-3 dark:bg-gray-950/40">

@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { resetAccountPinAction } from "@/app/actions/account";
 import PinLock from "./PinLock";
+import {
+  isBiometricEnabled,
+  verifyBiometric,
+} from "@/lib/biometric";
 import {
   clearPin,
   getPinLength,
@@ -29,6 +34,10 @@ export default function PinGate() {
   const [error, setError] = useState("");
   const [reset, setReset] = useState(0);
   const [askSetup, setAskSetup] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [confirmForgot, setConfirmForgot] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [bioEnabled, setBioEnabled] = useState(false);
   const firstPinRef = useRef<string>("");
 
   const bump = () => setReset((r) => r + 1);
@@ -115,8 +124,10 @@ export default function PinGate() {
     if (ok) {
       touchActive();
       setError("");
+      setAttempts(0);
       setScreen("none");
     } else {
+      setAttempts((a) => a + 1);
       setError("Noto'g'ri PIN. Qayta urinib ko'ring.");
       bump();
     }
@@ -144,13 +155,52 @@ export default function PinGate() {
     setScreen("none");
   }, []);
 
-  // --- PIN ni unutdim → parol bilan kirish ---
-  const handleForgot = useCallback(async () => {
-    clearPin();
+  // --- PIN ni unutdim → avval tasdiqlash so'raymiz ---
+  const handleForgot = useCallback(() => {
+    setConfirmForgot(true);
+  }, []);
+
+  // --- PIN ni to'liq tiklash: server + lokal tozalanadi, so'ng signOut ---
+  const doForgot = useCallback(async () => {
+    setResetting(true);
+    try {
+      await resetAccountPinAction(); // serverdagi pin_code = NULL
+    } catch {
+      /* server xato bo'lsa ham davom etamiz */
+    }
+    clearPin(); // lokal qulfni tozalash
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Qayta kirgandan so'ng /welcome'da yangi PIN o'rnatadi
     window.location.href = "/login";
   }, []);
+
+  // --- Biometrik bilan ochish ---
+  const handleBiometric = useCallback(async () => {
+    const ok = await verifyBiometric();
+    if (ok) {
+      touchActive();
+      setError("");
+      setAttempts(0);
+      setScreen("none");
+    } else {
+      setError("Biometrik tasdiqlanmadi. PIN kiriting yoki qayta urinib ko'ring.");
+    }
+  }, []);
+
+  // Qulflanganda biometrik holatini aniqlash va avtomatik so'rash
+  useEffect(() => {
+    if (screen !== "locked") return;
+    const enabled = isBiometricEnabled();
+    setBioEnabled(enabled);
+    if (enabled) {
+      // Qulf ko'ringach biometrikni avtomatik so'raymiz (iOS uslubi)
+      const t = setTimeout(() => {
+        handleBiometric();
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [screen, handleBiometric]);
 
   function dismissSetup() {
     localStorage.setItem(PIN_SETUP_DISMISSED_KEY, "1");
@@ -160,15 +210,56 @@ export default function PinGate() {
   // ---- Render ----
   if (screen === "locked") {
     return (
-      <PinLock
-        title="PIN kodni kiriting"
-        subtitle="Zikra'ga kirish uchun PIN kodingizni tasdiqlang."
-        length={length}
-        error={error}
-        resetSignal={reset}
-        onComplete={handleUnlock}
-        onForgot={handleForgot}
-      />
+      <>
+        <PinLock
+          title="PIN kodni kiriting"
+          subtitle={
+            attempts >= 3
+              ? "Bir necha marta noto'g'ri kiritildi. PIN ni unutgan bo'lsangiz, pastdagi havoladan tiklang."
+              : "Zikra'ga kirish uchun PIN kodingizni tasdiqlang."
+          }
+          length={length}
+          error={error}
+          resetSignal={reset}
+          onComplete={handleUnlock}
+          onForgot={handleForgot}
+          onBiometric={bioEnabled ? handleBiometric : undefined}
+        />
+
+        {/* PIN ni tiklashni tasdiqlash oynasi */}
+        {confirmForgot && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 px-6 animate-fade-in">
+            <div className="w-full max-w-sm animate-scale-in rounded-2xl bg-white p-6 text-center shadow-card-hover dark:bg-gray-900">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-2xl">
+                🔑
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                PIN ni tiklaysizmi?
+              </h3>
+              <p className="mt-2 text-sm text-gray-500">
+                PIN o&apos;chiriladi va siz tizimdan chiqasiz. Qayta kirgach,
+                yangi PIN o&apos;ylab topishingiz kerak bo&apos;ladi.
+              </p>
+              <div className="mt-5 flex gap-2">
+                <button
+                  onClick={() => setConfirmForgot(false)}
+                  disabled={resetting}
+                  className="btn-ghost flex-1"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={doForgot}
+                  disabled={resetting}
+                  className="btn-primary flex-1 bg-accent hover:bg-accent-600"
+                >
+                  {resetting ? "Tiklanmoqda..." : "Ha, tiklash"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -222,10 +313,8 @@ export default function PinGate() {
             <div className="mt-3 flex gap-2">
               <button
                 onClick={() => {
-                  setError("");
-                  firstPinRef.current = "";
-                  setAskSetup(false);
-                  setScreen("setup");
+                  dismissSetup();
+                  window.location.href = "/settings";
                 }}
                 className="btn-primary px-3 py-1.5 text-xs"
               >

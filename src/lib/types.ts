@@ -18,6 +18,9 @@ export interface Profile {
   onboarded: boolean;
   last_active: string;
   created_at: string;
+  // "Google Auth + Custom PIN" oqimi uchun
+  pin_code?: string | null; // 6 xonali PIN'ning SHA-256 hash'i
+  last_login?: string | null;
 }
 
 export interface Skill {

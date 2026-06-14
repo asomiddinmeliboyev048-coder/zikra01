@@ -38,7 +38,8 @@ export async function signUpAction(
   }
 
   revalidatePath("/", "layout");
-  redirect("/onboarding");
+  // Yangi foydalanuvchi — avval PIN o'rnatish (Welcome), so'ng onboarding
+  redirect("/welcome");
 }
 
 /** Tizimga kirish (email + parol) */
@@ -61,20 +62,33 @@ export async function signInAction(
     return { error: "Email yoki parol noto'g'ri." };
   }
 
-  // Onboarding tugamagan bo'lsa — onboarding'ga
+  // Onboarding va PIN holatiga qarab yo'naltirish + last_login yangilash
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("onboarded")
+      .select("onboarded, pin_code, last_login")
       .eq("id", user.id)
       .single();
-    if (profile && !profile.onboarded) {
-      revalidatePath("/", "layout");
-      redirect("/onboarding");
-    }
+
+    const p = profile as
+      | { onboarded: boolean; pin_code: string | null; last_login: string | null }
+      | null;
+
+    // Yo'nalishni last_login yangilanishidan oldin hal qilamiz
+    let dest = redirectTo;
+    if (!p || (!p.pin_code && !p.last_login)) dest = "/welcome"; // birinchi kirish, PIN yo'q
+    else if (!p.onboarded) dest = "/onboarding";
+
+    await supabase
+      .from("profiles")
+      .update({ last_login: new Date().toISOString() })
+      .eq("id", user.id);
+
+    revalidatePath("/", "layout");
+    redirect(dest);
   }
 
   revalidatePath("/", "layout");
