@@ -97,6 +97,7 @@ export default function CallProvider({ userId }: { userId: string }) {
   // ---------- Tozalash ----------
   const cleanup = useCallback(() => {
     stopRing(); // gudok/ringtone to'xtatiladi
+    clearCallNotifications(); // qo'ng'iroq bildirishnomalarini yopish
     if (ringTimer.current) clearTimeout(ringTimer.current);
     ringTimer.current = null;
     pcRef.current?.getSenders().forEach((s) => s.track?.stop());
@@ -123,6 +124,19 @@ export default function CallProvider({ userId }: { userId: string }) {
   const sendSignal = useCallback((payload: Record<string, unknown>) => {
     sigRef.current?.send({ type: "broadcast", event: "signal", payload });
   }, []);
+
+  // Qo'ng'iroq bildirishnomalarini yopish (qo'ng'iroq tugagach ekranni bezovta qilmasligi uchun)
+  function clearCallNotifications() {
+    if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+      navigator.serviceWorker.ready
+        .then((reg) =>
+          reg.getNotifications({ tag: "zikra-call" }).then((list) =>
+            list.forEach((n) => n.close())
+          )
+        )
+        .catch(() => {});
+    }
+  }
 
   // ---------- PeerConnection yaratish ----------
   const createPc = useCallback(
@@ -312,6 +326,7 @@ export default function CallProvider({ userId }: { userId: string }) {
           .eq("id", callIdRef.current);
       }
       setStatus("active");
+      clearCallNotifications();
       sendSignal({ kind: "ready" }); // caller offer yuboradi
     } catch {
       alert("Kamera/mikrofonga ruxsat berilmadi.");
@@ -431,7 +446,6 @@ export default function CallProvider({ userId }: { userId: string }) {
                   : "📞 Ovozli qo'ng'iroq",
               icon: "/icon.svg",
               tag: "zikra-call",
-              requireInteraction: true,
             }
           );
           n.onclick = () => {
