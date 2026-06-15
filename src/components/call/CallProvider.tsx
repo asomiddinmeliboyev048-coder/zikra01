@@ -31,13 +31,44 @@ interface Peer {
   avatar: string | null;
 }
 
+// TURN serverni env orqali sozlash mumkin (eng ishonchli, o'zingizniki)
+const TURN_URL = process.env.NEXT_PUBLIC_TURN_URL;
+const TURN_USERNAME = process.env.NEXT_PUBLIC_TURN_USERNAME;
+const TURN_CREDENTIAL = process.env.NEXT_PUBLIC_TURN_CREDENTIAL;
+
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
-    // Ishlab chiqarishda TURN qo'shing:
-    // { urls: "turn:YOUR_TURN_HOST", username: "...", credential: "..." },
+    // 1) O'z TURN serveringiz (env orqali) — agar berilgan bo'lsa
+    ...(TURN_URL && TURN_USERNAME && TURN_CREDENTIAL
+      ? [
+          {
+            urls: TURN_URL,
+            username: TURN_USERNAME,
+            credential: TURN_CREDENTIAL,
+          },
+        ]
+      : []),
+    // 2) Bepul ommaviy TURN (zaxira) — turli tarmoqlar orasida ulanish uchun.
+    //    Production uchun o'z TURN'ingizni (Metered/Twilio/coturn) ishlating.
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443?transport=tcp",
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 const RING_TIMEOUT_MS = 35000;
