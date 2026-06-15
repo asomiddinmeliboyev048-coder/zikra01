@@ -31,73 +31,65 @@ interface Peer {
   avatar: string | null;
 }
 
-// TURN sozlamalari (env orqali). Metered bepul TURN uchun faqat username +
-// credential yetarli — qolgan URL'larni (port/protokol) kod o'zi qo'shadi.
+// TURN sozlamalari (env orqali). Eng ishonchli usul — Metered API orqali
+// ICE serverlarni dinamik olish (to'g'ri host + yangi credential).
+const METERED_APP = process.env.NEXT_PUBLIC_METERED_APP; // masalan "zikra"
+const METERED_API_KEY = process.env.NEXT_PUBLIC_METERED_API_KEY;
+
+// Zaxira: statik username/credential (API ishlamasa)
 const TURN_USERNAME = process.env.NEXT_PUBLIC_TURN_USERNAME;
 const TURN_CREDENTIAL = process.env.NEXT_PUBLIC_TURN_CREDENTIAL;
-// Metered relay hosti (kerak bo'lsa env orqali o'zgartiriladi)
 const TURN_HOST =
   process.env.NEXT_PUBLIC_TURN_HOST || "standard.relay.metered.ca";
-const TURN_URL = process.env.NEXT_PUBLIC_TURN_URL; // ixtiyoriy: bitta maxsus URL
+const TURN_URL = process.env.NEXT_PUBLIC_TURN_URL;
 
 function buildIceServers(): RTCIceServer[] {
   const servers: RTCIceServer[] = [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
   ];
-
   if (TURN_USERNAME && TURN_CREDENTIAL) {
-    // Metered relay — barcha port va protokollar (4G↔4G uchun eng ishonchli)
     servers.push({ urls: "stun:" + TURN_HOST + ":80" });
-    servers.push({
-      urls: "turn:" + TURN_HOST + ":80",
-      username: TURN_USERNAME,
-      credential: TURN_CREDENTIAL,
-    });
-    servers.push({
-      urls: "turn:" + TURN_HOST + ":80?transport=tcp",
-      username: TURN_USERNAME,
-      credential: TURN_CREDENTIAL,
-    });
-    servers.push({
-      urls: "turn:" + TURN_HOST + ":443",
-      username: TURN_USERNAME,
-      credential: TURN_CREDENTIAL,
-    });
-    servers.push({
-      urls: "turns:" + TURN_HOST + ":443?transport=tcp",
-      username: TURN_USERNAME,
-      credential: TURN_CREDENTIAL,
-    });
+    servers.push({ urls: "turn:" + TURN_HOST + ":80", username: TURN_USERNAME, credential: TURN_CREDENTIAL });
+    servers.push({ urls: "turn:" + TURN_HOST + ":80?transport=tcp", username: TURN_USERNAME, credential: TURN_CREDENTIAL });
+    servers.push({ urls: "turn:" + TURN_HOST + ":443", username: TURN_USERNAME, credential: TURN_CREDENTIAL });
+    servers.push({ urls: "turns:" + TURN_HOST + ":443?transport=tcp", username: TURN_USERNAME, credential: TURN_CREDENTIAL });
     if (TURN_URL) {
-      servers.push({
-        urls: TURN_URL,
-        username: TURN_USERNAME,
-        credential: TURN_CREDENTIAL,
-      });
+      servers.push({ urls: TURN_URL, username: TURN_USERNAME, credential: TURN_CREDENTIAL });
     }
   } else {
-    // Zaxira (signupsiz, ishonchsiz) — TURN umuman yo'qdan ko'ra yaxshiroq
     servers.push(
-      {
-        urls: "turn:openrelay.metered.ca:443",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      },
-      {
-        urls: "turn:openrelay.metered.ca:443?transport=tcp",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-      }
+      { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
+      { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
     );
   }
   return servers;
 }
 
-const ICE_SERVERS: RTCConfiguration = {
-  iceServers: buildIceServers(),
-  iceCandidatePoolSize: 10,
-};
+/**
+ * ICE serverlarni olish — avval Metered API'dan (eng ishonchli), bo'lmasa statik.
+ * Har qo'ng'iroqdan oldin chaqiriladi (credential yangiligi uchun).
+ */
+async function getIceServers(): Promise<RTCIceServer[]> {
+  if (METERED_APP && METERED_API_KEY) {
+    try {
+      const res = await fetch(
+        "https://" +
+          METERED_APP +
+          ".metered.live/api/v1/turn/credentials?apiKey=" +
+          METERED_API_KEY
+      );
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        // Google STUN'ni ham qo'shamiz (tezroq to'g'ridan-to'g'ri ulanish uchun)
+        return [{ urls: "stun:stun.l.google.com:19302" }, ...data];
+      }
+    } catch {
+      /* API ishlamasa — statik zaxiraga o'tamiz */
+    }
+  }
+  return buildIceServers();
+}
 
 const RING_TIMEOUT_MS = 35000;
 
@@ -168,8 +160,11 @@ export default function CallProvider({ userId }: { userId: string }) {
 
   // ---------- PeerConnection yaratish ----------
   const createPc = useCallback(
-    (stream: MediaStream) => {
-      const pc = new RTCPeerConnection(ICE_SERVERS);
+    (stream: MediaStream, iceServers: RTCIceServer[]) => {
+      const pc = new RTCPeerConnection({
+        iceServers,
+        iceCandidatePoolSize: 10,
+      });
       stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
       pc.onicecandidate = (e) => {
@@ -298,7 +293,8 @@ export default function CallProvider({ userId }: { userId: string }) {
       const channel = conversationId(userId, callee.id);
       try {
         const stream = await getMedia(type);
-        createPc(stream);
+        const ice = await getIceServers(); // Metered API'dan (yoki statik)
+        createPc(stream, ice);
         joinSignalChannel(channel);
 
         const supabase = createClient();
@@ -344,7 +340,8 @@ export default function CallProvider({ userId }: { userId: string }) {
     if (ringTimer.current) clearTimeout(ringTimer.current);
     try {
       const stream = await getMedia(callType);
-      createPc(stream);
+      const ice = await getIceServers(); // Metered API'dan (yoki statik)
+      createPc(stream, ice);
       // sigRef allaqachon 'incoming' bosqichida ulangan
       const supabase = createClient();
       if (callIdRef.current) {
