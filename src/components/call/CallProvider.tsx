@@ -31,43 +31,71 @@ interface Peer {
   avatar: string | null;
 }
 
-// TURN serverni env orqali sozlash mumkin (eng ishonchli, o'zingizniki)
-const TURN_URL = process.env.NEXT_PUBLIC_TURN_URL;
+// TURN sozlamalari (env orqali). Metered bepul TURN uchun faqat username +
+// credential yetarli — qolgan URL'larni (port/protokol) kod o'zi qo'shadi.
 const TURN_USERNAME = process.env.NEXT_PUBLIC_TURN_USERNAME;
 const TURN_CREDENTIAL = process.env.NEXT_PUBLIC_TURN_CREDENTIAL;
+// Metered relay hosti (kerak bo'lsa env orqali o'zgartiriladi)
+const TURN_HOST =
+  process.env.NEXT_PUBLIC_TURN_HOST || "standard.relay.metered.ca";
+const TURN_URL = process.env.NEXT_PUBLIC_TURN_URL; // ixtiyoriy: bitta maxsus URL
 
-const ICE_SERVERS: RTCConfiguration = {
-  iceServers: [
+function buildIceServers(): RTCIceServer[] {
+  const servers: RTCIceServer[] = [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
-    // 1) O'z TURN serveringiz (env orqali) — agar berilgan bo'lsa
-    ...(TURN_URL && TURN_USERNAME && TURN_CREDENTIAL
-      ? [
-          {
-            urls: TURN_URL,
-            username: TURN_USERNAME,
-            credential: TURN_CREDENTIAL,
-          },
-        ]
-      : []),
-    // 2) Bepul ommaviy TURN (zaxira) — turli tarmoqlar orasida ulanish uchun.
-    //    Production uchun o'z TURN'ingizni (Metered/Twilio/coturn) ishlating.
-    {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    },
-    {
-      urls: "turn:openrelay.metered.ca:443",
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    },
-    {
-      urls: "turn:openrelay.metered.ca:443?transport=tcp",
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    },
-  ],
+  ];
+
+  if (TURN_USERNAME && TURN_CREDENTIAL) {
+    // Metered relay — barcha port va protokollar (4G↔4G uchun eng ishonchli)
+    servers.push({ urls: "stun:" + TURN_HOST + ":80" });
+    servers.push({
+      urls: "turn:" + TURN_HOST + ":80",
+      username: TURN_USERNAME,
+      credential: TURN_CREDENTIAL,
+    });
+    servers.push({
+      urls: "turn:" + TURN_HOST + ":80?transport=tcp",
+      username: TURN_USERNAME,
+      credential: TURN_CREDENTIAL,
+    });
+    servers.push({
+      urls: "turn:" + TURN_HOST + ":443",
+      username: TURN_USERNAME,
+      credential: TURN_CREDENTIAL,
+    });
+    servers.push({
+      urls: "turns:" + TURN_HOST + ":443?transport=tcp",
+      username: TURN_USERNAME,
+      credential: TURN_CREDENTIAL,
+    });
+    if (TURN_URL) {
+      servers.push({
+        urls: TURN_URL,
+        username: TURN_USERNAME,
+        credential: TURN_CREDENTIAL,
+      });
+    }
+  } else {
+    // Zaxira (signupsiz, ishonchsiz) — TURN umuman yo'qdan ko'ra yaxshiroq
+    servers.push(
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      }
+    );
+  }
+  return servers;
+}
+
+const ICE_SERVERS: RTCConfiguration = {
+  iceServers: buildIceServers(),
   iceCandidatePoolSize: 10,
 };
 
