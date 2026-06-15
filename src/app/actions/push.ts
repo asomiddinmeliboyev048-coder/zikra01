@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 export interface PushResult {
   error?: string;
@@ -55,10 +56,24 @@ export async function notifyIncomingCallAction(
     .single();
   const name = (me as { full_name: string } | null)?.full_name ?? "Foydalanuvchi";
 
-  await supabase.from("notifications").insert({
+  const row = {
     user_id: calleeId,
     type: "message",
     message: `${callType === "video" ? "📹" : "📞"} ${name} qo'ng'iroq qilmoqda`,
     link: "/chat?call=1", // sentinel — in-app takror bildirishnomani oldini oladi
-  });
+  };
+
+  // Service-role bilan yozamiz (RLS'ni chetlab o'tadi — boshqa foydalanuvchiga
+  // bildirishnoma yozish uchun). Bu webhook → send-push → FCM'ni ishga tushiradi.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (serviceKey && supabaseUrl) {
+    const admin = createServiceClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false },
+    });
+    await admin.from("notifications").insert(row);
+  } else {
+    // Zaxira: oddiy klient (RLS ruxsat bersa ishlaydi)
+    await supabase.from("notifications").insert(row);
+  }
 }
