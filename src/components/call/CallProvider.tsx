@@ -377,7 +377,80 @@ export default function CallProvider({ userId }: { userId: string }) {
     return () => window.removeEventListener("zikra:start-call", onStart);
   }, [startCall]);
 
-  // ---------- Kiruvchi qo'ng'iroqlarni tinglash ----------
+  // Joriy holatni ref'da saqlaymiz (stale closure'lardan qochish uchun)
+  const statusRef = useRef<Status>("idle");
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
+  // Kiruvchi qo'ng'iroqni ko'rsatish — realtime VA ilova ochilganda (push) uchun
+  const presentIncomingCall = useCallback(
+    async (row: {
+      id: string;
+      channel: string;
+      caller_id: string;
+      call_type: CallType;
+      status: string;
+    }) => {
+      if (row.status !== "ringing") return;
+      if (statusRef.current !== "idle") return; // band yoki allaqachon ko'rsatilgan
+
+      const supabase = createClient();
+      const { data: caller } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .eq("id", row.caller_id)
+        .single();
+      const c = caller as
+        | { id: string; full_name: string; avatar_url: string | null }
+        | null;
+
+      isCallerRef.current = false;
+      callIdRef.current = row.id;
+      setCallType(row.call_type);
+      setPeer({
+        id: row.caller_id,
+        name: c?.full_name ?? "Foydalanuvchi",
+        avatar: c?.avatar_url ?? null,
+      });
+      setStatus("incoming");
+      joinSignalChannel(row.channel); // signal kanaliga ulanamiz
+
+      // Brauzer bildirishnomasi — sahifa fon'da bo'lsa ham ogohlantiradi
+      if (
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+      ) {
+        try {
+          const n = new Notification(
+            `${c?.full_name ?? "Foydalanuvchi"} qo'ng'iroq qilmoqda`,
+            {
+              body:
+                row.call_type === "video"
+                  ? "📹 Video qo'ng'iroq"
+                  : "📞 Ovozli qo'ng'iroq",
+              icon: "/icon.svg",
+              tag: "zikra-call",
+              requireInteraction: true,
+            }
+          );
+          n.onclick = () => {
+            window.focus();
+            n.close();
+          };
+        } catch {
+          /* ignore */
+        }
+      }
+
+      // 35s javob bermasa modalni yopamiz
+      ringTimer.current = setTimeout(() => cleanup(), RING_TIMEOUT_MS);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cleanup]
+  );
+
+  // ---------- Realtime: yangi kiruvchi qo'ng'iroq ----------
   useEffect(() => {
     const supabase = createClient();
     const ch = supabase
@@ -390,65 +463,16 @@ export default function CallProvider({ userId }: { userId: string }) {
           table: "calls",
           filter: `callee_id=eq.${userId}`,
         },
-        async (payload) => {
-          const row = payload.new as {
-            id: string;
-            channel: string;
-            caller_id: string;
-            call_type: CallType;
-            status: string;
-          };
-          if (row.status !== "ringing") return;
-          if (status !== "idle") return; // band
-
-          // Qo'ng'iroq qiluvchi profilini olamiz
-          const { data: caller } = await supabase
-            .from("profiles")
-            .select("id, full_name, avatar_url")
-            .eq("id", row.caller_id)
-            .single();
-          const c = caller as { id: string; full_name: string; avatar_url: string | null } | null;
-
-          isCallerRef.current = false;
-          callIdRef.current = row.id;
-          setCallType(row.call_type);
-          setPeer({
-            id: row.caller_id,
-            name: c?.full_name ?? "Foydalanuvchi",
-            avatar: c?.avatar_url ?? null,
-          });
-          setStatus("incoming");
-          joinSignalChannel(row.channel); // signal kanaliga ulanamiz
-
-          // Brauzer bildirishnomasi — sahifa fon'da bo'lsa ham ogohlantiradi
-          if (
-            typeof Notification !== "undefined" &&
-            Notification.permission === "granted"
-          ) {
-            try {
-              const n = new Notification(
-                `${c?.full_name ?? "Foydalanuvchi"} qo'ng'iroq qilmoqda`,
-                {
-                  body:
-                    row.call_type === "video"
-                      ? "📹 Video qo'ng'iroq"
-                      : "📞 Ovozli qo'ng'iroq",
-                  icon: "/icon.svg",
-                  tag: "zikra-call",
-                  requireInteraction: true,
-                }
-              );
-              n.onclick = () => {
-                window.focus();
-                n.close();
-              };
-            } catch {
-              /* ignore */
+        (payload) => {
+          presentIncomingCall(
+            payload.new as {
+              id: string;
+              channel: string;
+              caller_id: string;
+              call_type: CallType;
+              status: string;
             }
-          }
-
-          // 35s javob bermasa modalni yopamiz
-          ringTimer.current = setTimeout(() => cleanup(), RING_TIMEOUT_MS);
+          );
         }
       )
       .subscribe();
@@ -456,8 +480,39 @@ export default function CallProvider({ userId }: { userId: string }) {
     return () => {
       supabase.removeChannel(ch);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, status]);
+  }, [userId, presentIncomingCall]);
+
+  // ---------- Ilova ochilganda (push'ni bosib) faol qo'ng'iroqni tekshirish ----------
+  // Ilova yopiq bo'lsa, realtime INSERT o'tkazib yuboriladi. Shuning uchun
+  // ochilganda darhol "ringing" holatdagi qo'ng'iroq bor-yo'qligini so'raymiz.
+  useEffect(() => {
+    const supabase = createClient();
+    (async () => {
+      const { data } = await supabase
+        .from("calls")
+        .select("id, channel, caller_id, call_type, status, created_at")
+        .eq("callee_id", userId)
+        .eq("status", "ringing")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const row = data && data[0];
+      if (row) {
+        const ageMs =
+          Date.now() - new Date(row.created_at as string).getTime();
+        if (ageMs < RING_TIMEOUT_MS) {
+          presentIncomingCall(
+            row as {
+              id: string;
+              channel: string;
+              caller_id: string;
+              call_type: CallType;
+              status: string;
+            }
+          );
+        }
+      }
+    })();
+  }, [userId, presentIncomingCall]);
 
   // Komponent yo'qolganda tozalash
   useEffect(() => {
