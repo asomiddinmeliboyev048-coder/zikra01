@@ -30,15 +30,32 @@ if (config.projectId && config.appId && config.messagingSenderId) {
   messaging.onBackgroundMessage((payload) => {
     const d = payload.data || {};
     const link = d.link || "/";
-    self.registration.showNotification(d.title || "Zikra", {
-      body: d.body || "",
-      icon: "/icon.svg",
-      badge: "/icon.svg",
-      // bir xil tag — sahifadagi bildirishnoma bilan takrorlanmaydi
-      tag: link.indexOf("call=1") !== -1 ? "zikra-call" : "zikra-notif",
-      renotify: true,
-      data: { link },
-    });
+    const isCall = link.indexOf("call=1") !== -1;
+
+    function show() {
+      self.registration.showNotification(d.title || "Zikra", {
+        body: d.body || "",
+        icon: "/icon.svg",
+        badge: "/icon.svg",
+        // bir xil tag — sahifadagi bildirishnoma bilan takrorlanmaydi
+        tag: isCall ? "zikra-call" : "zikra-notif",
+        renotify: true,
+        data: { link },
+      });
+    }
+
+    if (isCall) {
+      // Qo'ng'iroq push'i FAQAT ilova BUTUNLAY YOPIQ bo'lsa ko'rsatiladi.
+      // Ilova ochiq bo'lsa CallProvider o'zi ko'rsatadi — ekran bezovta qilinmaydi
+      // (kechikkan push qo'ng'iroq paytida ekranni uyg'otmaydi).
+      clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((list) => {
+          if (list.length === 0) show();
+        });
+    } else {
+      show();
+    }
   });
 }
 
