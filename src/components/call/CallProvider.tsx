@@ -113,6 +113,7 @@ export default function CallProvider({ userId }: { userId: string }) {
   const isCallerRef = useRef(false);
   const pendingIce = useRef<RTCIceCandidateInit[]>([]);
   const ringTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusRef = useRef<Status>("idle"); // joriy holat (stale closure'lardan qochish)
 
   // ---------- Tozalash ----------
   const cleanup = useCallback(() => {
@@ -183,20 +184,17 @@ export default function CallProvider({ userId }: { userId: string }) {
         setRemoteJoined(true);
       };
       pc.onconnectionstatechange = () => {
-        if (
-          pc.connectionState === "disconnected" ||
-          pc.connectionState === "failed" ||
-          pc.connectionState === "closed"
-        ) {
-          // qarama-qarshi tomon uzilsa
-          if (status === "active") endCall(true);
+        // FAQAT "failed" da tugatamiz. "disconnected" ko'pincha vaqtinchalik
+        // (tarmoq sakrashida o'zi tiklanadi) — shuning uchun unda tugatmaymiz.
+        if (pc.connectionState === "failed" && statusRef.current === "active") {
+          endCall(true);
         }
       };
       pcRef.current = pc;
       return pc;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sendSignal, status]
+    [sendSignal]
   );
 
   async function getMedia(type: CallType): Promise<MediaStream> {
@@ -241,12 +239,20 @@ export default function CallProvider({ userId }: { userId: string }) {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         sendSignal({ kind: "answer", sdp: answer });
+        if (ringTimer.current) {
+          clearTimeout(ringTimer.current);
+          ringTimer.current = null;
+        }
         setStatus("active");
       } else if (kind === "answer" && isCallerRef.current && pc) {
         await pc.setRemoteDescription(
           new RTCSessionDescription(payload.sdp as RTCSessionDescriptionInit)
         );
         await flushIce();
+        if (ringTimer.current) {
+          clearTimeout(ringTimer.current);
+          ringTimer.current = null;
+        }
         setStatus("active");
       } else if (kind === "ice" && pc) {
         const cand = payload.candidate as RTCIceCandidateInit;
@@ -417,8 +423,7 @@ export default function CallProvider({ userId }: { userId: string }) {
     return () => window.removeEventListener("zikra:start-call", onStart);
   }, [startCall]);
 
-  // Joriy holatni ref'da saqlaymiz (stale closure'lardan qochish uchun)
-  const statusRef = useRef<Status>("idle");
+  // Joriy holatni ref'da sinxronlaymiz (stale closure'lardan qochish uchun)
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
