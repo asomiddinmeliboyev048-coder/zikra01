@@ -19,6 +19,11 @@ insert into storage.buckets (id, name, public)
 values ('chat', 'chat', true)
 on conflict (id) do nothing;
 
+-- Sertifikatlar (rasm/PDF) uchun
+insert into storage.buckets (id, name, public)
+values ('certificates', 'certificates', true)
+on conflict (id) do nothing;
+
 -- 2) Qoidalar (RLS) — storage.objects
 -- Ommaviy o'qish (hamma ko'ra oladi)
 drop policy if exists "zikra_public_read_avatars" on storage.objects;
@@ -74,6 +79,29 @@ create policy "zikra_upload_chat" on storage.objects
     bucket_id = 'chat'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- Sertifikatlar: ommaviy o'qish + kirgan foydalanuvchi o'z papkasiga yuklaydi
+drop policy if exists "zikra_public_read_certificates" on storage.objects;
+create policy "zikra_public_read_certificates" on storage.objects
+  for select using (bucket_id = 'certificates');
+
+drop policy if exists "zikra_upload_certificates" on storage.objects;
+create policy "zikra_upload_certificates" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'certificates'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "zikra_update_own_certificates" on storage.objects;
+create policy "zikra_update_own_certificates" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'certificates' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "zikra_delete_own_certificates" on storage.objects;
+create policy "zikra_delete_own_certificates" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'certificates' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ============================================================
 -- TUGADI — endi .env'da Cloudinary kerak emas.

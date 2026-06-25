@@ -4,6 +4,7 @@ import type { ProfileWithSkills } from "@/lib/types";
 import { avatarFallback } from "@/lib/utils";
 import MatchBadge from "./MatchBadge";
 import StarRating from "./StarRating";
+import VerifiedBadge from "./VerifiedBadge";
 
 export default function UserCard({
   profile,
@@ -26,8 +27,10 @@ export default function UserCard({
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="truncate font-semibold text-gray-900">
-              {profile.full_name}
+            <h3 className="flex min-w-0 items-center gap-1 font-semibold text-gray-900">
+              <span className="truncate">{profile.full_name}</span>
+              {/* Spec: kartochkada belgi faqat admin tasdiqlagan (is_verified) bo'lsa ko'rinadi */}
+              <VerifiedBadge verified={!!profile.is_verified} size={16} />
             </h3>
             {showMatch && typeof profile.match_score === "number" && (
               <MatchBadge score={profile.match_score} />
