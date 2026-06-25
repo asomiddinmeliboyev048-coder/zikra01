@@ -30,6 +30,8 @@ export interface Database {
           trust_score: number;
           streak_days: number;
           onboarded: boolean;
+          certificate_url: string | null;
+          is_verified: boolean;
           created_at: string;
         };
         Insert: {
@@ -39,6 +41,8 @@ export interface Database {
           city?: string | null;
           bio?: string | null;
           avatar_url?: string | null;
+          certificate_url?: string | null;
+          is_verified?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];

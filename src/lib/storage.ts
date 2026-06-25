@@ -40,6 +40,23 @@ export async function uploadAvatar(file: File): Promise<string> {
   return uploadToBucket("avatars", file);
 }
 
+/** Ruxsat etilgan sertifikat fayl turlari (rasm + PDF) */
+export const CERTIFICATE_ACCEPT = "image/jpeg,image/png,image/jpg,application/pdf";
+
+/** Sertifikat fayli to'g'ri turdami (jpg, png yoki PDF) tekshirish */
+export function isValidCertificate(file: File): boolean {
+  const ok = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
+  return ok.includes(file.type);
+}
+
+/** Sertifikat (rasm yoki PDF) yuklash — public URL qaytaradi */
+export async function uploadCertificate(file: File): Promise<string> {
+  if (!isValidCertificate(file)) {
+    throw new Error("Faqat JPG, PNG yoki PDF fayl yuklash mumkin.");
+  }
+  return uploadToBucket("certificates", file);
+}
+
 /** Video davomiyligini (soniyada) brauzerda aniqlash */
 export function getVideoDuration(file: File): Promise<number | undefined> {
   return new Promise((resolve) => {

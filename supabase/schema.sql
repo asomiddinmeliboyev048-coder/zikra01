@@ -30,6 +30,8 @@ create table if not exists public.profiles (
   trust_score numeric(3,2) not null default 0,      -- o'rtacha reyting (0.00 - 5.00)
   streak_days integer not null default 0,
   onboarded   boolean not null default false,
+  certificate_url text,                                -- o'rgata oladigan fan bo'yicha sertifikat (rasm/PDF) URL
+  is_verified boolean not null default false,          -- sertifikat admin tomonidan tasdiqlanganmi (ko'k belgi)
   last_active timestamptz not null default now(),
   created_at  timestamptz not null default now()
 );

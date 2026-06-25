@@ -18,6 +18,9 @@ export interface Profile {
   onboarded: boolean;
   last_active: string;
   created_at: string;
+  // Sertifikat (ishonch) tizimi
+  certificate_url?: string | null; // o'rgata oladigan fan bo'yicha sertifikat (rasm/PDF)
+  is_verified?: boolean;           // admin tomonidan tasdiqlangan (ko'k belgi)
   // "Google Auth + Custom PIN" oqimi uchun
   pin_code?: string | null; // 6 xonali PIN'ning SHA-256 hash'i
   last_login?: string | null;
