@@ -8,15 +8,7 @@ export interface AuthState {
   error?: string;
 }
 
-const ALLOWED_CERT_TYPES = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
-const MAX_CERT_SIZE = 10 * 1024 * 1024; // 10MB
-
-function fileExtFromName(name: string): string {
-  const m = name.match(/\.([a-z0-9]+)$/i);
-  return m ? m[1].toLowerCase() : "bin";
-}
-
-/** Ro'yxatdan o'tish (email + parol) + ixtiyoriy sertifikat */
+/** Ro'yxatdan o'tish (email + parol). Sertifikat keyin onboarding/profildan yuklanadi. */
 export async function signUpAction(
   _prev: AuthState,
   formData: FormData
@@ -24,26 +16,12 @@ export async function signUpAction(
   const fullName = String(formData.get("full_name") || "").trim();
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
-  const certificate = formData.get("certificate");
 
   if (!fullName || !email || !password) {
     return { error: "Barcha maydonlarni to'ldiring." };
   }
   if (password.length < 6) {
     return { error: "Parol kamida 6 ta belgidan iborat bo'lishi kerak." };
-  }
-
-  // Sertifikat (agar yuklangan bo'lsa) validatsiyasi
-  const hasCert =
-    certificate instanceof File && certificate.size > 0 && certificate.name !== "";
-  if (hasCert) {
-    const cert = certificate as File;
-    if (!ALLOWED_CERT_TYPES.includes(cert.type)) {
-      return { error: "Sertifikat faqat JPG, PNG yoki PDF formatida bo'lishi mumkin." };
-    }
-    if (cert.size > MAX_CERT_SIZE) {
-      return { error: "Sertifikat hajmi 10MB dan oshmasligi kerak." };
-    }
   }
 
   const supabase = await createClient();
@@ -57,43 +35,6 @@ export async function signUpAction(
 
   if (error) {
     return { error: error.message };
-  }
-
-  // Ro'yxatdan o'tgandan so'ng session mavjud bo'lsa, sertifikatni yuklaymiz.
-  if (hasCert) {
-    const cert = certificate as File;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user) {
-      const path = `${user.id}/certificate-${Date.now()}.${fileExtFromName(cert.name)}`;
-      const { error: uploadError } = await supabase.storage
-        .from("certificates")
-        .upload(path, cert, {
-          contentType: cert.type || undefined,
-          upsert: true,
-        });
-
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from("certificates")
-          .getPublicUrl(path);
-
-        // certificate_url'ni saqlaymiz, holatni 'pending' qilamiz.
-        // Tasdiq (is_verified) faqat admin tomonidan beriladi.
-        await supabase
-          .from("profiles")
-          .update({
-            certificate_url: urlData.publicUrl,
-            is_verified: false,
-            verification_status: "pending",
-          })
-          .eq("id", user.id);
-      }
-      // Yuklashda xatolik bo'lsa ham ro'yxatdan o'tishni to'xtatmaymiz —
-      // foydalanuvchi keyinroq profildan sertifikat qo'sha oladi.
-    }
   }
 
   revalidatePath("/", "layout");

@@ -14,6 +14,7 @@ import FollowButton from "@/components/FollowButton";
 import Linkify from "@/components/Linkify";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import CertificateViewer from "@/components/CertificateViewer";
+import CertificateUpload from "@/components/CertificateUpload";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo, getSkills } from "@/lib/queries";
 import { avatarFallback, timeAgo } from "@/lib/utils";
@@ -262,8 +263,8 @@ export default async function ProfilePage({
               </div>
             </section>
 
-            {/* Hujjatlar / Sertifikatlar — boshqalarga faqat tasdiqlangan bo'lsa ko'rinadi */}
-            {(profile.is_verified || (isOwn && profile.certificate_url)) && (
+            {/* Hujjatlar / Sertifikatlar */}
+            {(isOwn || profile.is_verified) && (
               <section className="card p-6">
                 <div className="mb-4 flex items-center gap-2">
                   <h2 className="text-lg font-semibold text-gray-900">
@@ -271,28 +272,26 @@ export default async function ProfilePage({
                   </h2>
                   <VerifiedBadge verified={!!profile.is_verified} size={18} />
                 </div>
-                {profile.certificate_url ? (
+
+                {isOwn ? (
+                  <CertificateUpload
+                    certificateUrl={profile.certificate_url ?? null}
+                    verified={!!profile.is_verified}
+                    status={profile.verification_status ?? "none"}
+                    ownerName={profile.full_name}
+                  />
+                ) : profile.is_verified && profile.certificate_url ? (
                   <div className="space-y-3">
                     <CertificateViewer
                       url={profile.certificate_url}
-                      verified={!!profile.is_verified}
+                      verified
                       ownerName={profile.full_name}
                     />
                     <p className="text-xs text-gray-500">
-                      {profile.is_verified
-                        ? "Bu sertifikat admin tomonidan tekshirilib tasdiqlangan."
-                        : profile.verification_status === "rejected"
-                        ? "Sertifikat rad etildi. Iltimos, aniqroq hujjat bilan qayta urinib ko'ring."
-                        : "Sertifikat yuklangan. Admin tasdiqlashini kutmoqda."}
+                      Bu sertifikat admin tomonidan tekshirilib tasdiqlangan.
                     </p>
                   </div>
-                ) : (
-                  <p className="text-sm text-gray-400">
-                    Hali sertifikat yuklamadingiz. Ishonchni oshirish uchun
-                    o&apos;rgata oladigan faningiz bo&apos;yicha sertifikat
-                    qo&apos;shing.
-                  </p>
-                )}
+                ) : null}
               </section>
             )}
             {isOwn && myStories.length > 0 && (

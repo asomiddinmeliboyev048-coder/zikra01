@@ -48,6 +48,62 @@ export async function checkUsernameAction(
 }
 
 /**
+ * Sertifikat URL'ini saqlash (mijoz tomonida Storage'ga yuklangandan keyin).
+ * verification_status -> 'pending', is_verified -> false (admin tasdiqlashi kerak).
+ */
+export async function saveCertificateAction(
+  certificateUrl: string
+): Promise<ProfileState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const url = String(certificateUrl || "").trim();
+  if (!url) return { error: "Sertifikat URL topilmadi." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      certificate_url: url,
+      verification_status: "pending",
+      is_verified: false,
+    })
+    .eq("id", user.id);
+
+  if (error) return { error: "Saqlashda xatolik: " + error.message };
+
+  revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/discovery");
+  return { success: true };
+}
+
+/** Sertifikatni o'chirish */
+export async function removeCertificateAction(): Promise<ProfileState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      certificate_url: null,
+      verification_status: "none",
+      is_verified: false,
+    })
+    .eq("id", user.id);
+
+  if (error) return { error: "O'chirishda xatolik: " + error.message };
+
+  revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/discovery");
+  return { success: true };
+}
+
+/**
  * Onboarding / profilni saqlash.
  * teach_skills va learn_skills — vergul bilan ajratilgan skill_id'lar.
  */
@@ -66,6 +122,7 @@ export async function saveProfileAction(
   const city = String(formData.get("city") || "").trim();
   const bio = String(formData.get("bio") || "").trim();
   const avatarUrl = String(formData.get("avatar_url") || "").trim();
+  const certificateUrl = String(formData.get("certificate_url") || "").trim();
   const teachIds = String(formData.get("teach_skills") || "")
     .split(",")
     .map((s) => s.trim())
@@ -95,17 +152,34 @@ export async function saveProfileAction(
     return { error: "Kamida bitta o'rganmoqchi bo'lgan ko'nikma tanlang." };
 
   // Profilni yangilash
+  const updatePayload: Record<string, unknown> = {
+    full_name: fullName,
+    username: username || null,
+    city: city || null,
+    bio: bio || null,
+    avatar_url: avatarUrl || null,
+    onboarded: true,
+    last_active: new Date().toISOString(),
+  };
+
+  // Sertifikat (onboarding'da yuklangan bo'lsa) — tasdiqlash navbatiga qo'shamiz
+  if (certificateUrl) {
+    const { data: current } = await supabase
+      .from("profiles")
+      .select("certificate_url")
+      .eq("id", user.id)
+      .single();
+    const cur = (current as { certificate_url: string | null } | null)?.certificate_url;
+    if (cur !== certificateUrl) {
+      updatePayload.certificate_url = certificateUrl;
+      updatePayload.verification_status = "pending";
+      updatePayload.is_verified = false;
+    }
+  }
+
   const { error: upErr } = await supabase
     .from("profiles")
-    .update({
-      full_name: fullName,
-      username: username || null,
-      city: city || null,
-      bio: bio || null,
-      avatar_url: avatarUrl || null,
-      onboarded: true,
-      last_active: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", user.id);
 
   if (upErr) return { error: "Profilni saqlashda xatolik: " + upErr.message };
