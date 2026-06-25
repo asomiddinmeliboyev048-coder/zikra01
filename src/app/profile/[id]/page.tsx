@@ -140,11 +140,8 @@ export default async function ProfilePage({
                 <div className="pb-1">
                   <h1 className="flex items-center gap-1.5 text-2xl font-bold text-gray-900">
                     {profile.full_name}
-                    <VerifiedBadge
-                      verified={!!profile.is_verified}
-                      hasCertificate={!!profile.certificate_url}
-                      size={22}
-                    />
+                    {/* Belgi faqat admin tasdiqlagan (is_verified) bo'lsa */}
+                    <VerifiedBadge verified={!!profile.is_verified} size={22} />
                   </h1>
                   {profile.username && (
                     <p className="text-sm font-medium text-brand">@{profile.username}</p>
@@ -265,41 +262,39 @@ export default async function ProfilePage({
               </div>
             </section>
 
-            {/* Hujjatlar / Sertifikatlar */}
-            <section className="card p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Hujjatlar / Sertifikatlar
-                </h2>
-                {profile.certificate_url && (
-                  <VerifiedBadge
-                    verified={!!profile.is_verified}
-                    hasCertificate={!!profile.certificate_url}
-                    size={18}
-                  />
-                )}
-              </div>
-              {profile.certificate_url ? (
-                <div className="space-y-3">
-                  <CertificateViewer
-                    url={profile.certificate_url}
-                    verified={!!profile.is_verified}
-                    ownerName={profile.full_name}
-                  />
-                  <p className="text-xs text-gray-500">
-                    {profile.is_verified
-                      ? "Bu sertifikat admin tomonidan tekshirilib tasdiqlangan."
-                      : "Sertifikat yuklangan. Tasdiqlanishi kutilmoqda."}
-                  </p>
+            {/* Hujjatlar / Sertifikatlar — boshqalarga faqat tasdiqlangan bo'lsa ko'rinadi */}
+            {(profile.is_verified || (isOwn && profile.certificate_url)) && (
+              <section className="card p-6">
+                <div className="mb-4 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Hujjatlar / Sertifikatlar
+                  </h2>
+                  <VerifiedBadge verified={!!profile.is_verified} size={18} />
                 </div>
-              ) : (
-                <p className="text-sm text-gray-400">
-                  {isOwn
-                    ? "Hali sertifikat yuklamadingiz. Ishonchni oshirish uchun o'rgata oladigan faningiz bo'yicha sertifikat qo'shing."
-                    : "Sertifikat yuklanmagan."}
-                </p>
-              )}
-            </section>
+                {profile.certificate_url ? (
+                  <div className="space-y-3">
+                    <CertificateViewer
+                      url={profile.certificate_url}
+                      verified={!!profile.is_verified}
+                      ownerName={profile.full_name}
+                    />
+                    <p className="text-xs text-gray-500">
+                      {profile.is_verified
+                        ? "Bu sertifikat admin tomonidan tekshirilib tasdiqlangan."
+                        : profile.verification_status === "rejected"
+                        ? "Sertifikat rad etildi. Iltimos, aniqroq hujjat bilan qayta urinib ko'ring."
+                        : "Sertifikat yuklangan. Admin tasdiqlashini kutmoqda."}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400">
+                    Hali sertifikat yuklamadingiz. Ishonchni oshirish uchun
+                    o&apos;rgata oladigan faningiz bo&apos;yicha sertifikat
+                    qo&apos;shing.
+                  </p>
+                )}
+              </section>
+            )}
             {isOwn && myStories.length > 0 && (
               <section className="card p-6">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">

@@ -32,6 +32,8 @@ create table if not exists public.profiles (
   onboarded   boolean not null default false,
   certificate_url text,                                -- o'rgata oladigan fan bo'yicha sertifikat (rasm/PDF) URL
   is_verified boolean not null default false,          -- sertifikat admin tomonidan tasdiqlanganmi (ko'k belgi)
+  verification_status text not null default 'none'     -- tasdiqlash holati: none/pending/approved/rejected
+    check (verification_status in ('none', 'pending', 'approved', 'rejected')),
   last_active timestamptz not null default now(),
   created_at  timestamptz not null default now()
 );

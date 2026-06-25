@@ -32,6 +32,7 @@ export interface Database {
           onboarded: boolean;
           certificate_url: string | null;
           is_verified: boolean;
+          verification_status: "none" | "pending" | "approved" | "rejected";
           created_at: string;
         };
         Insert: {
@@ -43,6 +44,7 @@ export interface Database {
           avatar_url?: string | null;
           certificate_url?: string | null;
           is_verified?: boolean;
+          verification_status?: "none" | "pending" | "approved" | "rejected";
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];

@@ -29,11 +29,8 @@ export default function UserCard({
           <div className="flex items-center justify-between gap-2">
             <h3 className="flex min-w-0 items-center gap-1 font-semibold text-gray-900">
               <span className="truncate">{profile.full_name}</span>
-              <VerifiedBadge
-                verified={!!profile.is_verified}
-                hasCertificate={!!profile.certificate_url}
-                size={16}
-              />
+              {/* Spec: kartochkada belgi faqat admin tasdiqlagan (is_verified) bo'lsa ko'rinadi */}
+              <VerifiedBadge verified={!!profile.is_verified} size={16} />
             </h3>
             {showMatch && typeof profile.match_score === "number" && (
               <MatchBadge score={profile.match_score} />

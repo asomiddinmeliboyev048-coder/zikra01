@@ -80,10 +80,15 @@ export async function signUpAction(
           .from("certificates")
           .getPublicUrl(path);
 
-        // certificate_url'ni saqlaymiz, tasdiq (is_verified) admin tomonidan beriladi
+        // certificate_url'ni saqlaymiz, holatni 'pending' qilamiz.
+        // Tasdiq (is_verified) faqat admin tomonidan beriladi.
         await supabase
           .from("profiles")
-          .update({ certificate_url: urlData.publicUrl, is_verified: false })
+          .update({
+            certificate_url: urlData.publicUrl,
+            is_verified: false,
+            verification_status: "pending",
+          })
           .eq("id", user.id);
       }
       // Yuklashda xatolik bo'lsa ham ro'yxatdan o'tishni to'xtatmaymiz —

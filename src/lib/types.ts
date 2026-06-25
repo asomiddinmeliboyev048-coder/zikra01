@@ -21,6 +21,7 @@ export interface Profile {
   // Sertifikat (ishonch) tizimi
   certificate_url?: string | null; // o'rgata oladigan fan bo'yicha sertifikat (rasm/PDF)
   is_verified?: boolean;           // admin tomonidan tasdiqlangan (ko'k belgi)
+  verification_status?: "none" | "pending" | "approved" | "rejected"; // tasdiqlash holati
   // "Google Auth + Custom PIN" oqimi uchun
   pin_code?: string | null; // 6 xonali PIN'ning SHA-256 hash'i
   last_login?: string | null;

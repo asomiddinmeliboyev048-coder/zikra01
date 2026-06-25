@@ -12,10 +12,20 @@ alter table public.profiles
 alter table public.profiles
   add column if not exists is_verified boolean not null default false;
 
+-- Tasdiqlash holati: none | pending | approved | rejected
+alter table public.profiles
+  add column if not exists verification_status text not null default 'none'
+  check (verification_status in ('none', 'pending', 'approved', 'rejected'));
+
+create index if not exists idx_profiles_verification_status
+  on public.profiles (verification_status);
+
 comment on column public.profiles.certificate_url is
   'O''rgata oladigan fan bo''yicha yuklangan sertifikat (rasm yoki PDF) URL manzili';
 comment on column public.profiles.is_verified is
   'Sertifikat admin tomonidan tekshirilib tasdiqlanganmi (ko''k belgi)';
+comment on column public.profiles.verification_status is
+  'Sertifikat tasdiqlash holati: none/pending/approved/rejected';
 
 -- 2) certificates storage bucket (ommaviy o'qish)
 insert into storage.buckets (id, name, public)
