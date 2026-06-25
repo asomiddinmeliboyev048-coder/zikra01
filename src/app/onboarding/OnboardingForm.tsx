@@ -7,7 +7,7 @@ import { saveProfileAction, checkUsernameAction, type ProfileState } from "@/app
 import SkillSelector from "@/components/SkillSelector";
 import SubmitButton from "@/components/SubmitButton";
 import { avatarFallback } from "@/lib/utils";
-import { uploadAvatar } from "@/lib/storage";
+import { uploadAvatar, uploadCertificate, isValidCertificate, CERTIFICATE_ACCEPT } from "@/lib/storage";
 
 const initial: ProfileState = {};
 
@@ -36,6 +36,12 @@ export default function OnboardingForm({ skills, defaults }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  // Sertifikat
+  const [certUrl, setCertUrl] = useState("");
+  const [certName, setCertName] = useState("");
+  const [certUploading, setCertUploading] = useState(false);
+  const [certErr, setCertErr] = useState("");
+  const certRef = useRef<HTMLInputElement>(null);
 
   // Username real-time tekshirish (debounced)
   useEffect(() => {
@@ -71,6 +77,32 @@ export default function OnboardingForm({ skills, defaults }: Props) {
       setUploadErr(err instanceof Error ? err.message : "Rasm yuklanmadi.");
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleCertFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCertErr("");
+    if (!isValidCertificate(file)) {
+      setCertErr("Faqat JPG, PNG yoki PDF fayl yuklash mumkin.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setCertErr("Fayl hajmi 10MB dan oshmasligi kerak.");
+      e.target.value = "";
+      return;
+    }
+    setCertUploading(true);
+    try {
+      const url = await uploadCertificate(file);
+      setCertUrl(url);
+      setCertName(file.name);
+    } catch (err) {
+      setCertErr(err instanceof Error ? err.message : "Sertifikat yuklanmadi.");
+    } finally {
+      setCertUploading(false);
     }
   }
 
@@ -225,6 +257,54 @@ export default function OnboardingForm({ skills, defaults }: Props) {
           variant="learn"
         />
         <input type="hidden" name="learn_skills" value={learn.join(",")} />
+      </div>
+
+      {/* Sertifikat — ixtiyoriy (ishonchni oshirish uchun) */}
+      <div className="rounded-2xl border border-gray-100 p-4">
+        <h3 className="mb-1 flex items-center gap-2 font-semibold text-gray-800">
+          <span>📜</span> Sertifikat — ixtiyoriy
+        </h3>
+        <p className="mb-3 text-xs text-gray-500">
+          O&apos;rgata oladigan faningiz bo&apos;yicha sertifikatingiz
+          bo&apos;lsa yuklang. Admin tasdiqlagach, profilingizda ishonch belgisi
+          paydo bo&apos;ladi.
+        </p>
+
+        {certUrl ? (
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-success-100 bg-success-50 px-4 py-3 text-sm">
+            <span className="truncate text-success-700">✓ {certName || "Sertifikat yuklandi"}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setCertUrl("");
+                setCertName("");
+                if (certRef.current) certRef.current.value = "";
+              }}
+              className="shrink-0 text-xs font-medium text-gray-400 hover:text-accent-700"
+            >
+              O&apos;chirish
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => certRef.current?.click()}
+            disabled={certUploading}
+            className="btn-outline"
+          >
+            {certUploading ? "Yuklanmoqda..." : "📜 Sertifikat tanlash (JPG, PNG yoki PDF)"}
+          </button>
+        )}
+
+        <input
+          ref={certRef}
+          type="file"
+          accept={CERTIFICATE_ACCEPT}
+          onChange={handleCertFile}
+          className="hidden"
+        />
+        {certErr && <p className="mt-1 text-xs text-accent-700">{certErr}</p>}
+        <input type="hidden" name="certificate_url" value={certUrl} />
       </div>
 
       {state?.error && (
