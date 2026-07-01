@@ -62,3 +62,47 @@ export async function deleteReelAction(reelId: string): Promise<ReelState> {
   revalidatePath("/videos");
   return { success: true };
 }
+
+/** Reelga like bosish / olib tashlash (toggle). */
+export async function toggleReelLikeAction(
+  reelId: string
+): Promise<{ error?: string; liked?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const { data: existing } = await supabase
+    .from("reel_likes")
+    .select("id")
+    .eq("reel_id", reelId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from("reel_likes").delete().eq("id", existing.id);
+    return { liked: false };
+  }
+
+  const { error } = await supabase
+    .from("reel_likes")
+    .insert({ reel_id: reelId, user_id: user.id });
+  if (error) return { error: error.message };
+  return { liked: true };
+}
+
+/** Reel ko'rilganda — foydalanuvchiga FAQAT 1 marta hisoblanadi (unique). */
+export async function recordReelViewAction(reelId: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from("reel_views")
+    .upsert(
+      { reel_id: reelId, user_id: user.id },
+      { onConflict: "reel_id,user_id", ignoreDuplicates: true }
+    );
+}

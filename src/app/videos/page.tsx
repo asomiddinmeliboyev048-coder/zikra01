@@ -115,7 +115,12 @@ export default async function VideosPage() {
         <VideoBrowser videos={videos} />
 
         <section className="mt-12">
-          <h2 className="mb-4 text-xl font-bold text-gray-900">Reels — qisqa videolar</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Reels — qisqa videolar</h2>
+            <Link href="/reels" className="text-sm font-medium text-brand hover:underline">
+              To&apos;liq ekranda ko&apos;rish →
+            </Link>
+          </div>
           <ReelsFeed reels={reels} currentUserId={me.id} />
         </section>
       </main>
