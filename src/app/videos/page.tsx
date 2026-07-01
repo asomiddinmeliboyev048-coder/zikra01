@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import VideoBrowser from "./VideoBrowser";
+import ReelUpload from "./ReelUpload";
+import ReelsFeed, { type ReelItem } from "./ReelsFeed";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getVideoStats } from "@/lib/queries";
 import type { Video } from "@/lib/types";
@@ -63,22 +65,59 @@ export default async function VideosPage() {
   };
   videos.sort((a, b) => score(b) - score(a));
 
+  // --- Reels (qisqa videolar, S3'da) ---
+  const { data: reelsData } = await supabase
+    .from("reels")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(60);
+
+  const rawReels = (reelsData as Omit<ReelItem, "uploader">[]) ?? [];
+  const reelUserIds = [...new Set(rawReels.map((r) => r.user_id))];
+
+  const profilesMap = new Map<
+    string,
+    { id: string; full_name: string | null; avatar_url: string | null }
+  >();
+  if (reelUserIds.length > 0) {
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", reelUserIds);
+    for (const p of (profs as { id: string; full_name: string | null; avatar_url: string | null }[]) ?? []) {
+      profilesMap.set(p.id, p);
+    }
+  }
+
+  const reels: ReelItem[] = rawReels.map((r) => ({
+    ...r,
+    uploader: profilesMap.get(r.user_id) ?? null,
+  }));
+
   return (
     <div className="min-h-screen">
       <Navbar />
       <main className="container-app py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Video darslar</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Boshqalardan o&apos;rganing. O&apos;z darsingizni ulashish uchun{" "}
-            <Link href={`/profile/${me.id}`} className="font-medium text-brand hover:underline">
-              profilingizga
-            </Link>{" "}
-            o&apos;ting.
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Video darslar</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Boshqalardan o&apos;rganing. O&apos;z darsingizni ulashish uchun{" "}
+              <Link href={`/profile/${me.id}`} className="font-medium text-brand hover:underline">
+                profilingizga
+              </Link>{" "}
+              o&apos;ting.
+            </p>
+          </div>
+          <ReelUpload />
         </div>
 
         <VideoBrowser videos={videos} />
+
+        <section className="mt-12">
+          <h2 className="mb-4 text-xl font-bold text-gray-900">Reels — qisqa videolar</h2>
+          <ReelsFeed reels={reels} currentUserId={me.id} />
+        </section>
       </main>
     </div>
   );
