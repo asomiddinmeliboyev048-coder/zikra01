@@ -8,6 +8,8 @@ import LevelProgress from "@/components/LevelProgress";
 import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
 import VideoUpload from "@/app/videos/VideoUpload";
+import ReelUpload from "@/app/videos/ReelUpload";
+import ReelGrid from "@/components/ReelGrid";
 import SupportButton from "@/components/SupportButton";
 import ReviewButton from "./ReviewButton";
 import FollowButton from "@/components/FollowButton";
@@ -16,7 +18,7 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 import CertificateViewer from "@/components/CertificateViewer";
 import CertificateUpload from "@/components/CertificateUpload";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo, getSkills } from "@/lib/queries";
+import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo, getSkills, getUserReels, getReelStats } from "@/lib/queries";
 import { avatarFallback, timeAgo } from "@/lib/utils";
 import type { UserBadge, Video, Rating } from "@/lib/types";
 
@@ -43,7 +45,7 @@ export default async function ProfilePage({
   const me = await getCurrentUser();
   const isOwn = me?.id === profile.id;
 
-  // Parallel: darslar soni, baholar, nishonlar, videolar
+  // Parallel: darslar soni, baholar, nishonlar, videolar, reels
   const [lessonsRes, ratingsRes, badgesRes, videosRes] = await Promise.all([
     supabase
       .from("lessons")
@@ -74,10 +76,14 @@ export default async function ProfilePage({
   const badges = (badgesRes.data as unknown as UserBadge[]) ?? [];
   const videos = (videosRes.data as unknown as Video[]) ?? [];
 
-  // Obuna ma'lumotlari va video statistikasi
-  const [follow, vstats] = await Promise.all([
+  // Foydalanuvchining reels'larini olish
+  const reels = await getUserReels(profile.id);
+  
+  // Obuna ma'lumotlari, video statistikasi va reel statistikasi
+  const [follow, vstats, rstats] = await Promise.all([
     getFollowInfo(profile.id, me?.id),
     getVideoStats(videos.map((v) => v.id), me?.id),
+    getReelStats(reels.map((r) => r.id), me?.id),
   ]);
   for (const v of videos) {
     const s = vstats.get(v.id);
@@ -85,6 +91,13 @@ export default async function ProfilePage({
       v.likes = s.likes;
       v.views = s.views;
       v.liked = s.liked;
+    }
+  }
+  for (const r of reels) {
+    const s = rstats.get(r.id);
+    if (s) {
+      r.likes = s.likes;
+      r.liked = s.liked;
     }
   }
 
@@ -317,6 +330,20 @@ export default async function ProfilePage({
                     </div>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {/* Reels bo'limi */}
+            {isOwn && (
+              <section className="card p-6">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Reels ({reels.length})
+                  </h2>
+                  {/* Reel yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
+                  <ReelUpload />
+                </div>
+                <ReelGrid reels={reels} userId={profile.id} />
               </section>
             )}
 

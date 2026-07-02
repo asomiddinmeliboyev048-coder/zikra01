@@ -4,6 +4,7 @@ import type {
   Skill,
   ProfileWithSkills,
   UserSkill,
+  Reel,
 } from "@/lib/types";
 
 /** Joriy kirgan foydalanuvchi (auth) */
@@ -212,4 +213,59 @@ export async function getStoriesFeed(meId: string): Promise<{
   }
 
   return { groups: Array.from(map.values()) };
+}
+
+/** Barcha reels'larni olish (eng yangi birinchi) */
+export async function getReels(): Promise<Reel[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reels")
+    .select("*, user:profiles!reels_user_id_fkey(id, full_name, avatar_url, username)")
+    .order("created_at", { ascending: false });
+
+  return (data as unknown as Reel[]) ?? [];
+}
+
+/** Muayyan foydalanuvchining reels'larini olish */
+export async function getUserReels(userId: string): Promise<Reel[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reels")
+    .select("*, user:profiles!reels_user_id_fkey(id, full_name, avatar_url, username)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  return (data as unknown as Reel[]) ?? [];
+}
+
+/** Bir nechta reel uchun like soni va joriy foydalanuvchi like bosganmi */
+export async function getReelStats(
+  reelIds: string[],
+  userId?: string
+): Promise<Map<string, { likes: number; liked: boolean }>> {
+  const map = new Map<string, { likes: number; liked: boolean }>();
+  reelIds.forEach((id) => map.set(id, { likes: 0, liked: false }));
+  if (reelIds.length === 0) return map;
+
+  const supabase = await createClient();
+  const [likesRes, mineRes] = await Promise.all([
+    supabase.from("reel_likes").select("reel_id").in("reel_id", reelIds),
+    userId
+      ? supabase
+          .from("reel_likes")
+          .select("reel_id")
+          .eq("user_id", userId)
+          .in("reel_id", reelIds)
+      : Promise.resolve({ data: [] as { reel_id: string }[] }),
+  ]);
+
+  for (const r of (likesRes.data as { reel_id: string }[]) ?? []) {
+    const s = map.get(r.reel_id);
+    if (s) s.likes += 1;
+  }
+  for (const r of (mineRes.data as { reel_id: string }[]) ?? []) {
+    const s = map.get(r.reel_id);
+    if (s) s.liked = true;
+  }
+  return map;
 }

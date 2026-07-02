@@ -196,3 +196,17 @@ export interface ProfileWithSkills extends Profile {
   learn_skills: Skill[];
   match_score?: number;
 }
+
+// Reel (qisqa video) tipi
+export interface Reel {
+  id: string;
+  user_id: string;
+  video_url: string;
+  description: string | null;
+  created_at: string;
+  user?: Pick<Profile, "id" | "full_name" | "avatar_url" | "username">;
+  // Ijtimoiy statistika (sahifa tomonidan to'ldiriladi)
+  likes?: number;
+  liked?: boolean;
+  views?: number;
+}
