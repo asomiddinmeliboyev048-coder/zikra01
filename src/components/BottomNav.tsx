@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
  */
 export default function BottomNav({
   profileId,
-  unread = 0,
 }: {
   profileId: string;
   unread?: number;
@@ -19,9 +18,8 @@ export default function BottomNav({
 
   const items = [
     { href: "/discovery", label: "Kashf", icon: DiscoverIcon },
-    { href: "/videos", label: "Video", icon: VideoIcon },
+    { href: "/reels", label: "Reels", icon: ReelsIcon },
     { href: "/chat", label: "Suhbat", icon: ChatIcon },
-    { href: "/notifications", label: "Bildirish", icon: BellIcon, badge: unread },
     { href: `/profile/${profileId}`, label: "Profil", icon: UserIcon },
   ];
 
@@ -33,7 +31,6 @@ export default function BottomNav({
             ? pathname.startsWith("/profile")
             : pathname.startsWith(item.href);
         const Icon = item.icon;
-        const badge = "badge" in item ? (item.badge as number) : 0;
         return (
           <Link
             key={item.href}
@@ -43,14 +40,7 @@ export default function BottomNav({
               active ? "text-brand" : "text-gray-400"
             )}
           >
-            <span className="relative">
-              <Icon active={active} />
-              {badge > 0 && (
-                <span className="absolute -right-2 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-accent px-0.5 text-[8px] font-bold text-white">
-                  {badge > 9 ? "9+" : badge}
-                </span>
-              )}
-            </span>
+            <Icon active={active} />
             {item.label}
           </Link>
         );
@@ -67,18 +57,12 @@ function DiscoverIcon({ active }: { active: boolean }) {
     </svg>
   );
 }
-function BellIcon({ active }: { active: boolean }) {
+function ReelsIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
-      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function VideoIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
-      <rect x="3" y="6" width="18" height="12" rx="2" />
-      <path d="M10 9.5l4 2.5-4 2.5z" fill="currentColor" stroke="none" />
+      <rect x="2" y="3" width="20" height="18" rx="2" />
+      <path d="M2 7h20M7 3l-2 4M12 3l-2 4M17 3l-2 4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 13l4 2.5-4 2.5z" fill="currentColor" stroke="none" />
     </svg>
   );
 }
