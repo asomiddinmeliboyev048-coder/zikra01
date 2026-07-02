@@ -3,14 +3,13 @@ import type { Reel } from "@/lib/types";
 
 interface ReelGridProps {
   reels: Reel[];
-  userId: string;
 }
 
 /**
  * Instagram uslubidagi Reels grid — foydalanuvchining barcha reels'larini
- * 3 ustunli grid ko'rinishida ko'rsatadi (mobilda 3, desktopda 3).
+ * 3 ustunli grid ko'rinishida ko'rsatadi.
  */
-export default function ReelGrid({ reels, userId }: ReelGridProps) {
+export default function ReelGrid({ reels }: ReelGridProps) {
   if (reels.length === 0) {
     return (
       <p className="text-sm text-gray-400">

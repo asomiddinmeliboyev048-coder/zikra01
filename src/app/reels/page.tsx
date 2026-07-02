@@ -6,9 +6,15 @@ import { getCurrentProfile, getReels, getReelStats } from "@/lib/queries";
 export const metadata: Metadata = { title: "Reels" };
 export const dynamic = "force-dynamic";
 
-export default async function ReelsPage() {
+export default async function ReelsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ start?: string }>;
+}) {
   const me = await getCurrentProfile();
   if (!me) redirect("/login");
+
+  const { start } = await searchParams;
 
   // Barcha reels'larni olish
   const reels = await getReels();
@@ -19,7 +25,7 @@ export default async function ReelsPage() {
         <div className="text-center">
           <p className="text-lg font-semibold">Hali reels mavjud emas</p>
           <p className="mt-2 text-sm text-gray-400">
-            Birinchi bo'lib reel yuklang!
+            Birinchi bo&apos;lib reel yuklang!
           </p>
         </div>
       </div>
@@ -39,5 +45,8 @@ export default async function ReelsPage() {
     }
   }
 
-  return <ReelsPlayer reels={reels} />;
+  // Grid'dan kelgan bo'lsa (?start=<id>) — o'sha reeldan boshlaymiz
+  const initialIndex = start ? Math.max(0, reels.findIndex((r) => r.id === start)) : 0;
+
+  return <ReelsPlayer reels={reels} initialIndex={initialIndex} />;
 }

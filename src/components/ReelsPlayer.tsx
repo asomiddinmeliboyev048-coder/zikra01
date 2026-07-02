@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { avatarFallback, timeAgo } from "@/lib/utils";
@@ -13,103 +13,152 @@ interface ReelsPlayerProps {
 }
 
 /**
- * Instagram uslubidagi Reels pleyer — to'liq ekranli vertikal videolar,
- * avtomatik ijro (ovoz bilan), yuqoriga/pastga swipe orqali navgatsiya.
+ * Instagram uslubidagi Reels pleyer — to'liq ekranli vertikal (9:16) videolar.
+ *
+ * Ovoz siyosati (autoplay policy) bilan ishlash:
+ *   1) Video ovoz bilan (unmuted) avtomatik ijro etilishga urinadi.
+ *   2) Agar brauzer buni bloklasa (NotAllowedError), video OVOZSIZ ijro
+ *      etiladi va foydalanuvchiga "ovozni yoqish uchun bosing" ko'rsatkichi
+ *      chiqadi. Foydalanuvchi bosishi bilan ovoz yoqiladi.
  */
 export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [muted, setMuted] = useState(false); // Boshlang'ich: ovoz yoqilgan
+  const [muted, setMuted] = useState(false); // Boshlang'ich holat: ovoz yoqilgan
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [liked, setLiked] = useState<Set<string>>(new Set());
-  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [pending, setPending] = useState<Set<string>>(new Set());
+
+  const videoRef = useRef<HTMLVideoElement>(null);
   const touchStartY = useRef(0);
 
   const currentReel = reels[currentIndex];
 
-  // Video o'zgarganda — joriy videoni avtomatik ijro qil
-  useEffect(() => {
-    const video = videoRefs.current.get(currentIndex);
-    if (video) {
-      video.currentTime = 0;
-      video.muted = muted;
-      // Avtomatik ijro (ovoz bilan agar muted=false)
-      video.play().catch((err) => {
-        console.log("Autoplay xatolik (brauzer bloklagan bo'lishi mumkin):", err);
-      });
-    }
+  /**
+   * Joriy videoni ijro etadi. Avval ovoz bilan urinadi; brauzer bloklasa,
+   * ovozsiz rejimga o'tib qayta urinadi va "tap to unmute" ko'rsatkichini yoqadi.
+   */
+  const playCurrent = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) return;
 
-    // Oldingi va keyingi videolarni to'xtatish
-    videoRefs.current.forEach((v, idx) => {
-      if (idx !== currentIndex) {
-        v.pause();
-        v.currentTime = 0;
+    video.currentTime = 0;
+    video.muted = muted;
+
+    try {
+      await video.play();
+      if (!muted) setAutoplayBlocked(false);
+    } catch {
+      // Brauzer ovozli avtomatik ijroni bloklagan bo'lishi mumkin.
+      // Ovozsiz rejimga o'tib qayta urinamiz (bu deyarli har doim ishlaydi).
+      if (!muted) {
+        video.muted = true;
+        setMuted(true);
+        setAutoplayBlocked(true);
+        try {
+          await video.play();
+        } catch {
+          // Ovozsiz ham ijro bo'lmasa — foydalanuvchi qo'lda boshqaradi.
+        }
       }
-    });
-  }, [currentIndex, muted]);
+    }
+  }, [muted]);
 
-  // Ovoz holatini o'zgartirish
-  const toggleMute = () => {
-    setMuted((prev) => !prev);
-    const video = videoRefs.current.get(currentIndex);
+  // Video yoki ovoz holati o'zgarganda joriy videoni ijro et.
+  // Har bir reel <video key> orqali alohida mount bo'ladi, shuning uchun
+  // eski video avtomatik to'xtaydi (qo'lda pauza qilish shart emas).
+  useEffect(() => {
+    playCurrent();
+  }, [currentIndex, playCurrent]);
+
+  // Ovoz holatini almashtirish (foydalanuvchi qo'lda bosganda)
+  const toggleMute = useCallback(() => {
+    const video = videoRef.current;
+    const next = !muted;
+    setMuted(next);
+    setAutoplayBlocked(false);
     if (video) {
-      video.muted = !muted;
+      video.muted = next;
+      // Foydalanuvchi ovozni yoqsa va video pauzada bo'lsa — ijro etamiz
+      if (!next && video.paused) {
+        video.play().catch(() => {
+          /* foydalanuvchi harakati bo'lgani uchun bu kamdan-kam yuz beradi */
+        });
+      }
     }
-  };
+  }, [muted]);
 
-  // Like toggle (client-side optimistic update + server action)
-  const toggleLike = async (reelId: string) => {
-    const currentReel = reels.find((r) => r.id === reelId);
-    if (!currentReel) return;
+  // Like/unlike — optimistik yangilash + server action
+  const toggleLike = useCallback(
+    async (reelId: string) => {
+      if (pending.has(reelId)) return;
 
-    const wasLiked = liked.has(reelId) || currentReel.liked;
-    const newLiked = new Set(liked);
-    
-    if (wasLiked) {
-      newLiked.delete(reelId);
-      // Optimistic UI update
-      setLiked(newLiked);
-      // Backend unlike action
-      await unlikeReelAction(reelId);
-    } else {
-      newLiked.add(reelId);
-      // Optimistic UI update
-      setLiked(newLiked);
-      // Backend like action
-      await likeReelAction(reelId);
-    }
-  };
+      const reel = reels.find((r) => r.id === reelId);
+      if (!reel) return;
 
-  // Touch swipe navigation
+      const wasLiked = liked.has(reelId) || Boolean(reel.liked);
+
+      setLiked((prev) => {
+        const next = new Set(prev);
+        if (wasLiked) next.delete(reelId);
+        else next.add(reelId);
+        return next;
+      });
+      setPending((prev) => new Set(prev).add(reelId));
+
+      try {
+        const res = wasLiked
+          ? await unlikeReelAction(reelId)
+          : await likeReelAction(reelId);
+
+        // Server xatosi bo'lsa — optimistik o'zgarishni orqaga qaytaramiz
+        if (res?.error) {
+          setLiked((prev) => {
+            const next = new Set(prev);
+            if (wasLiked) next.add(reelId);
+            else next.delete(reelId);
+            return next;
+          });
+        }
+      } finally {
+        setPending((prev) => {
+          const next = new Set(prev);
+          next.delete(reelId);
+          return next;
+        });
+      }
+    },
+    [reels, liked, pending]
+  );
+
+  const goNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev < reels.length - 1 ? prev + 1 : prev));
+  }, [reels.length]);
+
+  const goPrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
+  }, []);
+
+  // Touch swipe navigatsiya (mobil)
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const touchEndY = e.changedTouches[0].clientY;
-    const diff = touchStartY.current - touchEndY;
-
-    // Swipe up (keyingi reel) — 50px dan ko'proq
-    if (diff > 50 && currentIndex < reels.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-    // Swipe down (oldingi reel) — -50px dan kam
-    else if (diff < -50 && currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
+    const diff = touchStartY.current - e.changedTouches[0].clientY;
+    if (diff > 50) goNext();
+    else if (diff < -50) goPrev();
   };
 
-  // Klaviatura navigatsiya (desktop uchun)
+  // Klaviatura navigatsiya (desktop)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowUp" && currentIndex > 0) {
-        setCurrentIndex((prev) => prev - 1);
-      } else if (e.key === "ArrowDown" && currentIndex < reels.length - 1) {
-        setCurrentIndex((prev) => prev + 1);
-      }
+      if (e.key === "ArrowUp") goPrev();
+      else if (e.key === "ArrowDown") goNext();
+      else if (e.key === "m" || e.key === "M") toggleMute();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex, reels.length]);
+  }, [goPrev, goNext, toggleMute]);
 
   if (reels.length === 0) {
     return (
@@ -119,45 +168,67 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
     );
   }
 
+  const isLiked = liked.has(currentReel.id) || Boolean(currentReel.liked);
+  const likeCount =
+    (currentReel.likes ?? 0) +
+    (liked.has(currentReel.id) && !currentReel.liked ? 1 : 0) -
+    (!liked.has(currentReel.id) && currentReel.liked ? 1 : 0);
+
   return (
     <div
-      ref={containerRef}
       className="fixed inset-0 z-50 bg-black"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Joriy video */}
-      <div className="relative h-full w-full">
+      <div className="relative mx-auto h-full w-full max-w-[500px]">
+        {/* Joriy video — bosilganda ovozni almashtiradi */}
         <video
-          ref={(el) => {
-            if (el) videoRefs.current.set(currentIndex, el);
-          }}
+          key={currentReel.id}
+          ref={videoRef}
           src={currentReel.video_url}
           loop
           playsInline
           muted={muted}
-          className="h-full w-full object-contain"
+          onClick={toggleMute}
+          className="h-full w-full cursor-pointer object-contain"
           style={{ aspectRatio: "9/16" }}
         />
 
-        {/* Yopish tugmasi (tepadagi chap burchak) */}
+        {/* Autoplay bloklangan — "ovozni yoqish uchun bosing" ko'rsatkichi */}
+        {autoplayBlocked && muted && (
+          <button
+            onClick={toggleMute}
+            className="absolute left-1/2 top-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-black/70 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-black/80"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M11 5L6 9H2v6h4l5 4z" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M22 9l-6 6M16 9l6 6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Ovozni yoqish uchun bosing
+          </button>
+        )}
+
+        {/* Yopish tugmasi (tepa chap) */}
         <Link
           href="/discovery"
           className="absolute left-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+          aria-label="Yopish"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
           </svg>
         </Link>
 
-        {/* Ovozni yoqish/o'chirish tugmasi (tepadagi o'ng burchak) */}
+        {/* Ovoz tugmasi (tepa o'ng) */}
         <button
           onClick={toggleMute}
           className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+          aria-label={muted ? "Ovozni yoqish" : "Ovozni o'chirish"}
         >
           {muted ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 5L6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M11 5L6 9H2v6h4l5 4z" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M22 9l-6 6M16 9l6 6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           ) : (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -167,20 +238,21 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
           )}
         </button>
 
-        {/* O'ng tomon action tugmalari (Instagram style) */}
-        <div className="absolute bottom-20 right-4 z-10 flex flex-col items-center gap-6">
+        {/* O'ng tomon harakat tugmalari (Instagram uslubi) */}
+        <div className="absolute bottom-24 right-3 z-10 flex flex-col items-center gap-5">
           {/* Like */}
           <button
             onClick={() => toggleLike(currentReel.id)}
             className="flex flex-col items-center gap-1"
+            aria-label="Yoqtirish"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110 active:scale-95">
               <svg
                 width="28"
                 height="28"
                 viewBox="0 0 24 24"
-                fill={liked.has(currentReel.id) || currentReel.liked ? "red" : "none"}
-                stroke={liked.has(currentReel.id) || currentReel.liked ? "red" : "white"}
+                fill={isLiked ? "#ef4444" : "none"}
+                stroke={isLiked ? "#ef4444" : "white"}
                 strokeWidth="2"
               >
                 <path
@@ -190,13 +262,13 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-white">
-              {(currentReel.likes ?? 0) + (liked.has(currentReel.id) && !currentReel.liked ? 1 : 0)}
+            <span className="text-xs font-semibold text-white drop-shadow">
+              {likeCount}
             </span>
           </button>
 
-          {/* Izoh (hozircha faqat icon) */}
-          <button className="flex flex-col items-center gap-1">
+          {/* Izoh (placeholder) */}
+          <button className="flex flex-col items-center gap-1" aria-label="Izohlar">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <path
@@ -206,11 +278,10 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-white">0</span>
           </button>
 
-          {/* Ulashish */}
-          <button className="flex flex-col items-center gap-1">
+          {/* Ulashish (placeholder) */}
+          <button className="flex flex-col items-center gap-1" aria-label="Ulashish">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round" />
@@ -218,26 +289,23 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
             </div>
           </button>
 
-          {/* Foydalanuvchi avatar (profil sahifasiga link) */}
+          {/* Muallif avatar (profilga link) */}
           {currentReel.user && (
-            <Link
-              href={`/profile/${currentReel.user.id}`}
-              className="relative mt-2"
-            >
+            <Link href={`/profile/${currentReel.user.id}`} className="mt-1">
               <Image
                 src={currentReel.user.avatar_url || avatarFallback(currentReel.user.full_name)}
                 alt={currentReel.user.full_name}
-                width={48}
-                height={48}
-                className="h-12 w-12 rounded-full border-2 border-white object-cover"
+                width={44}
+                height={44}
+                className="h-11 w-11 rounded-full border-2 border-white object-cover"
                 unoptimized
               />
             </Link>
           )}
         </div>
 
-        {/* Pastki ma'lumot (foydalanuvchi nomi va tavsif) */}
-        <div className="absolute bottom-4 left-4 right-20 z-10 text-white">
+        {/* Pastki ma'lumot — muallif va tavsif */}
+        <div className="absolute bottom-6 left-4 right-20 z-10 text-white">
           {currentReel.user && (
             <Link
               href={`/profile/${currentReel.user.id}`}
@@ -254,47 +322,37 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
               <span className="font-semibold drop-shadow-lg">
                 {currentReel.user.username || currentReel.user.full_name}
               </span>
-              <span className="text-xs text-gray-300">• {timeAgo(currentReel.created_at)}</span>
+              <span className="text-xs text-gray-300">
+                • {timeAgo(currentReel.created_at)}
+              </span>
             </Link>
           )}
           {currentReel.description && (
-            <p className="line-clamp-3 text-sm drop-shadow-lg">{currentReel.description}</p>
+            <p className="line-clamp-3 text-sm drop-shadow-lg">
+              {currentReel.description}
+            </p>
           )}
         </div>
 
-        {/* Swipe ko'rsatkichi (pastda markaz) */}
+        {/* Progress ko'rsatkichi (pastda markaz) */}
         <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
           {reels.map((_, idx) => (
             <div
               key={idx}
-              className={`h-1 w-1 rounded-full transition-all ${
-                idx === currentIndex ? "w-6 bg-white" : "bg-white/50"
+              className={`h-1 rounded-full transition-all ${
+                idx === currentIndex ? "w-6 bg-white" : "w-1 bg-white/50"
               }`}
             />
           ))}
         </div>
       </div>
 
-      {/* Keyingi va oldingi reels'ni oldindan yuklash (ko'rinmaydi, lekin cache uchun) */}
+      {/* Qo'shni reels'ni oldindan yuklash (silliq o'tish uchun, ko'rinmaydi) */}
       {currentIndex > 0 && (
-        <video
-          ref={(el) => {
-            if (el) videoRefs.current.set(currentIndex - 1, el);
-          }}
-          src={reels[currentIndex - 1].video_url}
-          preload="auto"
-          className="hidden"
-        />
+        <link rel="prefetch" href={reels[currentIndex - 1].video_url} as="video" />
       )}
       {currentIndex < reels.length - 1 && (
-        <video
-          ref={(el) => {
-            if (el) videoRefs.current.set(currentIndex + 1, el);
-          }}
-          src={reels[currentIndex + 1].video_url}
-          preload="auto"
-          className="hidden"
-        />
+        <link rel="prefetch" href={reels[currentIndex + 1].video_url} as="video" />
       )}
     </div>
   );
