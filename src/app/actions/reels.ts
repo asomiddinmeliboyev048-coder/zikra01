@@ -92,7 +92,7 @@ export async function likeReelAction(reelId: string): Promise<ReelState> {
     .select("id")
     .eq("reel_id", reelId)
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (existing) return { success: true };
 

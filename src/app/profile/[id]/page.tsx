@@ -343,7 +343,7 @@ export default async function ProfilePage({
                   {/* Reel yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
                   <ReelUpload />
                 </div>
-                <ReelGrid reels={reels} userId={profile.id} />
+                <ReelGrid reels={reels} />
               </section>
             )}
 
