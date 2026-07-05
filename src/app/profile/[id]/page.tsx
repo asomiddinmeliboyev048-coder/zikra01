@@ -98,6 +98,8 @@ export default async function ProfilePage({
     if (s) {
       r.likes = s.likes;
       r.liked = s.liked;
+      r.views = s.views;
+      r.comments = s.comments;
     }
   }
 
@@ -333,15 +335,15 @@ export default async function ProfilePage({
               </section>
             )}
 
-            {/* Reels bo'limi */}
-            {isOwn && (
+            {/* Reels bo'limi — barcha foydalanuvchilarga ko'rinadi */}
+            {(isOwn || reels.length > 0) && (
               <section className="card p-6">
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <h2 className="text-lg font-semibold text-gray-900">
                     Reels ({reels.length})
                   </h2>
                   {/* Reel yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
-                  <ReelUpload />
+                  {isOwn && <ReelUpload />}
                 </div>
                 <ReelGrid reels={reels} />
               </section>
