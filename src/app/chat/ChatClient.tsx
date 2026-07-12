@@ -11,8 +11,9 @@ import { saveItemAction, forwardMessageAction } from "@/app/actions/saved";
 import { uploadChatMedia } from "@/lib/storage";
 import { avatarFallback, formatTime, timeAgo, cn } from "@/lib/utils";
 import MatchBadge from "@/components/MatchBadge";
-import VoiceRecorder from "@/components/chat/VoiceRecorder";
+import MediaMessageButton from "@/components/chat/MediaMessageButton";
 import VoicePlayer from "@/components/chat/VoicePlayer";
+import RoundVideoPlayer from "@/components/chat/RoundVideoPlayer";
 import type { Message } from "@/lib/types";
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
@@ -576,21 +577,28 @@ export default function ChatClient({
               >
                 🎬
               </button>
-              {/* Ovozli xabar */}
-              <VoiceRecorder onSend={sendVoice} disabled={uploadingMedia} />
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Xabar yozing..."
                 className="input flex-1"
               />
-              <button
-                type="submit"
-                disabled={sending || !text.trim()}
-                className="btn-primary px-4"
-              >
-                Yuborish
-              </button>
+              {/* Telegram uslubi: matn bor bo'lsa "Yuborish", bo'sh bo'lsa
+                  ovozli/video xabar tugmasi (mic ↔ kamera toggle) */}
+              {text.trim() ? (
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white transition hover:bg-brand-600 disabled:opacity-50"
+                  aria-label="Yuborish"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" />
+                  </svg>
+                </button>
+              ) : (
+                <MediaMessageButton onSend={sendVoice} disabled={uploadingMedia} />
+              )}
             </form>
           </>
         ) : (
@@ -779,6 +787,12 @@ function renderMessageContent(content: string, mine: boolean) {
   if (trimmed.startsWith("voice:")) {
     const src = trimmed.slice("voice:".length);
     return <VoicePlayer src={src} mine={mine} />;
+  }
+
+  // Yumaloq video xabar — "roundvideo:<url>" konventsiyasi
+  if (trimmed.startsWith("roundvideo:")) {
+    const src = trimmed.slice("roundvideo:".length);
+    return <RoundVideoPlayer src={src} />;
   }
 
   const url = trimmed;
