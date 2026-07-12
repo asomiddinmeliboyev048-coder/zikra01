@@ -2,72 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   ZIKRA — Global uslublar
+   Brend: brand #534AB7 · success #1D9E75 · accent #D85A30
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
+  --background: #f6f7fb;
   --foreground: #1a1a2e;
+  --brand: #534ab7;
+  --brand-600: #433b92;
+  --success: #1d9e75;
+  --accent: #d85a30;
+  --ring: rgba(83, 74, 183, 0.35);
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* ===== To'liq mobil moslashuv (Telegram uslubi) ===== */
+/* ===== To'liq mobil moslashuv ===== */
 html,
 body {
   width: 100%;
   height: 100%;
   max-width: 100vw;
-  overflow-x: hidden; /* gorizontal scroll/elementlar chiqib ketishining oldini oladi */
+  overflow-x: hidden;
 }
 
 body {
   color: var(--foreground);
-  background: #f7f7fb;
+  /* Yumshoq, ko'p qatlamli fon — tekis rangdan chiroyliroq */
+  background-color: #f6f7fb;
+  background-image:
+    radial-gradient(60rem 60rem at 110% -10%, rgba(83, 74, 183, 0.07), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 0%, rgba(29, 158, 117, 0.06), transparent 55%),
+    radial-gradient(40rem 40rem at 50% 120%, rgba(216, 90, 48, 0.05), transparent 60%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent; /* mobil bosishda ko'k highlightni o'chirish */
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
 }
 
-/* iOS uchun dinamik viewport balandligi (100vh muammosini bartaraf etadi) */
+/* Matn tanlash rangi */
+::selection {
+  background: rgba(83, 74, 183, 0.2);
+  color: inherit;
+}
+
+/* Nozik, zamonaviy scrollbar */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(83, 74, 183, 0.25);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(83, 74, 183, 0.45);
+    background-clip: content-box;
+  }
+}
+
+/* Fokus (klaviatura) uchun ko'rinadigan halqa — kirish qulayligi */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* iOS uchun dinamik viewport balandligi */
 .h-screen-dvh {
-  height: 100vh; /* fallback */
+  height: 100vh;
   height: 100dvh;
 }
 .min-h-screen-dvh {
-  min-height: 100vh; /* fallback */
+  min-height: 100vh;
   min-height: 100dvh;
 }
 
+/* ============================================================
+   KOMPONENT KLASSLARI (butun ilova bo'ylab ishlatiladi)
+   ============================================================ */
 @layer components {
+  /* ---- Tugmalar ---- */
   .btn {
-    @apply inline-flex min-h-[44px] touch-manipulation items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-[44px] touch-manipulation select-none items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-600 active:scale-[0.98] shadow-sm;
+    @apply btn bg-brand text-white shadow-[0_6px_18px_-6px_rgba(83,74,183,0.55)] hover:bg-brand-600 hover:shadow-[0_10px_24px_-8px_rgba(83,74,183,0.65)] active:scale-[0.97];
   }
   .btn-success {
-    @apply btn bg-success text-white hover:bg-success-600 active:scale-[0.98];
+    @apply btn bg-success text-white shadow-[0_6px_18px_-6px_rgba(29,158,117,0.5)] hover:bg-success-600 hover:shadow-[0_10px_24px_-8px_rgba(29,158,117,0.6)] active:scale-[0.97];
   }
   .btn-accent {
-    @apply btn bg-accent text-white hover:bg-accent-600 active:scale-[0.98];
+    @apply btn bg-accent text-white shadow-[0_6px_18px_-6px_rgba(216,90,48,0.5)] hover:bg-accent-600 hover:shadow-[0_10px_24px_-8px_rgba(216,90,48,0.6)] active:scale-[0.97];
   }
   .btn-outline {
-    @apply btn border border-gray-300 bg-white text-gray-700 hover:border-brand hover:text-brand;
+    @apply btn border border-gray-300 bg-white/80 text-gray-700 backdrop-blur hover:border-brand hover:bg-white hover:text-brand active:scale-[0.97];
   }
   .btn-ghost {
-    @apply btn text-gray-600 hover:bg-gray-100;
+    @apply btn text-gray-600 hover:bg-gray-100 active:scale-[0.97];
   }
 
+  /* ---- Formalar ---- */
   .input {
-    @apply w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/20;
+    @apply w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-brand focus:ring-4 focus:ring-brand/15;
   }
   .label {
     @apply mb-1.5 block text-sm font-medium text-gray-700;
   }
 
+  /* ---- Kartochkalar ---- */
   .card {
-    @apply rounded-2xl border border-gray-100 bg-white shadow-card;
+    @apply rounded-2xl border border-gray-100 bg-white shadow-card transition-shadow;
+  }
+  .card-hover {
+    @apply card hover:-translate-y-0.5 hover:shadow-card-hover;
   }
 
+  /* ---- Teglar (ko'nikma chiplari) ---- */
   .tag {
     @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium;
   }
@@ -78,11 +140,11 @@ body {
     @apply tag bg-brand-50 text-brand-700;
   }
 
+  /* ---- Konteyner ---- */
   .container-app {
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
 }
-
 
 /* ===== Mobil: pastki navigatsiya mavjud bo'lsa kontentga joy qoldirish ===== */
 @media (max-width: 767px) {
@@ -91,7 +153,11 @@ body {
   }
 }
 
-/* ===== Dizayn yordamchilari ===== */
+/* ============================================================
+   DIZAYN YORDAMCHILARI
+   ============================================================ */
+
+/* Brend gradientli matn */
 .text-gradient {
   background: linear-gradient(90deg, #534ab7 0%, #1d9e75 100%);
   -webkit-background-clip: text;
@@ -108,11 +174,20 @@ body {
 /* Shisha (glass) effekti */
 .glass {
   background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
-/* Suzuvchi "blob" animatsiyasi */
+/* Scrollbarni yashirish (lentalar, carousel) */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===== Animatsiyalar ===== */
 @keyframes blob {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33% { transform: translate(20px, -30px) scale(1.08); }
@@ -130,12 +205,31 @@ body {
   animation: float-soft 5s ease-in-out infinite;
 }
 
+/* Stories progress bar */
+@keyframes story-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* Yumshoq paydo bo'lish (animate-fade-in tailwind config'da ham bor) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
 
 /* ============================================================
    DARK MODE — global remap (komponentlarni avtomatik moslashtirish)
    ============================================================ */
 .dark body {
   background-color: #0e1525;
+  background-image:
+    radial-gradient(60rem 60rem at 110% -10%, rgba(83, 74, 183, 0.16), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 0%, rgba(29, 158, 117, 0.10), transparent 55%);
   color: #e2e8f0;
 }
 
@@ -175,11 +269,5 @@ body {
 .dark .hover\:bg-gray-50:hover { background-color: #1a2238 !important; }
 .dark .hover\:bg-gray-100:hover { background-color: #232c44 !important; }
 
-
-/* ===== Stories progress bar ===== */
-@keyframes story-progress {
-  from { width: 0%; }
-  to { width: 100%; }
-}
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Kartochka soyasi (dark rejimda kuchliroq) */
+.dark .shadow-card { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3) !important; }

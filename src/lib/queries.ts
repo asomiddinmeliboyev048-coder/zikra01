@@ -215,40 +215,100 @@ export async function getStoriesFeed(meId: string): Promise<{
   return { groups: Array.from(map.values()) };
 }
 
-/** Barcha reels'larni olish (eng yangi birinchi) */
-export async function getReels(): Promise<Reel[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("reels")
-    .select("*, user:profiles!reels_user_id_fkey(id, full_name, avatar_url, username)")
-    .order("created_at", { ascending: false });
+/**
+ * Reel yozuvlariga muallif profilini qo'shadi (MANUAL JOIN).
+ *
+ * MUHIM: Ilgari bu yerda PostgREST embed (`profiles!reels_user_id_fkey`)
+ * ishlatilardi. Ammo reels.user_id FK auth.users'ga bog'langani uchun
+ * embed xato berardi va lenta BO'SH chiqardi. Endi profillarni alohida
+ * so'rov bilan olib, JS'da bog'laymiz — bu FK sozlamasidan mustaqil ishlaydi.
+ */
+async function attachReelAuthors(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rows: { user_id: string }[]
+): Promise<Map<string, Pick<Profile, "id" | "full_name" | "avatar_url" | "username">>> {
+  const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+  const map = new Map<
+    string,
+    Pick<Profile, "id" | "full_name" | "avatar_url" | "username">
+  >();
+  if (ids.length === 0) return map;
 
-  return (data as unknown as Reel[]) ?? [];
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url, username")
+    .in("id", ids);
+
+  for (const p of (data as Pick<
+    Profile,
+    "id" | "full_name" | "avatar_url" | "username"
+  >[]) ?? []) {
+    map.set(p.id, p);
+  }
+  return map;
 }
 
-/** Muayyan foydalanuvchining reels'larini olish */
+/** Barcha reels'larni olish (eng yangi birinchi) — muallif profili bilan */
+export async function getReels(): Promise<Reel[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reels")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[getReels] xatolik:", error.message);
+    return [];
+  }
+
+  const rows = (data as Reel[]) ?? [];
+  const authors = await attachReelAuthors(supabase, rows);
+  return rows.map((r) => ({ ...r, user: authors.get(r.user_id) }));
+}
+
+/** Muayyan foydalanuvchining reels'larini olish — muallif profili bilan */
 export async function getUserReels(userId: string): Promise<Reel[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("reels")
-    .select("*, user:profiles!reels_user_id_fkey(id, full_name, avatar_url, username)")
+    .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-  return (data as unknown as Reel[]) ?? [];
+  if (error) {
+    console.error("[getUserReels] xatolik:", error.message);
+    return [];
+  }
+
+  const rows = (data as Reel[]) ?? [];
+  const authors = await attachReelAuthors(supabase, rows);
+  return rows.map((r) => ({ ...r, user: authors.get(r.user_id) }));
 }
 
-/** Bir nechta reel uchun like soni va joriy foydalanuvchi like bosganmi */
+export interface ReelStat {
+  likes: number;
+  liked: boolean;
+  views: number;
+  comments: number;
+}
+
+/**
+ * Bir nechta reel uchun statistika: like soni, joriy foydalanuvchi like
+ * bosganmi, ko'rishlar soni va izohlar soni.
+ *
+ * Eslatma: reel_views / reel_comments jadvallari hali yaratilmagan bo'lsa
+ * (0007 migratsiyasi ishga tushmagan), so'rovlar jimgina 0 qaytaradi.
+ */
 export async function getReelStats(
   reelIds: string[],
   userId?: string
-): Promise<Map<string, { likes: number; liked: boolean }>> {
-  const map = new Map<string, { likes: number; liked: boolean }>();
-  reelIds.forEach((id) => map.set(id, { likes: 0, liked: false }));
+): Promise<Map<string, ReelStat>> {
+  const map = new Map<string, ReelStat>();
+  reelIds.forEach((id) => map.set(id, { likes: 0, liked: false, views: 0, comments: 0 }));
   if (reelIds.length === 0) return map;
 
   const supabase = await createClient();
-  const [likesRes, mineRes] = await Promise.all([
+  const [likesRes, mineRes, viewsRes, commentsRes] = await Promise.all([
     supabase.from("reel_likes").select("reel_id").in("reel_id", reelIds),
     userId
       ? supabase
@@ -257,6 +317,8 @@ export async function getReelStats(
           .eq("user_id", userId)
           .in("reel_id", reelIds)
       : Promise.resolve({ data: [] as { reel_id: string }[] }),
+    supabase.from("reel_views").select("reel_id").in("reel_id", reelIds),
+    supabase.from("reel_comments").select("reel_id").in("reel_id", reelIds),
   ]);
 
   for (const r of (likesRes.data as { reel_id: string }[]) ?? []) {
@@ -267,5 +329,38 @@ export async function getReelStats(
     const s = map.get(r.reel_id);
     if (s) s.liked = true;
   }
+  for (const r of (viewsRes.data as { reel_id: string }[]) ?? []) {
+    const s = map.get(r.reel_id);
+    if (s) s.views += 1;
+  }
+  for (const r of (commentsRes.data as { reel_id: string }[]) ?? []) {
+    const s = map.get(r.reel_id);
+    if (s) s.comments += 1;
+  }
   return map;
+}
+
+/**
+ * Berilgan ko'ruvchi (viewer) qaysi mualliflarga obuna bo'lganini qaytaradi.
+ * Reels lentasidagi "Obuna bo'lish" tugmasi holatini oldindan belgilash uchun.
+ */
+export async function getFollowingSet(
+  viewerId: string,
+  authorIds: string[]
+): Promise<Set<string>> {
+  const set = new Set<string>();
+  const ids = Array.from(new Set(authorIds)).filter((id) => id !== viewerId);
+  if (ids.length === 0) return set;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("follows")
+    .select("following_id")
+    .eq("follower_id", viewerId)
+    .in("following_id", ids);
+
+  for (const r of (data as { following_id: string }[]) ?? []) {
+    set.add(r.following_id);
+  }
+  return set;
 }

@@ -23,6 +23,7 @@ const NAV = [
   { href: "/discovery", label: "Kashf etish" },
   { href: "/lessons", label: "Darslarim" },
   { href: "/videos", label: "Video darslar" },
+  { href: "/reels", label: "Reels" },
   { href: "/chat", label: "Suhbatlar" },
 ];
 

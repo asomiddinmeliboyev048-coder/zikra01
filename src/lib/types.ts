@@ -209,4 +209,17 @@ export interface Reel {
   likes?: number;
   liked?: boolean;
   views?: number;
+  comments?: number;
+  // Ko'ruvchi ushbu reel egasiga obuna bo'lganmi (feed tomonidan to'ldiriladi)
+  following?: boolean;
+}
+
+// Reel izohi tipi
+export interface ReelComment {
+  id: string;
+  reel_id: string;
+  user_id: string;
+  comment_text: string;
+  created_at: string;
+  author?: Pick<Profile, "id" | "full_name" | "avatar_url" | "username">;
 }

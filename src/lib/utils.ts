@@ -60,3 +60,16 @@ export function formatDateTime(dateStr: string | null): string {
     minute: "2-digit",
   });
 }
+
+
+/** Katta sonlarni ixcham ko'rsatish: 1200 -> "1.2k", 1500000 -> "1.5M" */
+export function formatCount(n: number | null | undefined): string {
+  const v = n ?? 0;
+  if (v < 1000) return String(v);
+  if (v < 1_000_000) {
+    const k = v / 1000;
+    return `${k % 1 === 0 ? k : k.toFixed(1)}k`;
+  }
+  const m = v / 1_000_000;
+  return `${m % 1 === 0 ? m : m.toFixed(1)}M`;
+}
