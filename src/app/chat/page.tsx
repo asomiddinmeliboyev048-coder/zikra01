@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import AppServices from "@/components/AppServices";
 import ChatClient, { type Conversation } from "./ChatClient";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getUserSkills } from "@/lib/queries";
@@ -120,17 +121,39 @@ export default async function ChatPage({
     );
   }
 
+  const chat = (
+    <ChatClient
+      meId={me.id}
+      conversations={conversations}
+      activeId={activeId}
+      initialMessages={activeMessages}
+      matchScore={matchScore}
+    />
+  );
+
+  // ── SUHBAT OCHIQ (?with=...) ──────────────────────────────────────────────
+  // Telegram uslubida TO'LIQ EKRAN: global Navbar (tepa) va BottomNav (past)
+  // ko'rsatilmaydi. Chat o'zining header/input'i bilan butun ekranni egallaydi.
+  // Fon xizmatlari (qo'ng'iroq/bildirishnoma/push) `AppServices` orqali saqlanadi
+  // — ular Navbar ichida emas, shuning uchun menyusiz ham ishlaydi.
+  if (activeId) {
+    return (
+      <>
+        <AppServices userId={me.id} />
+        <div className="flex h-screen-dvh flex-col overflow-hidden bg-white dark:bg-[#0e1525]">
+          <div className="flex min-h-0 flex-1">{chat}</div>
+        </div>
+      </>
+    );
+  }
+
+  // ── SUHBATLAR RO'YXATI ────────────────────────────────────────────────────
+  // Odatiy ilova ko'rinishi: Navbar + BottomNav (FixedWidgets Navbar ichida).
   return (
     <div className="flex h-screen flex-col">
       <Navbar />
       <main className="flex min-h-0 flex-1 px-0 py-0 sm:container-app sm:py-6">
-        <ChatClient
-          meId={me.id}
-          conversations={conversations}
-          activeId={activeId}
-          initialMessages={activeMessages}
-          matchScore={matchScore}
-        />
+        {chat}
       </main>
     </div>
   );

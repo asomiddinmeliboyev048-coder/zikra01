@@ -518,14 +518,17 @@ export default function ChatClient({
       >
         {active ? (
           <>
-            {/* Sarlavha */}
-            <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
+            {/* Sarlavha — doim tepada qotib turadi (faqat xabarlar qismi skroll) */}
+            <div className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-gray-100 bg-white px-4 py-3">
               <button
                 onClick={() => router.push("/chat")}
-                className="rounded-lg p-1 text-gray-500 hover:bg-gray-100 sm:hidden"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100"
                 aria-label="Orqaga"
+                title="Suhbatlar ro'yxatiga qaytish"
               >
-                ←
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
               <Link
                 href={`/profile/${active.partner.id}`}
@@ -636,8 +639,8 @@ export default function ChatClient({
               </div>
             </div>
 
-            {/* Xabarlar oqimi */}
-            <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50/50 p-4">
+            {/* Xabarlar oqimi — moslashuvchan va FAQAT shu qism skroll bo'ladi */}
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-gray-50/50 p-4">
               {messages.length === 0 && (
                 <p className="mt-8 text-center text-sm text-gray-400">
                   Suhbatni boshlang — birinchi xabarni yuboring 👋
