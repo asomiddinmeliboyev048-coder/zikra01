@@ -1,16 +1,17 @@
 "use client";
 
 import BottomNav from "@/components/BottomNav";
-import NotificationListener from "@/components/NotificationListener";
 import SupportWidget from "@/components/SupportWidget";
-import CallProvider from "@/components/call/CallProvider";
-import PushManager from "@/components/PushManager";
+import AppServices from "@/components/AppServices";
 
 /**
- * Viewport'ga nisbatan fixed turishi kerak bo'lgan widgetlar.
+ * Viewport'ga nisbatan fixed turishi kerak bo'lgan widgetlar + fon xizmatlari.
  * MUHIM: bular `backdrop-blur`li header ICHIDA bo'lmasligi kerak —
  * aks holda CSS containing-block qoidasi tufayli fixed pozitsiya buziladi
  * (support oynasi ochilmaydi, bottom-nav noto'g'ri joyda turadi).
+ *
+ * Fon xizmatlari (qo'ng'iroq, bildirishnoma, push) `AppServices`ga ajratilgan —
+ * shunda chat suhbatida menyusiz (to'liq ekran) rejimda ham ular yashaydi.
  */
 export default function FixedWidgets({
   userId,
@@ -21,10 +22,8 @@ export default function FixedWidgets({
 }) {
   return (
     <>
-      <NotificationListener userId={userId} />
+      <AppServices userId={userId} />
       <SupportWidget userId={userId} />
-      <CallProvider userId={userId} />
-      <PushManager userId={userId} />
       <BottomNav profileId={userId} unread={unread} />
     </>
   );
