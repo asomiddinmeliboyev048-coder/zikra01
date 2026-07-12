@@ -1,95 +1,39 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { likeReelAction, unlikeReelAction } from "@/app/actions/reels";
+import { useEffect, useRef, useState } from "react";
 import { cn, formatCount } from "@/lib/utils";
 
 /**
- * Reels uchun like tugmasi — optimistik UI + Supabase Realtime.
- *
- * - Bosilganda darhol (optimistik) holat o'zgaradi va server action chaqiriladi.
- * - reel_likes jadvalidagi o'zgarishlar realtime kuzatiladi: boshqa
- *   foydalanuvchi like bosganda ham son yangilanadi (haqiqiy son qayta olinadi).
+ * Reels uchun like tugmasi (prezentatsion — holatni tashqaridan oladi).
+ * Like mantig'i `useReelLike` hook'ida; bu komponent faqat ko'rinish va
+ * bosish hodisasini boshqaradi. Shu tufayli yon tugma va double-tap sinxron.
  */
 export default function LikeButton({
-  reelId,
-  initialLiked,
-  initialCount,
-  onLikedChange,
+  liked,
+  count,
+  onToggle,
 }: {
-  reelId: string;
-  initialLiked: boolean;
-  initialCount: number;
-  onLikedChange?: (liked: boolean) => void;
+  liked: boolean;
+  count: number;
+  onToggle: () => void;
 }) {
-  const [liked, setLiked] = useState(initialLiked);
-  const [count, setCount] = useState(initialCount);
   const [burst, setBurst] = useState(false);
-  const busy = useRef(false);
+  const prevLiked = useRef(liked);
 
-  // Haqiqiy like sonini bazadan qayta olish (realtime drift'ni tuzatadi)
-  const refreshCount = useCallback(async () => {
-    const supabase = createClient();
-    const { count: c } = await supabase
-      .from("reel_likes")
-      .select("id", { count: "exact", head: true })
-      .eq("reel_id", reelId);
-    if (typeof c === "number") setCount(c);
-  }, [reelId]);
-
-  // Realtime: shu reelning like'lari o'zgarganda sonni yangilaymiz
+  // "liked" false -> true bo'lganda yurakcha "burst" animatsiyasi
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`reel_likes:${reelId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "reel_likes",
-          filter: `reel_id=eq.${reelId}`,
-        },
-        () => refreshCount()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [reelId, refreshCount]);
-
-  const toggle = useCallback(async () => {
-    if (busy.current) return;
-    busy.current = true;
-
-    const next = !liked;
-    setLiked(next);
-    setCount((c) => Math.max(0, c + (next ? 1 : -1)));
-    onLikedChange?.(next);
-    if (next) {
+    if (liked && !prevLiked.current) {
       setBurst(true);
-      setTimeout(() => setBurst(false), 500);
+      const t = setTimeout(() => setBurst(false), 500);
+      prevLiked.current = liked;
+      return () => clearTimeout(t);
     }
-
-    try {
-      const res = next
-        ? await likeReelAction(reelId)
-        : await unlikeReelAction(reelId);
-      if (res?.error) {
-        // Orqaga qaytarish
-        setLiked(!next);
-        setCount((c) => Math.max(0, c + (next ? -1 : 1)));
-        onLikedChange?.(!next);
-      }
-    } finally {
-      busy.current = false;
-    }
-  }, [liked, reelId, onLikedChange]);
+    prevLiked.current = liked;
+  }, [liked]);
 
   return (
     <button
-      onClick={toggle}
+      onClick={onToggle}
       className="group flex flex-col items-center gap-1"
       aria-label={liked ? "Yoqtirishni bekor qilish" : "Yoqtirish"}
     >

@@ -10,6 +10,7 @@ import type { Reel } from "@/lib/types";
 import LikeButton from "./LikeButton";
 import CommentSheet from "./CommentSheet";
 import ShareSheet from "./ShareSheet";
+import { useReelLike } from "./useReelLike";
 
 interface Props {
   reel: Reel;
@@ -34,6 +35,19 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
   const [showComments, setShowComments] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [commentCount, setCommentCount] = useState(reel.comments ?? 0);
+
+  // Like holati (yon tugma + double-tap uchun umumiy)
+  const { liked, count: likeCount, toggle: toggleLike, likeOnly } = useReelLike(
+    reel.id,
+    Boolean(reel.liked),
+    reel.likes ?? 0
+  );
+
+  // Double-tap "katta yurakcha" animatsiyasi
+  const [heart, setHeart] = useState(0); // 0 = ko'rinmaydi, aks holda animatsiya kaliti
+  const lastTap = useRef(0);
+  const singleTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isOwner = me?.id === reel.user_id;
   const [following, setFollowing] = useState(Boolean(reel.following));
@@ -99,6 +113,43 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
     }
   }, []);
 
+  // Katta markaziy yurakcha animatsiyasini ko'rsatish
+  const triggerHeart = useCallback(() => {
+    setHeart((k) => k + 1);
+    if (heartTimer.current) clearTimeout(heartTimer.current);
+    heartTimer.current = setTimeout(() => setHeart(0), 800);
+  }, []);
+
+  // Bir marta bosish = play/pause, 2 marta tez bosish = like (Instagram uslubi)
+  const handleVideoTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      // DOUBLE TAP — pending play/pause'ni bekor qilamiz
+      if (singleTapTimer.current) {
+        clearTimeout(singleTapTimer.current);
+        singleTapTimer.current = null;
+      }
+      lastTap.current = 0;
+      likeOnly(); // faqat like qo'yadi (agar bosilmagan bo'lsa)
+      triggerHeart(); // yurakcha har doim chiqadi
+    } else {
+      // Birinchi bosish — 300ms kutamiz (ikkinchisi kelmasa play/pause)
+      lastTap.current = now;
+      singleTapTimer.current = setTimeout(() => {
+        togglePlay();
+        singleTapTimer.current = null;
+      }, 300);
+    }
+  }, [likeOnly, togglePlay, triggerHeart]);
+
+  // Tozalash
+  useEffect(() => {
+    return () => {
+      if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
+      if (heartTimer.current) clearTimeout(heartTimer.current);
+    };
+  }, []);
+
   const toggleFollow = useCallback(async () => {
     if (followBusy || isOwner) return;
     setFollowBusy(true);
@@ -130,9 +181,27 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
           playsInline
           muted={muted}
           preload="metadata"
-          onClick={togglePlay}
+          onClick={handleVideoTap}
           className="h-full w-full cursor-pointer bg-black object-contain"
         />
+
+        {/* Double-tap katta yurakcha animatsiyasi */}
+        {heart > 0 && (
+          <div
+            key={heart}
+            className="pointer-events-none absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2"
+          >
+            <svg
+              width="120"
+              height="120"
+              viewBox="0 0 24 24"
+              fill="#ef4444"
+              className="animate-reel-heart drop-shadow-2xl"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+            </svg>
+          </div>
+        )}
 
         {/* Pauza ko'rsatkichi */}
         {paused && (
@@ -182,11 +251,7 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
 
         {/* O'ng harakat paneli */}
         <div className="absolute bottom-28 right-2.5 z-20 flex flex-col items-center gap-5">
-          <LikeButton
-            reelId={reel.id}
-            initialLiked={Boolean(reel.liked)}
-            initialCount={reel.likes ?? 0}
-          />
+          <LikeButton liked={liked} count={likeCount} onToggle={toggleLike} />
 
           {/* Izohlar */}
           <button

@@ -7,8 +7,7 @@ import StarRating from "@/components/StarRating";
 import LevelProgress from "@/components/LevelProgress";
 import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
-import VideoUpload from "@/app/videos/VideoUpload";
-import ReelUpload from "@/app/videos/ReelUpload";
+import ProfileUploadFab from "@/components/ProfileUploadFab";
 import ReelGrid from "@/components/ReelGrid";
 import SupportButton from "@/components/SupportButton";
 import ReviewButton from "./ReviewButton";
@@ -335,6 +334,9 @@ export default async function ProfilePage({
               </section>
             )}
 
+            {/* Instagram uslubidagi "+" yuklash tugmasi — faqat o'z profilida */}
+            {isOwn && <ProfileUploadFab skills={skills} />}
+
             {/* Reels bo'limi — barcha foydalanuvchilarga ko'rinadi */}
             {(isOwn || reels.length > 0) && (
               <section className="card p-6">
@@ -342,8 +344,7 @@ export default async function ProfilePage({
                   <h2 className="text-lg font-semibold text-gray-900">
                     Reels ({reels.length})
                   </h2>
-                  {/* Reel yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
-                  {isOwn && <ReelUpload />}
+                  {/* Yuklash "+" tugmasi (FAB) orqali — pastki o'ng burchakda */}
                 </div>
                 <ReelGrid reels={reels} />
               </section>
@@ -355,8 +356,7 @@ export default async function ProfilePage({
                 <h2 className="text-lg font-semibold text-gray-900">
                   Video darslar ({videos.length})
                 </h2>
-                {/* Video yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
-                {isOwn && <VideoUpload skills={skills} />}
+                {/* Yuklash "+" tugmasi (FAB) orqali — pastki o'ng burchakda */}
               </div>
               {videos.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -367,7 +367,7 @@ export default async function ProfilePage({
               ) : (
                 <p className="text-sm text-gray-400">
                   {isOwn
-                    ? "Hali video dars yuklamadingiz. Yuqoridagi tugma orqali birinchi darsingizni qo'shing."
+                    ? "Hali video dars yuklamadingiz. Pastdagi '+' tugmasi orqali birinchi darsingizni qo'shing."
                     : "Hali video dars yuklanmagan."}
                 </p>
               )}
