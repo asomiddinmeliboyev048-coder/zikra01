@@ -210,16 +210,14 @@ export async function saveProfileAction(
     })),
   ];
 
-  // upsert + ignoreDuplicates: agar biror qator allaqachon mavjud bo'lsa,
-  // unique cheklov xatosini bermay, jimgina o'tkazib yuboradi.
-  // Xatolik bo'lsa — HAQIQIY sabab (message) ko'rsatiladi (masalan noto'g'ri
-  // skill_id yoki FK buzilishi), shunda muammoni aniq bilish mumkin.
-  const { error: skErr } = await supabase
-    .from("user_skills")
-    .upsert(rows, {
-      onConflict: "user_id,skill_id,type",
-      ignoreDuplicates: true,
-    });
+  // Oddiy insert: yuqorida barcha eski ko'nikmalar o'chirildi va massivlar
+  // dedup qilindi, shuning uchun konflikt bo'lmaydi.
+  //
+  // MUHIM: bu yerda .upsert({ onConflict: "...type" }) ISHLATILMAYDI, chunki
+  // `type` ustuni enum (skill_type). PostgREST enum ustunni onConflict'da
+  // ishlatganda "operator does not exist: text = skill_type" xatosini beradi.
+  // Oddiy insert bu muammoni butunlay chetlab o'tadi.
+  const { error: skErr } = await supabase.from("user_skills").insert(rows);
   if (skErr)
     return { error: "Ko'nikmalarni saqlashda xatolik: " + skErr.message };
 
