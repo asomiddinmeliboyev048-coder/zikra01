@@ -111,6 +111,17 @@ export async function uploadVoiceMessage(
   return uploadToBucket("chat", file);
 }
 
+/** Yumaloq video xabar (video Blob) yuklash — public URL qaytaradi */
+export async function uploadVideoNote(
+  blob: Blob,
+  ext = "webm"
+): Promise<string> {
+  const file = new File([blob], `vnote-${Date.now()}.${ext}`, {
+    type: blob.type || "video/webm",
+  });
+  return uploadToBucket("chat", file);
+}
+
 /** Hikoya (story) uchun rasm/video yuklash */
 export async function uploadStoryMedia(
   file: File
