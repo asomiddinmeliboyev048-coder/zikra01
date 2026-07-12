@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import ReelsPlayer from "@/components/ReelsPlayer";
-import { getCurrentProfile, getReels, getReelStats } from "@/lib/queries";
+import {
+  getCurrentProfile,
+  getReels,
+  getReelStats,
+  getReelCommentCounts,
+} from "@/lib/queries";
 
 export const metadata: Metadata = { title: "Reels" };
 export const dynamic = "force-dynamic";
@@ -32,9 +37,12 @@ export default async function ReelsPage({
     );
   }
 
-  // Like statistikasini olish
+  // Like statistikasi va izohlar sonini olish
   const reelIds = reels.map((r) => r.id);
-  const stats = await getReelStats(reelIds, me.id);
+  const [stats, commentCounts] = await Promise.all([
+    getReelStats(reelIds, me.id),
+    getReelCommentCounts(reelIds),
+  ]);
 
   // Statistikani reels'larga qo'shish
   for (const reel of reels) {
@@ -43,10 +51,22 @@ export default async function ReelsPage({
       reel.likes = s.likes;
       reel.liked = s.liked;
     }
+    reel.comments = commentCounts.get(reel.id) ?? 0;
   }
 
   // Grid'dan kelgan bo'lsa (?start=<id>) — o'sha reeldan boshlaymiz
   const initialIndex = start ? Math.max(0, reels.findIndex((r) => r.id === start)) : 0;
 
-  return <ReelsPlayer reels={reels} initialIndex={initialIndex} />;
+  return (
+    <ReelsPlayer
+      reels={reels}
+      initialIndex={initialIndex}
+      currentUser={{
+        id: me.id,
+        full_name: me.full_name,
+        avatar_url: me.avatar_url,
+        username: me.username,
+      }}
+    />
+  );
 }

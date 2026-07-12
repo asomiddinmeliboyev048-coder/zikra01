@@ -4,12 +4,21 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { avatarFallback, timeAgo } from "@/lib/utils";
-import { likeReelAction, unlikeReelAction } from "@/app/actions/reels";
+import ReelLikeButton from "@/components/ReelLikeButton";
+import ReelCommentsSheet from "@/components/ReelCommentsSheet";
 import type { Reel } from "@/lib/types";
+
+interface CurrentUser {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  username?: string | null;
+}
 
 interface ReelsPlayerProps {
   reels: Reel[];
   initialIndex?: number;
+  currentUser: CurrentUser;
 }
 
 /**
@@ -21,12 +30,20 @@ interface ReelsPlayerProps {
  *      etiladi va foydalanuvchiga "ovozni yoqish uchun bosing" ko'rsatkichi
  *      chiqadi. Foydalanuvchi bosishi bilan ovoz yoqiladi.
  */
-export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProps) {
+export default function ReelsPlayer({
+  reels,
+  initialIndex = 0,
+  currentUser,
+}: ReelsPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [muted, setMuted] = useState(false); // Boshlang'ich holat: ovoz yoqilgan
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
-  const [liked, setLiked] = useState<Set<string>>(new Set());
-  const [pending, setPending] = useState<Set<string>>(new Set());
+  // Izohlar Bottom Sheet ochiqmi
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  // Har bir reel uchun izohlar soni (badge) — server'dan kelgan boshlang'ich qiymat
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>(
+    () => Object.fromEntries(reels.map((r) => [r.id, r.comments ?? 0]))
+  );
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const touchStartY = useRef(0);
@@ -87,49 +104,6 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
     }
   }, [muted]);
 
-  // Like/unlike — optimistik yangilash + server action
-  const toggleLike = useCallback(
-    async (reelId: string) => {
-      if (pending.has(reelId)) return;
-
-      const reel = reels.find((r) => r.id === reelId);
-      if (!reel) return;
-
-      const wasLiked = liked.has(reelId) || Boolean(reel.liked);
-
-      setLiked((prev) => {
-        const next = new Set(prev);
-        if (wasLiked) next.delete(reelId);
-        else next.add(reelId);
-        return next;
-      });
-      setPending((prev) => new Set(prev).add(reelId));
-
-      try {
-        const res = wasLiked
-          ? await unlikeReelAction(reelId)
-          : await likeReelAction(reelId);
-
-        // Server xatosi bo'lsa — optimistik o'zgarishni orqaga qaytaramiz
-        if (res?.error) {
-          setLiked((prev) => {
-            const next = new Set(prev);
-            if (wasLiked) next.add(reelId);
-            else next.delete(reelId);
-            return next;
-          });
-        }
-      } finally {
-        setPending((prev) => {
-          const next = new Set(prev);
-          next.delete(reelId);
-          return next;
-        });
-      }
-    },
-    [reels, liked, pending]
-  );
-
   const goNext = useCallback(() => {
     setCurrentIndex((prev) => (prev < reels.length - 1 ? prev + 1 : prev));
   }, [reels.length]);
@@ -144,6 +118,8 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    // Izohlar oynasi ochiq bo'lsa — reel navigatsiyasi o'chiriladi
+    if (commentsOpen) return;
     const diff = touchStartY.current - e.changedTouches[0].clientY;
     if (diff > 50) goNext();
     else if (diff < -50) goPrev();
@@ -152,13 +128,15 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
   // Klaviatura navigatsiya (desktop)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Izohlar oynasi ochiq bo'lsa — navigatsiya klavishlari ishlamaydi
+      if (commentsOpen) return;
       if (e.key === "ArrowUp") goPrev();
       else if (e.key === "ArrowDown") goNext();
       else if (e.key === "m" || e.key === "M") toggleMute();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goPrev, goNext, toggleMute]);
+  }, [goPrev, goNext, toggleMute, commentsOpen]);
 
   if (reels.length === 0) {
     return (
@@ -167,12 +145,6 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
       </div>
     );
   }
-
-  const isLiked = liked.has(currentReel.id) || Boolean(currentReel.liked);
-  const likeCount =
-    (currentReel.likes ?? 0) +
-    (liked.has(currentReel.id) && !currentReel.liked ? 1 : 0) -
-    (!liked.has(currentReel.id) && currentReel.liked ? 1 : 0);
 
   return (
     <div
@@ -240,36 +212,21 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
 
         {/* O'ng tomon harakat tugmalari (Instagram uslubi) */}
         <div className="absolute bottom-24 right-3 z-10 flex flex-col items-center gap-5">
-          {/* Like */}
-          <button
-            onClick={() => toggleLike(currentReel.id)}
-            className="flex flex-col items-center gap-1"
-            aria-label="Yoqtirish"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110 active:scale-95">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill={isLiked ? "#ef4444" : "none"}
-                stroke={isLiked ? "#ef4444" : "white"}
-                strokeWidth="2"
-              >
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <span className="text-xs font-semibold text-white drop-shadow">
-              {likeCount}
-            </span>
-          </button>
+          {/* Like — mustaqil optimistik komponent (har reel uchun key orqali qayta mount) */}
+          <ReelLikeButton
+            key={currentReel.id}
+            reelId={currentReel.id}
+            initialLiked={Boolean(currentReel.liked)}
+            initialCount={currentReel.likes ?? 0}
+          />
 
-          {/* Izoh (placeholder) */}
-          <button className="flex flex-col items-center gap-1" aria-label="Izohlar">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110">
+          {/* Izohlar — Bottom Sheet'ni ochadi */}
+          <button
+            onClick={() => setCommentsOpen(true)}
+            className="flex flex-col items-center gap-1"
+            aria-label="Izohlar"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110 active:scale-95">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <path
                   d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
@@ -277,7 +234,10 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
                   strokeLinejoin="round"
                 />
               </svg>
-            </div>
+            </span>
+            <span className="text-xs font-semibold text-white drop-shadow">
+              {commentCounts[currentReel.id] ?? 0}
+            </span>
           </button>
 
           {/* Ulashish (placeholder) */}
@@ -354,6 +314,17 @@ export default function ReelsPlayer({ reels, initialIndex = 0 }: ReelsPlayerProp
       {currentIndex < reels.length - 1 && (
         <link rel="prefetch" href={reels[currentIndex + 1].video_url} as="video" />
       )}
+
+      {/* Izohlar Bottom Sheet — joriy reel uchun */}
+      <ReelCommentsSheet
+        reelId={currentReel.id}
+        open={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+        currentUser={currentUser}
+        onCountChange={(count) =>
+          setCommentCounts((prev) => ({ ...prev, [currentReel.id]: count }))
+        }
+      />
     </div>
   );
 }

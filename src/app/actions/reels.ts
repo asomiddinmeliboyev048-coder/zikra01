@@ -3,13 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { S3_PUBLIC_BASE_URL } from "@/lib/s3/client";
-import { getUserReels as getUserReelsQuery } from "@/lib/queries";
-import type { Reel } from "@/lib/types";
+import {
+  getUserReels as getUserReelsQuery,
+  getReelComments as getReelCommentsQuery,
+} from "@/lib/queries";
+import type { Reel, ReelComment } from "@/lib/types";
 
 export interface ReelState {
   error?: string;
   success?: boolean;
   reels?: Reel[];
+}
+
+export interface ReelCommentState {
+  error?: string;
+  success?: boolean;
+  comments?: ReelComment[];
+  comment?: ReelComment;
 }
 
 /**
@@ -125,5 +135,81 @@ export async function unlikeReelAction(reelId: string): Promise<ReelState> {
 
   revalidatePath("/reels");
   revalidatePath("/profile");
+  return { success: true };
+}
+
+
+// ============================================================
+// IZOHLAR (COMMENTS)
+// ============================================================
+
+/** Reelning barcha izohlarini olish (Bottom Sheet ochilganda). */
+export async function getReelCommentsAction(
+  reelId: string
+): Promise<ReelCommentState> {
+  try {
+    const comments = await getReelCommentsQuery(reelId);
+    return { success: true, comments };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Izohlarni yuklab bo'lmadi.",
+    };
+  }
+}
+
+/**
+ * Reelga yangi izoh qo'shish.
+ *
+ * Joriy foydalanuvchi session'dan olinadi (client yuborgan user_id'ga
+ * ishonmaymiz). Muvaffaqiyatli bo'lsa, yaratilgan izohni muallif ma'lumoti
+ * bilan qaytaramiz — client uni ro'yxatga darhol qo'shishi mumkin.
+ */
+export async function addReelCommentAction(
+  reelId: string,
+  content: string
+): Promise<ReelCommentState> {
+  const trimmed = content.trim();
+  if (!trimmed) return { error: "Izoh bo'sh bo'lishi mumkin emas." };
+  if (trimmed.length > 1000) return { error: "Izoh juda uzun (maks. 1000 belgi)." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const { data, error } = await supabase
+    .from("reel_comments")
+    .insert({ reel_id: reelId, user_id: user.id, content: trimmed })
+    .select(
+      "*, author:profiles!reel_comments_user_id_fkey(id, full_name, avatar_url, username)"
+    )
+    .single();
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/reels");
+  return { success: true, comment: data as unknown as ReelComment };
+}
+
+/** Izohni o'chirish (faqat egasi). */
+export async function deleteReelCommentAction(
+  commentId: string
+): Promise<ReelCommentState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const { error } = await supabase
+    .from("reel_comments")
+    .delete()
+    .eq("id", commentId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/reels");
   return { success: true };
 }

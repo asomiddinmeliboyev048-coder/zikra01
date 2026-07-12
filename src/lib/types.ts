@@ -209,4 +209,16 @@ export interface Reel {
   likes?: number;
   liked?: boolean;
   views?: number;
+  comments?: number; // izohlar soni
+}
+
+// Reel izohi (comment) tipi
+export interface ReelComment {
+  id: string;
+  reel_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  // reel_comments -> profiles join orqali to'ldiriladi
+  author?: Pick<Profile, "id" | "full_name" | "avatar_url" | "username">;
 }

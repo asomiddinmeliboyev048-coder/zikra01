@@ -5,6 +5,7 @@ import type {
   ProfileWithSkills,
   UserSkill,
   Reel,
+  ReelComment,
 } from "@/lib/types";
 
 /** Joriy kirgan foydalanuvchi (auth) */
@@ -266,6 +267,41 @@ export async function getReelStats(
   for (const r of (mineRes.data as { reel_id: string }[]) ?? []) {
     const s = map.get(r.reel_id);
     if (s) s.liked = true;
+  }
+  return map;
+}
+
+
+/** Muayyan reelning barcha izohlarini muallif ma'lumoti bilan olish (eng eski birinchi) */
+export async function getReelComments(reelId: string): Promise<ReelComment[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reel_comments")
+    .select(
+      "*, author:profiles!reel_comments_user_id_fkey(id, full_name, avatar_url, username)"
+    )
+    .eq("reel_id", reelId)
+    .order("created_at", { ascending: true });
+
+  return (data as unknown as ReelComment[]) ?? [];
+}
+
+/** Bir nechta reel uchun izohlar sonini olish */
+export async function getReelCommentCounts(
+  reelIds: string[]
+): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  reelIds.forEach((id) => map.set(id, 0));
+  if (reelIds.length === 0) return map;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reel_comments")
+    .select("reel_id")
+    .in("reel_id", reelIds);
+
+  for (const r of (data as { reel_id: string }[]) ?? []) {
+    map.set(r.reel_id, (map.get(r.reel_id) ?? 0) + 1);
   }
   return map;
 }
