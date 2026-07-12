@@ -1,9 +1,18 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { parseUserAgent } from "@/lib/utils";
+
+/** So'rov sarlavhalaridan foydalanuvchi IP manzilini olish */
+function getClientIp(request: NextRequest): string {
+  const fwd = request.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0].trim();
+  return request.headers.get("x-real-ip") || "unknown";
+}
 
 /**
  * Har bir so'rovda Supabase session'ni yangilab turadi (cookie refresh).
  * Himoyalangan sahifalarga kirishni nazorat qiladi.
+ * Bloklangan foydalanuvchini qora ekranga (/banned) yo'naltiradi.
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -35,6 +44,72 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const path = request.nextUrl.pathname;
+
+  // ============================================================
+  // BLOKLASH TEKSHIRUVI + KIRISH MA'LUMOTLARINI YOZIB OLISH
+  // ============================================================
+  // /banned, /api, /auth yo'llarini tekshiruvdan chetlab o'tamiz
+  // (support xabari, chiqish (logout) va API chaqiruvlari ishlashi uchun).
+  const skipBanCheck =
+    path === "/banned" ||
+    path.startsWith("/api") ||
+    path.startsWith("/auth");
+
+  if (user && !skipBanCheck) {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("status, banned_until")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // Bloklangan: status='banned' VA (doimiy YOKI muddat hali tugamagan)
+    const isBanned =
+      prof?.status === "banned" &&
+      (!prof.banned_until || new Date(prof.banned_until) > new Date());
+
+    if (isBanned) {
+      // Qaysi sahifaga kirmasin — qora ekranga yo'naltiramiz
+      const url = request.nextUrl.clone();
+      url.pathname = "/banned";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    // --- Kirish ma'lumotlarini (IP + qurilma) yozib olish ---
+    // Har so'rovda emas, cookie belgisi orqali ~6 soatda bir marta yozamiz.
+    const alreadyLogged = request.cookies.get("zk_seen")?.value;
+    if (!alreadyLogged) {
+      const ip = getClientIp(request);
+      const ua = request.headers.get("user-agent") ?? "";
+
+      // profiles_update_own RLS foydalanuvchiga o'z yozuvini yangilashga ruxsat beradi.
+      await supabase
+        .from("profiles")
+        .update({
+          last_ip: ip,
+          last_device: parseUserAgent(ua),
+          last_user_agent: ua,
+          last_login_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      // 6 soatlik belgi — keyingi yozuvgacha bazaga tegmaymiz
+      supabaseResponse.cookies.set("zk_seen", "1", {
+        maxAge: 60 * 60 * 6,
+        httpOnly: true,
+        sameSite: "lax",
+      });
+    }
+  }
+
+  // Bloklanmagan foydalanuvchi (yoki mehmon) /banned da bo'lsa — normal joyga qaytaramiz
+  if (path === "/banned" && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
   // Himoyalangan yo'llar — login talab qiladi
   const protectedPaths = [
     "/welcome",
@@ -46,7 +121,6 @@ export async function updateSession(request: NextRequest) {
     "/notifications",
     "/settings",
   ];
-  const path = request.nextUrl.pathname;
   const isProtected = protectedPaths.some((p) => path.startsWith(p));
 
   if (isProtected && !user) {

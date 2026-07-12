@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { recordViewAction, updateWatchProgressAction } from "@/app/actions/social";
+import { normalizeUrl } from "@/lib/url";
 
 function youtubeId(url: string): string | null {
   const m = url.match(
@@ -114,9 +115,11 @@ export default function VideoPlayer({
           Reklama
         </span>
 
-        {ad.redirect_url && (
+        {/* "Batafsil" — havolani normalizatsiya qilamiz (https:// qo'shiladi),
+            shunda tashqi manzil 404 bermay, yangi tabda to'g'ri ochiladi. */}
+        {normalizeUrl(ad.redirect_url) && (
           <a
-            href={ad.redirect_url}
+            href={normalizeUrl(ad.redirect_url)!}
             target="_blank"
             rel="noopener noreferrer"
             className="absolute bottom-3 left-3 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-white"

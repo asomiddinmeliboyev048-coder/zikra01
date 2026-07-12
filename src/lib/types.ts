@@ -25,6 +25,15 @@ export interface Profile {
   // "Google Auth + Custom PIN" oqimi uchun
   pin_code?: string | null; // 6 xonali PIN'ning SHA-256 hash'i
   last_login?: string | null;
+  // Moderatsiya / bloklash (admin panel boshqaradi)
+  status?: "active" | "banned" | "under_review";
+  banned_until?: string | null; // null = doimiy blok (agar status='banned')
+  ban_reason?: string | null;   // bloklash sababi
+  // Xavfsizlik / oxirgi kirish ma'lumotlari
+  last_ip?: string | null;
+  last_device?: string | null;      // qisqa nom: "Chrome · Windows"
+  last_user_agent?: string | null;  // to'liq userAgent satri
+  last_login_at?: string | null;    // oxirgi kirgan vaqt
 }
 
 export interface Skill {
