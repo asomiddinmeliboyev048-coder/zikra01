@@ -83,6 +83,27 @@ export default function VideoThumb({
           className="object-cover"
           unoptimized
         />
+      ) : canPreview ? (
+        // Muqova saqlanmagan (eski videolar) — yashil/gradient fon o'rniga
+        // videoning birinchi kadrini avtomatik ko'rsatamiz. onLoadedMetadata'da
+        // ~1-soniyaga o'tkazamiz, shunda video element o'sha kadrni "poster"
+        // sifatida ko'rsatadi (CORS yoki canvas shart emas).
+        <video
+          src={videoUrl}
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-cover"
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            const dur = Number.isFinite(v.duration) ? v.duration : 2;
+            try {
+              v.currentTime = Math.min(1, dur / 2);
+            } catch {
+              /* ba'zi brauzerlarda seek qo'llab-quvvatlanmasligi mumkin */
+            }
+          }}
+        />
       ) : (
         <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand to-brand-700">
           <PlayIcon />
