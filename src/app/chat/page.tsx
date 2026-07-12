@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import StoriesBar from "@/components/StoriesBar";
 import ChatClient, { type Conversation } from "./ChatClient";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getUserSkills } from "@/lib/queries";
@@ -129,6 +130,7 @@ export default async function ChatPage({
           activeId={activeId}
           initialMessages={activeMessages}
           matchScore={matchScore}
+          storiesSlot={<StoriesBar />}
         />
       </main>
     </div>
