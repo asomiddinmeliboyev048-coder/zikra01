@@ -1,5 +1,9 @@
-// Zikra — oddiy service worker (offline uchun asosiy keshlash)
-const CACHE = "zikra-v1";
+// Zikra — service worker (offline uchun asosiy keshlash)
+//
+// MUHIM: kesh nomi o'zgarganda (v2, v3...) eski kesh AVTOMATIK tozalanadi
+// (activate hodisasida). Shu tufayli yangi deploy'dan keyin foydalanuvchi
+// ESKI (keshlangan) dizayn/logo o'rniga YANGISINI ko'radi.
+const CACHE = "zikra-v3";
 const CORE = ["/", "/discovery", "/manifest.json", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -11,27 +15,46 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
 
-  // Navigatsiya: tarmoq-birinchi, offline bo'lsa keshdan
-  if (request.mode === "navigate") {
+  const url = new URL(request.url);
+
+  // Next.js hash'langan statik fayllar (/_next/static/...) — o'zgarmas,
+  // shuning uchun kesh-birinchi (tez). Har build'da nomi o'zgaradi.
+  const isImmutable = url.pathname.startsWith("/_next/static/");
+
+  if (isImmutable) {
     event.respondWith(
-      fetch(request).catch(() => caches.match(request).then((r) => r || caches.match("/")))
+      caches.match(request).then((cached) => cached || fetch(request))
     );
     return;
   }
 
-  // Statik: keshdan, bo'lmasa tarmoqdan
+  // Qolgan HAMMASI (sahifalar, CSS, icon.svg, rasmlar...) — TARMOQ-BIRINCHI.
+  // Bu yangi deploy'ni darhol ko'rsatadi; offline bo'lsagina keshdan beradi.
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
+    fetch(request)
+      .then((res) => {
+        // Muvaffaqiyatli javobni keyingi offline holat uchun keshga yozamiz
+        if (res && res.status === 200 && res.type === "basic") {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(request, clone)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(() =>
+        caches.match(request).then((r) => r || caches.match("/"))
+      )
   );
 });
