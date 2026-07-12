@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDuration } from "@/lib/utils";
+import VideoThumbnail from "@/components/VideoThumbnail";
 
 /**
  * Video kartochka thumbnaili — kursor ustiga kelganda (onMouseEnter)
@@ -74,7 +75,8 @@ export default function VideoThumb({
       onMouseEnter={start}
       onMouseLeave={stop}
     >
-      {/* Thumbnail */}
+      {/* Thumbnail: alohida poster rasmi bo'lsa uni, aks holda videoning
+          birinchi kadrini avtomatik muqova sifatida ko'rsatamiz. */}
       {thumbnailUrl ? (
         <Image
           src={thumbnailUrl}
@@ -83,6 +85,8 @@ export default function VideoThumb({
           className="object-cover"
           unoptimized
         />
+      ) : canPreview ? (
+        <VideoThumbnail videoUrl={videoUrl} seekTo={1} />
       ) : (
         <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand to-brand-700">
           <PlayIcon />

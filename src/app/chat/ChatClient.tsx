@@ -16,8 +16,9 @@ import { saveItemAction, forwardMessageAction } from "@/app/actions/saved";
 import { uploadChatMedia } from "@/lib/storage";
 import { avatarFallback, formatTime, timeAgo, cn } from "@/lib/utils";
 import MatchBadge from "@/components/MatchBadge";
-import VoiceRecorder from "@/components/chat/VoiceRecorder";
+import ChatComposer from "@/components/chat/ChatComposer";
 import VoicePlayer from "@/components/chat/VoicePlayer";
+import RoundVideoMessage from "@/components/chat/RoundVideoMessage";
 import type { Message } from "@/lib/types";
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
@@ -60,16 +61,12 @@ export default function ChatClient({
 }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
-  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [reactions, setReactions] = useState<Record<string, ReactionAgg[]>>({});
   // Qidiruv holati (suhbat va foydalanuvchi qidirish)
   const [query, setQuery] = useState("");
   const [userResults, setUserResults] = useState<SearchProfile[]>([]);
   const [searching, setSearching] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const mediaRef = useRef<HTMLInputElement>(null);
 
   const active = conversations.find((c) => c.partner.id === activeId) ?? null;
 
@@ -327,44 +324,28 @@ export default function ChatClient({
     messagesRef.current = messages;
   }, [messages]);
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    const content = text.trim();
-    if (!content || !activeId) return;
-    setSending(true);
-    setText("");
+  // Matnli xabar yuborish
+  async function sendText(content: string) {
+    if (!activeId) return;
     const res = await sendMessageAction(activeId, content);
-    setSending(false);
-    if (res.error) {
-      alert(res.error);
-      setText(content);
-    }
+    if (res.error) alert(res.error);
     // Yangi xabar realtime orqali keladi
   }
 
-  function shareVideoLink() {
-    const url = prompt("Video dars havolasini kiriting:");
-    if (url) setText((t) => (t ? t + " " : "") + url);
-  }
-
-  async function handleMediaPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    if (!f || !activeId) return;
-    setUploadingMedia(true);
+  // Rasm/video fayl yuborish (composer'dagi skrepka orqali)
+  async function pickMedia(file: File) {
+    if (!activeId) return;
     try {
-      const url = await uploadChatMedia(f);
+      const url = await uploadChatMedia(file);
       const res = await sendMessageAction(activeId, url);
       if (res.error) alert(res.error);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Yuklashda xatolik.");
-    } finally {
-      setUploadingMedia(false);
     }
   }
 
-  // Ovozli xabar yuborish (VoiceRecorder'dan keladi: "voice:<url>")
-  async function sendVoice(content: string) {
+  // Ovozli / yumaloq video xabar yuborish ("voice:<url>" yoki "circle:<url>")
+  async function sendRecording(content: string) {
     if (!activeId) return;
     const res = await sendMessageAction(activeId, content);
     if (res.error) alert(res.error);
@@ -679,52 +660,12 @@ export default function ChatClient({
               <div ref={bottomRef} />
             </div>
 
-            {/* Xabar yozish */}
-            <form
-              onSubmit={handleSend}
-              className="flex items-center gap-1.5 border-t border-gray-100 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-3"
-            >
-              {/* Rasm/video biriktirish (galereya/fayl) */}
-              <button
-                type="button"
-                onClick={() => mediaRef.current?.click()}
-                disabled={uploadingMedia}
-                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 disabled:opacity-50"
-                title="Rasm yoki video yuborish"
-              >
-                {uploadingMedia ? "⏳" : "📎"}
-              </button>
-              <input
-                ref={mediaRef}
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleMediaPick}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={shareVideoLink}
-                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-                title="Video havolasini ulashish"
-              >
-                🎬
-              </button>
-              {/* Ovozli xabar */}
-              <VoiceRecorder onSend={sendVoice} disabled={uploadingMedia} />
-              <input
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Xabar yozing..."
-                className="input flex-1"
-              />
-              <button
-                type="submit"
-                disabled={sending || !text.trim()}
-                className="btn-primary px-4"
-              >
-                Yuborish
-              </button>
-            </form>
+            {/* Xabar yozish — Telegram uslubidagi panel */}
+            <ChatComposer
+              onSendText={sendText}
+              onPickMedia={pickMedia}
+              onSendRecording={sendRecording}
+            />
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
@@ -1069,6 +1010,12 @@ function renderMessageContent(content: string, mine: boolean) {
   if (trimmed.startsWith("voice:")) {
     const src = trimmed.slice("voice:".length);
     return <VoicePlayer src={src} mine={mine} />;
+  }
+
+  // Yumaloq video xabar — "circle:<url>" konventsiyasi
+  if (trimmed.startsWith("circle:")) {
+    const src = trimmed.slice("circle:".length);
+    return <RoundVideoMessage src={src} />;
   }
 
   // Reel — "reel:<video_url>" konventsiyasi: chatda to'g'ridan-to'g'ri o'ynaydi

@@ -52,6 +52,7 @@ export async function sendMessageAction(
 
   let preview = text;
   if (text.startsWith("voice:")) preview = "🎤 Ovozli xabar";
+  else if (text.startsWith("circle:")) preview = "📹 Video xabar";
   else if (text.startsWith("reel:")) preview = "🎬 Reel";
   else if (/^https?:\/\/\S+$/.test(text)) preview = "📎 Media";
   else if (preview.length > 60) preview = preview.slice(0, 60) + "…";
