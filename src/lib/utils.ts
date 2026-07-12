@@ -62,6 +62,31 @@ export function formatDateTime(dateStr: string | null): string {
 }
 
 
+/**
+ * userAgent satridan brauzer va OS ni qisqa nomga aylantiradi.
+ * Masalan: "Chrome · Windows". Kirish paytida last_device'ga yozish uchun.
+ */
+export function parseUserAgent(ua: string | null | undefined): string {
+  if (!ua) return "Noma'lum qurilma";
+
+  let browser = "Brauzer";
+  if (/edg\//i.test(ua)) browser = "Edge";
+  else if (/opr\/|opera/i.test(ua)) browser = "Opera";
+  else if (/firefox\//i.test(ua)) browser = "Firefox";
+  else if (/samsungbrowser/i.test(ua)) browser = "Samsung Internet";
+  else if (/chrome\/|crios/i.test(ua)) browser = "Chrome";
+  else if (/safari\//i.test(ua)) browser = "Safari";
+
+  let os = "OS";
+  if (/windows nt/i.test(ua)) os = "Windows";
+  else if (/android/i.test(ua)) os = "Android";
+  else if (/iphone|ipad|ipod/i.test(ua)) os = "iOS";
+  else if (/mac os x/i.test(ua)) os = "macOS";
+  else if (/linux/i.test(ua)) os = "Linux";
+
+  return `${browser} · ${os}`;
+}
+
 /** Katta sonlarni ixcham ko'rsatish: 1200 -> "1.2k", 1500000 -> "1.5M" */
 export function formatCount(n: number | null | undefined): string {
   const v = n ?? 0;
