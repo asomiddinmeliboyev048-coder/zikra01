@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { avatarFallback, timeAgo } from "@/lib/utils";
-import ReelLikeButton from "@/components/ReelLikeButton";
+import { useReelLike } from "@/components/ReelLikeButton";
 import ReelCommentsSheet from "@/components/ReelCommentsSheet";
 import ReelOwnerMenu from "@/components/ReelOwnerMenu";
 import ShareReelModal from "@/components/ShareReelModal";
@@ -56,9 +56,23 @@ export default function ReelsPlayer({
   const touchStartY = useRef(0);
   // Bir sessiyada bir reel uchun ko'rish bir marta yozilishini ta'minlaydi
   const viewedRef = useRef<Set<string>>(new Set());
+  // Video ustiga 2 marta bosishni (double-tap) aniqlash uchun
+  const lastTapRef = useRef(0);
+  const singleTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentReel = list[currentIndex];
   const isOwner = currentReel?.user_id === currentUser.id;
+
+  // Joriy reel uchun "like" holati (yon tugma + 2 marta bosish bir manbadan)
+  const like = useReelLike(
+    currentReel?.id ?? "",
+    Boolean(currentReel?.liked),
+    currentReel?.likes ?? 0
+  );
+
+  // Video markazida "yurakcha portlashi" animatsiyasi
+  const [showHeart, setShowHeart] = useState(false);
+  const [heartKey, setHeartKey] = useState(0);
 
   // Reel egasi o'z reelini o'chirganda ro'yxatdan olib tashlaymiz va indeksni to'g'rilaymiz
   const handleDeleted = useCallback(
@@ -138,6 +152,32 @@ export default function ReelsPlayer({
     }
   }, [muted]);
 
+  // Video ustiga bosish:
+  //   - bir marta  -> ovozni yoqish/o'chirish (double-tap bo'lmasligini kutib)
+  //   - ikki marta tez (double-tap) -> like + markazda yurakcha animatsiyasi
+  const handleVideoTap = useCallback(() => {
+    const now = Date.now();
+    const DOUBLE_MS = 280;
+    if (now - lastTapRef.current < DOUBLE_MS) {
+      // Double-tap aniqlandi — kutilayotgan bir martalik amalni bekor qilamiz
+      if (singleTapTimer.current) {
+        clearTimeout(singleTapTimer.current);
+        singleTapTimer.current = null;
+      }
+      lastTapRef.current = 0;
+      like.likeIfNeeded(); // hech qachon unlike qilmaydi
+      setHeartKey((k) => k + 1);
+      setShowHeart(true);
+      setTimeout(() => setShowHeart(false), 800);
+    } else {
+      lastTapRef.current = now;
+      singleTapTimer.current = setTimeout(() => {
+        toggleMute();
+        singleTapTimer.current = null;
+      }, DOUBLE_MS);
+    }
+  }, [like, toggleMute]);
+
   const goNext = useCallback(() => {
     setCurrentIndex((prev) => (prev < list.length - 1 ? prev + 1 : prev));
   }, [list.length]);
@@ -181,13 +221,14 @@ export default function ReelsPlayer({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="relative mx-auto h-full w-full max-w-[500px]">
-        {/* Joriy video — bosilganda ovozni almashtiradi */}
+    <div className="fixed inset-0 z-50 bg-black">
+      <div
+        className="relative mx-auto h-full w-full max-w-[500px]"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: "none", overscrollBehavior: "none" }}
+      >
+        {/* Joriy video — bir marta bosilsa ovoz, 2 marta bosilsa like */}
         <video
           key={currentReel.id}
           ref={videoRef}
@@ -195,10 +236,28 @@ export default function ReelsPlayer({
           loop
           playsInline
           muted={muted}
-          onClick={toggleMute}
+          onClick={handleVideoTap}
           className="h-full w-full cursor-pointer object-contain"
           style={{ aspectRatio: "9/16" }}
         />
+
+        {/* Double-tap yurakcha animatsiyasi (markazda) */}
+        {showHeart && (
+          <div
+            key={heartKey}
+            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
+          >
+            <svg
+              width="120"
+              height="120"
+              viewBox="0 0 24 24"
+              fill="#ef4444"
+              className="animate-heart-pop drop-shadow-2xl"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+            </svg>
+          </div>
+        )}
 
         {/* Autoplay bloklangan — "ovozni yoqish uchun bosing" ko'rsatkichi */}
         {autoplayBlocked && muted && (
@@ -253,13 +312,34 @@ export default function ReelsPlayer({
 
         {/* O'ng tomon harakat tugmalari (Instagram uslubi) */}
         <div className="absolute bottom-24 right-3 z-10 flex flex-col items-center gap-5">
-          {/* Like — mustaqil optimistik komponent (har reel uchun key orqali qayta mount) */}
-          <ReelLikeButton
-            key={currentReel.id}
-            reelId={currentReel.id}
-            initialLiked={Boolean(currentReel.liked)}
-            initialCount={currentReel.likes ?? 0}
-          />
+          {/* Like — yon tugma (video ustiga 2 marta bosish bilan bir holatni ulashadi) */}
+          <button
+            onClick={like.toggle}
+            className="flex flex-col items-center gap-1"
+            aria-label={like.liked ? "Yoqtirishni bekor qilish" : "Yoqtirish"}
+            aria-pressed={like.liked}
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110 active:scale-95">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill={like.liked ? "#ef4444" : "none"}
+                stroke={like.liked ? "#ef4444" : "white"}
+                strokeWidth="2"
+                className="transition-transform duration-200"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="text-xs font-semibold text-white drop-shadow">
+              {Math.max(0, like.count)}
+            </span>
+          </button>
 
           {/* Izohlar — Bottom Sheet'ni ochadi */}
           <button

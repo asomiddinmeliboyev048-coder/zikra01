@@ -7,9 +7,8 @@ import StarRating from "@/components/StarRating";
 import LevelProgress from "@/components/LevelProgress";
 import BadgeGrid from "@/components/BadgeGrid";
 import VideoCard from "@/components/VideoCard";
-import VideoUpload from "@/app/videos/VideoUpload";
-import ReelUpload from "@/app/videos/ReelUpload";
 import ReelGrid from "@/components/ReelGrid";
+import ProfileUploadMenu from "@/components/ProfileUploadMenu";
 import SupportButton from "@/components/SupportButton";
 import ReviewButton from "./ReviewButton";
 import FollowButton from "@/components/FollowButton";
@@ -142,7 +141,14 @@ export default async function ProfilePage({
       <Navbar />
       <main className="container-app py-8">
         {/* Profil sarlavhasi */}
-        <div className="card overflow-hidden">
+        <div className="relative">
+          {/* Instagram uslubidagi "+" yuklash tugmasi — tepa o'ng burchak (faqat o'z profili) */}
+          {isOwn && (
+            <div className="absolute right-4 top-4 z-30">
+              <ProfileUploadMenu skills={skills} />
+            </div>
+          )}
+          <div className="card overflow-hidden">
           <div className="h-24 bg-gradient-to-r from-brand to-brand-700" />
           <div className="px-6 pb-6">
             <div className="-mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -233,6 +239,7 @@ export default async function ProfilePage({
               />
               <MiniStat label="Nishonlar" value={badges.length} />
             </div>
+          </div>
           </div>
         </div>
 
@@ -340,12 +347,10 @@ export default async function ProfilePage({
             {/* Reels bo'limi */}
             {isOwn && (
               <section className="card p-6">
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">
                     Reels ({reels.length})
                   </h2>
-                  {/* Reel yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
-                  <ReelUpload />
                 </div>
                 <ReelGrid reels={reels} />
               </section>
@@ -353,12 +358,10 @@ export default async function ProfilePage({
 
             {/* Video darslar */}
             <section className="card p-6">
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Video darslar ({videos.length})
                 </h2>
-                {/* Video yuklash tugmasi FAQAT o'z profilida ko'rinadi */}
-                {isOwn && <VideoUpload skills={skills} />}
               </div>
               {videos.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">

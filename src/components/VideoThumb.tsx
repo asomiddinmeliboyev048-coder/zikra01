@@ -138,7 +138,7 @@ function PlayIcon({ dark = false }: { dark?: boolean }) {
       width="28"
       height="28"
       viewBox="0 0 24 24"
-      fill={dark ? "#534AB7" : "white"}
+      fill={dark ? "#14A08E" : "white"}
       aria-hidden
     >
       <path d="M8 5v14l11-7z" />

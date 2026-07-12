@@ -1,80 +1,100 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { likeReelAction, unlikeReelAction } from "@/app/actions/reels";
+
+/**
+ * Reel "like" holatini boshqaruvchi hook — Optimistic UI bilan.
+ *
+ * ReelsPlayer bir necha joyda (yon tugma + video ustiga 2 marta bosish) bir xil
+ * like holatidan foydalanadi, shuning uchun mantiq shu hook'ka ajratilgan.
+ *
+ * Ishlashi:
+ *   - toggle(): bosishda darhol UI yangilanadi, orqa fonda server chaqiriladi,
+ *     xato bo'lsa rollback.
+ *   - likeIfNeeded(): faqat hali like bosilmagan bo'lsa like qo'yadi
+ *     (video ustiga 2 marta bosilganda ishlatiladi — hech qachon "unlike"
+ *     qilmaydi).
+ *   - Reel almashganda (reelId o'zgarsa) holat yangi reel qiymatlariga tiklanadi.
+ *     initialLiked/initialCount o'zgarishining o'zi holatni tiklamaydi
+ *     (server revalidatsiyasi foydalanuvchi tanlovini buzmasligi uchun).
+ */
+export function useReelLike(
+  reelId: string,
+  initialLiked = false,
+  initialCount = 0
+) {
+  const [liked, setLiked] = useState(initialLiked);
+  const [count, setCount] = useState(initialCount);
+  const [pending, setPending] = useState(false);
+
+  const reelRef = useRef(reelId);
+  useEffect(() => {
+    if (reelRef.current !== reelId) {
+      reelRef.current = reelId;
+      setLiked(initialLiked);
+      setCount(initialCount);
+    }
+  }, [reelId, initialLiked, initialCount]);
+
+  const toggle = useCallback(async () => {
+    if (pending) return;
+    const next = !liked;
+    setLiked(next);
+    setCount((c) => Math.max(0, c + (next ? 1 : -1)));
+    setPending(true);
+    try {
+      const res = next
+        ? await likeReelAction(reelId)
+        : await unlikeReelAction(reelId);
+      if (res?.error) {
+        setLiked(!next);
+        setCount((c) => Math.max(0, c + (next ? -1 : 1)));
+      }
+    } catch {
+      setLiked(!next);
+      setCount((c) => Math.max(0, c + (next ? -1 : 1)));
+    } finally {
+      setPending(false);
+    }
+  }, [pending, liked, reelId]);
+
+  const likeIfNeeded = useCallback(() => {
+    if (!liked && !pending) toggle();
+  }, [liked, pending, toggle]);
+
+  return { liked, count, pending, toggle, likeIfNeeded };
+}
 
 interface ReelLikeButtonProps {
   reelId: string;
-  /** Server'dan kelgan boshlang'ich holat (joriy foydalanuvchi like bosganmi) */
   initialLiked?: boolean;
-  /** Server'dan kelgan boshlang'ich like soni */
   initialCount?: number;
 }
 
 /**
- * Reel uchun mustaqil "Layk" tugmasi — Optimistic UI bilan.
- *
- * Ishlash mantig'i:
- *   1) Foydalanuvchi bosishi bilan DARHOL ikonka qizil bo'ladi va son o'zgaradi
- *      (server javobini kutmaymiz).
- *   2) Orqa fonda server action chaqiriladi: like yo'q bo'lsa insert, bor bo'lsa
- *      delete (mantiq server tomonida `reel_likes` jadvalida bajariladi).
- *   3) Server xato qaytarsa — optimistik o'zgarish orqaga qaytariladi (rollback).
+ * Mustaqil "Layk" tugmasi (useReelLike hook ustida). ReelsPlayer o'z tugmasini
+ * hook orqali render qilgani uchun bu komponent zaxira/qayta ishlatish uchun.
  */
 export default function ReelLikeButton({
   reelId,
   initialLiked = false,
   initialCount = 0,
 }: ReelLikeButtonProps) {
-  const [liked, setLiked] = useState(initialLiked);
-  const [count, setCount] = useState(initialCount);
-  const [pending, setPending] = useState(false);
-  // "Pop" animatsiyasi uchun (yurakcha bosilganda bir marta kattalashadi)
+  const { liked, count, toggle } = useReelLike(reelId, initialLiked, initialCount);
   const [burst, setBurst] = useState(false);
 
-  // ESLATMA: bu yerda props'dan holatni qayta yuklovchi useEffect ATAYIN yo'q.
-  // ReelsPlayer bu komponentni <ReelLikeButton key={reel.id}/> bilan render
-  // qiladi — reel almashsa komponent butunlay qayta mount bo'ladi va boshlang'ich
-  // qiymatlar useState orqali to'g'ri o'rnatiladi. Agar props o'zgarganda holatni
-  // qayta o'rnatsak, server revalidatsiyasidan keyingi (ba'zan kechikkan) qiymat
-  // foydalanuvchi tasdiqlagan like'ni "orqaga qaytarib" yuborardi — aynan shu bug.
-
-  const toggle = useCallback(async () => {
-    if (pending) return;
-
-    const nextLiked = !liked;
-
-    // 1) OPTIMISTIC: darhol UI'ni yangilaymiz
-    setLiked(nextLiked);
-    setCount((c) => c + (nextLiked ? 1 : -1));
-    setPending(true);
-    if (nextLiked) {
+  const handle = useCallback(() => {
+    if (!liked) {
       setBurst(true);
       setTimeout(() => setBurst(false), 300);
     }
-
-    // 2) Orqa fonda serverga so'rov
-    try {
-      const res = nextLiked
-        ? await likeReelAction(reelId)
-        : await unlikeReelAction(reelId);
-
-      // 3) Xato bo'lsa — ROLLBACK
-      if (res?.error) {
-        setLiked(!nextLiked);
-        setCount((c) => c + (nextLiked ? -1 : 1));
-      }
-    } catch {
-      setLiked(!nextLiked);
-      setCount((c) => c + (nextLiked ? -1 : 1));
-    } finally {
-      setPending(false);
-    }
-  }, [pending, liked, reelId]);
+    toggle();
+  }, [liked, toggle]);
 
   return (
     <button
-      onClick={toggle}
+      onClick={handle}
       className="flex flex-col items-center gap-1"
       aria-label={liked ? "Yoqtirishni bekor qilish" : "Yoqtirish"}
       aria-pressed={liked}
@@ -87,9 +107,7 @@ export default function ReelLikeButton({
           fill={liked ? "#ef4444" : "none"}
           stroke={liked ? "#ef4444" : "white"}
           strokeWidth="2"
-          className={`transition-transform duration-300 ${
-            burst ? "scale-125" : "scale-100"
-          }`}
+          className={`transition-transform duration-300 ${burst ? "scale-125" : "scale-100"}`}
         >
           <path
             d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"

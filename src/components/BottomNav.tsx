@@ -28,6 +28,7 @@ export default function BottomNav({
     { href: "/discovery", label: "Kashf", icon: DiscoverIcon },
     { href: "/lessons", label: "Darslar", icon: LessonsIcon },
     { href: "/reels", label: "Reels", icon: ReelsIcon, center: true },
+    { href: "/videos", label: "Videolar", icon: VideoIcon },
     { href: "/chat", label: "Suhbat", icon: ChatIcon },
     { href: `/profile/${profileId}`, label: "Profil", icon: UserIcon },
   ];
@@ -89,6 +90,14 @@ function LessonsIcon({ active }: { active: boolean }) {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
       <path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" strokeLinejoin="round" />
       <path d="M14 3v5h5M8 13h8M8 17h5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function VideoIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
+      <rect x="2" y="5" width="15" height="14" rx="2.5" />
+      <path d="M17 9.5l5-3v11l-5-3z" strokeLinejoin="round" />
     </svg>
   );
 }
