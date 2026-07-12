@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { avatarFallback, timeAgo } from "@/lib/utils";
@@ -26,15 +26,20 @@ interface ReelCommentsSheetProps {
   onCountChange?: (count: number) => void;
 }
 
+/** Bir izoh + uning javoblari (thread) */
+interface ThreadNode extends ReelComment {
+  replies: ReelComment[];
+}
+
 /**
- * Instagram/TikTok uslubidagi "Izohlar" Bottom Sheet.
+ * Instagram/TikTok uslubidagi "Izohlar" Bottom Sheet — javob (reply) tizimi bilan.
  *
  * - Overlay (bg-black/50): bosilsa oyna yopiladi.
  * - Oyna pastdan (translate-y-full -> translate-y-0) silliq sirpanib chiqadi.
- * - Tuzilishi: tepa (drag handle + sarlavha) / o'rta (skroll ro'yxat) /
- *   past (fixed input + yuborish tugmasi).
- * - Ochilganda o'sha reelning izohlari Supabase'dan tortiladi (server action).
- * - Yuborilganda izoh bazaga yoziladi va darhol ro'yxatga qo'shiladi.
+ * - Har bir izohga aynan o'sha izoh tagidan javob (reply) yozish mumkin.
+ * - Ochilganda o'sha reelning izohlari Supabase'dan tortiladi (server action);
+ *   yuborishda optimistik ro'yxatga qo'shiladi, keyin server javobi bilan
+ *   almashtiriladi (xatoda orqaga qaytariladi).
  */
 export default function ReelCommentsSheet({
   reelId,
@@ -43,25 +48,26 @@ export default function ReelCommentsSheet({
   currentUser,
   onCountChange,
 }: ReelCommentsSheetProps) {
-  const [mounted, setMounted] = useState(false); // DOM'da bormi
-  const [show, setShow] = useState(false); // sirpanish animatsiyasi holati
+  const [mounted, setMounted] = useState(false);
+  const [show, setShow] = useState(false);
   const [comments, setComments] = useState<ReelComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Javob yozilayotgan ota izoh (null bo'lsa — oddiy izoh)
+  const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
 
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // --- Ochilish / yopilish animatsiyasi ---
   useEffect(() => {
     if (open) {
       setMounted(true);
-      // Keyingi frame'da translate-y-0 ga o'tkazamiz (silliq kirish uchun)
       const id = requestAnimationFrame(() => setShow(true));
       return () => cancelAnimationFrame(id);
     }
-    // Yopilish: avval pastga sirpanadi, keyin DOM'dan olib tashlanadi
     setShow(false);
     const t = setTimeout(() => setMounted(false), 300);
     return () => clearTimeout(t);
@@ -73,6 +79,7 @@ export default function ReelCommentsSheet({
     let active = true;
     setLoading(true);
     setError(null);
+    setReplyTo(null);
     getReelCommentsAction(reelId).then((res) => {
       if (!active) return;
       if (res.error) setError(res.error);
@@ -85,7 +92,6 @@ export default function ReelCommentsSheet({
     return () => {
       active = false;
     };
-    // reelId yoki open o'zgarganda qayta yuklaymiz
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reelId]);
 
@@ -99,6 +105,37 @@ export default function ReelCommentsSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Flat ro'yxatdan thread (daraxt) tuzamiz: top-level izohlar + har birining javoblari
+  const threads = useMemo<ThreadNode[]>(() => {
+    const roots: ThreadNode[] = [];
+    const byId = new Map<string, ThreadNode>();
+    // Avval barcha top-level izohlarni tayyorlaymiz
+    for (const c of comments) {
+      if (!c.parent_id) {
+        const node: ThreadNode = { ...c, replies: [] };
+        byId.set(c.id, node);
+        roots.push(node);
+      }
+    }
+    // Keyin javoblarni ota izohga biriktiramiz
+    for (const c of comments) {
+      if (c.parent_id) {
+        const parent = byId.get(c.parent_id);
+        if (parent) parent.replies.push(c);
+        else {
+          // Ota izoh topilmasa (kamdan-kam) — top-level sifatida ko'rsatamiz
+          roots.push({ ...c, replies: [] });
+        }
+      }
+    }
+    return roots;
+  }, [comments]);
+
+  const startReply = useCallback((commentId: string, name: string) => {
+    setReplyTo({ id: commentId, name });
+    inputRef.current?.focus();
+  }, []);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -108,12 +145,13 @@ export default function ReelCommentsSheet({
       setSubmitting(true);
       setError(null);
 
-      // --- Optimistic: darhol ro'yxatga qo'shamiz ---
+      const parentId = replyTo?.id ?? null;
       const tempId = `temp-${Date.now()}`;
       const optimistic: ReelComment = {
         id: tempId,
         reel_id: reelId,
         user_id: currentUser.id,
+        parent_id: parentId,
         content: trimmed,
         created_at: new Date().toISOString(),
         author: {
@@ -129,31 +167,33 @@ export default function ReelCommentsSheet({
         return next;
       });
       setText("");
-      // Ro'yxat oxiriga skroll
+      setReplyTo(null);
       requestAnimationFrame(() => {
-        listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+        if (!parentId) {
+          listRef.current?.scrollTo({
+            top: listRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
       });
 
-      // --- Serverga yozamiz ---
-      const res = await addReelCommentAction(reelId, trimmed);
+      const res = await addReelCommentAction(reelId, trimmed, parentId);
       if (res.error || !res.comment) {
-        // Rollback: vaqtinchalik izohni olib tashlaymiz
         setComments((prev) => {
           const next = prev.filter((c) => c.id !== tempId);
           onCountChange?.(next.length);
           return next;
         });
         setError(res.error ?? "Izohni yuborib bo'lmadi.");
-        setText(trimmed); // matnni qaytaramiz, foydalanuvchi qayta urinib ko'rsin
+        setText(trimmed);
       } else {
-        // Vaqtinchalik izohni haqiqiy (server) izoh bilan almashtiramiz
         setComments((prev) =>
           prev.map((c) => (c.id === tempId ? (res.comment as ReelComment) : c))
         );
       }
       setSubmitting(false);
     },
-    [text, submitting, reelId, currentUser, onCountChange]
+    [text, submitting, reelId, currentUser, onCountChange, replyTo]
   );
 
   if (!mounted) return null;
@@ -176,7 +216,6 @@ export default function ReelCommentsSheet({
       >
         {/* --- TEPA: drag handle + sarlavha --- */}
         <div className="relative shrink-0 border-b border-gray-100 pb-3 pt-2">
-          {/* Qalinroq kulrang qisqa chiziqcha */}
           <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-gray-300" />
           <h2 className="text-center text-base font-semibold text-gray-900">
             Izohlar
@@ -196,7 +235,7 @@ export default function ReelCommentsSheet({
             <div className="flex h-32 items-center justify-center text-sm text-red-500">
               {error}
             </div>
-          ) : comments.length === 0 ? (
+          ) : threads.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center text-center">
               <p className="text-sm font-medium text-gray-700">Hali izohlar yo&apos;q</p>
               <p className="mt-1 text-xs text-gray-400">
@@ -205,37 +244,19 @@ export default function ReelCommentsSheet({
             </div>
           ) : (
             <ul className="flex flex-col gap-4">
-              {comments.map((c) => (
-                <li key={c.id} className="flex items-start gap-3">
-                  <Link href={`/profile/${c.author?.id ?? c.user_id}`} className="shrink-0">
-                    <Image
-                      src={
-                        c.author?.avatar_url ||
-                        avatarFallback(c.author?.full_name ?? "Zikra")
-                      }
-                      alt={c.author?.full_name ?? "Foydalanuvchi"}
-                      width={36}
-                      height={36}
-                      className="h-9 w-9 rounded-full object-cover"
-                      unoptimized
-                    />
-                  </Link>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/profile/${c.author?.id ?? c.user_id}`}
-                        className="truncate text-sm font-semibold text-gray-900"
-                      >
-                        {c.author?.username || c.author?.full_name || "Foydalanuvchi"}
-                      </Link>
-                      <span className="shrink-0 text-xs text-gray-400">
-                        {timeAgo(c.created_at)}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-gray-800">
-                      {c.content}
-                    </p>
-                  </div>
+              {threads.map((c) => (
+                <li key={c.id}>
+                  <CommentRow comment={c} onReply={startReply} />
+                  {/* Javoblar — chapdan chekingan (indent) */}
+                  {c.replies.length > 0 && (
+                    <ul className="mt-3 flex flex-col gap-3 pl-11">
+                      {c.replies.map((r) => (
+                        <li key={r.id}>
+                          <CommentRow comment={r} onReply={startReply} isReply />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               ))}
             </ul>
@@ -248,6 +269,21 @@ export default function ReelCommentsSheet({
           className="shrink-0 border-t border-gray-100 bg-white px-3 py-2.5"
           style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
         >
+          {/* Javob rejimi ko'rsatkichi */}
+          {replyTo && (
+            <div className="mb-1.5 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-1.5">
+              <span className="text-xs text-gray-500">
+                <b className="text-gray-700">{replyTo.name}</b> ga javob berilyapti
+              </span>
+              <button
+                type="button"
+                onClick={() => setReplyTo(null)}
+                className="text-xs font-semibold text-gray-400 hover:text-gray-600"
+              >
+                Bekor qilish
+              </button>
+            </div>
+          )}
           {error && comments.length > 0 && (
             <p className="mb-1.5 px-1 text-xs text-red-500">{error}</p>
           )}
@@ -261,10 +297,11 @@ export default function ReelCommentsSheet({
               unoptimized
             />
             <input
+              ref={inputRef}
               type="text"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Izoh qoldiring..."
+              placeholder={replyTo ? "Javobingizni yozing..." : "Izoh qoldiring..."}
               maxLength={1000}
               className="flex-1 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-[#534AB7]/40"
             />
@@ -277,6 +314,62 @@ export default function ReelCommentsSheet({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+/** Bitta izoh qatori (Instagram uslubi: avatar + ism + matn + Javob berish) */
+function CommentRow({
+  comment,
+  onReply,
+  isReply = false,
+}: {
+  comment: ReelComment;
+  onReply: (commentId: string, name: string) => void;
+  isReply?: boolean;
+}) {
+  const name =
+    comment.author?.username || comment.author?.full_name || "Foydalanuvchi";
+  const avatarSize = isReply ? 28 : 36;
+
+  return (
+    <div className="flex items-start gap-3">
+      <Link href={`/profile/${comment.author?.id ?? comment.user_id}`} className="shrink-0">
+        <Image
+          src={comment.author?.avatar_url || avatarFallback(comment.author?.full_name ?? "Zikra")}
+          alt={comment.author?.full_name ?? "Foydalanuvchi"}
+          width={avatarSize}
+          height={avatarSize}
+          className="rounded-full object-cover"
+          style={{ width: avatarSize, height: avatarSize }}
+          unoptimized
+        />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/profile/${comment.author?.id ?? comment.user_id}`}
+            className="truncate text-sm font-semibold text-gray-900"
+          >
+            {name}
+          </Link>
+          <span className="shrink-0 text-xs text-gray-400">
+            {timeAgo(comment.created_at)}
+          </span>
+        </div>
+        <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-gray-800">
+          {comment.content}
+        </p>
+        {/* Javob berish — javoblar ham ota izohga (top-level) biriktiriladi */}
+        <button
+          onClick={() =>
+            onReply(comment.parent_id ?? comment.id, name)
+          }
+          className="mt-1 text-xs font-semibold text-gray-400 hover:text-gray-600"
+        >
+          Javob berish
+        </button>
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { createClient } from "@/lib/supabase/server";
-import { S3_PUBLIC_BASE_URL } from "@/lib/s3/client";
+import { s3, S3_BUCKET, S3_PUBLIC_BASE_URL } from "@/lib/s3/client";
 import {
   getUserReels as getUserReelsQuery,
   getReelComments as getReelCommentsQuery,
@@ -57,7 +58,29 @@ export async function saveReelAction(data: {
   return { success: true };
 }
 
-/** Reelni o'chirish (faqat egasi). */
+/**
+ * video_url manzilidan S3 obyekt kalitini (key) ajratib oladi.
+ * Masalan: https://bucket.s3.region.amazonaws.com/reels/<uid>/<uuid>.mp4
+ *   -> reels/<uid>/<uuid>.mp4
+ * Base URL mos kelmasa null qaytaradi (noto'g'ri obyektni o'chirmaslik uchun).
+ */
+function extractS3Key(videoUrl: string): string | null {
+  const prefix = `${S3_PUBLIC_BASE_URL}/`;
+  if (!videoUrl.startsWith(prefix)) return null;
+  const key = videoUrl.slice(prefix.length).split("?")[0];
+  return key || null;
+}
+
+/**
+ * Reelni o'chirish (faqat egasi) — HAM Supabase bazasidan, HAM AWS S3'dan.
+ *
+ * Oqim:
+ *   1) Reel egasiga tegishli ekanini tekshiramiz va video_url'ni olamiz.
+ *   2) Bazadan o'chiramiz (RLS ham egalikni majburlaydi).
+ *      reel_likes / reel_comments / reel_views ON DELETE CASCADE bilan o'chadi.
+ *   3) S3'dagi video faylini o'chiramiz (best-effort — S3 xatosi butun
+ *      amalni buzmaydi, chunki baza yozuvi allaqachon o'chirilgan).
+ */
 export async function deleteReelAction(reelId: string): Promise<ReelState> {
   const supabase = await createClient();
   const {
@@ -65,6 +88,19 @@ export async function deleteReelAction(reelId: string): Promise<ReelState> {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Avtorizatsiya talab qilinadi." };
 
+  // 1) Egalikni tekshirish + video_url olish
+  const { data: reel } = await supabase
+    .from("reels")
+    .select("id, user_id, video_url")
+    .eq("id", reelId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!reel) {
+    return { error: "Reel topilmadi yoki uni o'chirishga ruxsatingiz yo'q." };
+  }
+
+  // 2) Bazadan o'chirish
   const { error } = await supabase
     .from("reels")
     .delete()
@@ -72,10 +108,43 @@ export async function deleteReelAction(reelId: string): Promise<ReelState> {
     .eq("user_id", user.id);
 
   if (error) return { error: error.message };
+
+  // 3) S3'dan o'chirish (best-effort)
+  const key = extractS3Key((reel as { video_url: string }).video_url);
+  if (key) {
+    try {
+      await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: key }));
+    } catch (e) {
+      // Baza yozuvi o'chirilgan; S3 fayli "orphan" bo'lib qolishi mumkin.
+      // Buni log qilamiz, lekin foydalanuvchiga xato qaytarmaymiz.
+      console.error("[deleteReelAction] S3 o'chirish xatosi:", e);
+    }
+  }
+
   revalidatePath("/videos");
   revalidatePath("/reels");
   revalidatePath(`/profile/${user.id}`);
   return { success: true };
+}
+
+/**
+ * Reel ko'rilganini yozib qo'yadi — bir foydalanuvchi FAQAT 1 marta hisoblanadi
+ * (unique (reel_id, user_id) + ignoreDuplicates). O'z videosini ko'rish
+ * hisoblanmaydi.
+ */
+export async function recordReelViewAction(reelId: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("reel_views")
+    .upsert(
+      { reel_id: reelId, user_id: user.id },
+      { onConflict: "reel_id,user_id", ignoreDuplicates: true }
+    );
 }
 
 /** Foydalanuvchining barcha reels'larini olish (server action sifatida). */
@@ -112,8 +181,11 @@ export async function likeReelAction(reelId: string): Promise<ReelState> {
 
   if (error) return { error: error.message };
 
-  revalidatePath("/reels");
-  revalidatePath("/profile");
+  // MUHIM: bu yerda revalidatePath("/reels") ATAYIN chaqirilmaydi.
+  // Like optimistik ravishda client'da ko'rsatiladi; feed'ni qayta yuklash
+  // ReelLikeButton props'ini yangilab, foydalanuvchi tasdiqlagan holatni
+  // "qaytarib" yuborardi (ko'rinib turgan like revert bug'i). Client o'zi
+  // yakuniy holatni ushlab turadi.
   return { success: true };
 }
 
@@ -133,8 +205,7 @@ export async function unlikeReelAction(reelId: string): Promise<ReelState> {
 
   if (error) return { error: error.message };
 
-  revalidatePath("/reels");
-  revalidatePath("/profile");
+  // revalidatePath("/reels") ATAYIN yo'q — yuqoridagi likeReelAction izohiga qarang.
   return { success: true };
 }
 
@@ -166,7 +237,8 @@ export async function getReelCommentsAction(
  */
 export async function addReelCommentAction(
   reelId: string,
-  content: string
+  content: string,
+  parentId?: string | null
 ): Promise<ReelCommentState> {
   const trimmed = content.trim();
   if (!trimmed) return { error: "Izoh bo'sh bo'lishi mumkin emas." };
@@ -180,7 +252,12 @@ export async function addReelCommentAction(
 
   const { data, error } = await supabase
     .from("reel_comments")
-    .insert({ reel_id: reelId, user_id: user.id, content: trimmed })
+    .insert({
+      reel_id: reelId,
+      user_id: user.id,
+      parent_id: parentId ?? null,
+      content: trimmed,
+    })
     .select(
       "*, author:profiles!reel_comments_user_id_fkey(id, full_name, avatar_url, username)"
     )
@@ -188,7 +265,7 @@ export async function addReelCommentAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/reels");
+  // Bildirishnoma (like/comment/reply) DB triggeri orqali yuboriladi (0008 SQL).
   return { success: true, comment: data as unknown as ReelComment };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { likeReelAction, unlikeReelAction } from "@/app/actions/reels";
 
 interface ReelLikeButtonProps {
@@ -32,11 +32,12 @@ export default function ReelLikeButton({
   // "Pop" animatsiyasi uchun (yurakcha bosilganda bir marta kattalashadi)
   const [burst, setBurst] = useState(false);
 
-  // Reel almashsa (ReelsPlayer'da boshqa reelga o'tilsa), holatni sinxronlaymiz
-  useEffect(() => {
-    setLiked(initialLiked);
-    setCount(initialCount);
-  }, [reelId, initialLiked, initialCount]);
+  // ESLATMA: bu yerda props'dan holatni qayta yuklovchi useEffect ATAYIN yo'q.
+  // ReelsPlayer bu komponentni <ReelLikeButton key={reel.id}/> bilan render
+  // qiladi — reel almashsa komponent butunlay qayta mount bo'ladi va boshlang'ich
+  // qiymatlar useState orqali to'g'ri o'rnatiladi. Agar props o'zgarganda holatni
+  // qayta o'rnatsak, server revalidatsiyasidan keyingi (ba'zan kechikkan) qiymat
+  // foydalanuvchi tasdiqlagan like'ni "orqaga qaytarib" yuborardi — aynan shu bug.
 
   const toggle = useCallback(async () => {
     if (pending) return;

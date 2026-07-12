@@ -22,6 +22,7 @@ interface Props {
 const NAV = [
   { href: "/discovery", label: "Kashf etish" },
   { href: "/lessons", label: "Darslarim" },
+  { href: "/reels", label: "Reels" },
   { href: "/videos", label: "Video darslar" },
   { href: "/chat", label: "Suhbatlar" },
 ];

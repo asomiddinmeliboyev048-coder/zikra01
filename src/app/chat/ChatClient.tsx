@@ -5,7 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { sendMessageAction } from "@/app/actions/chat";
+import {
+  sendMessageAction,
+  editMessageAction,
+  deleteMessageAction,
+  clearConversationAction,
+} from "@/app/actions/chat";
 import { setReactionAction } from "@/app/actions/social";
 import { saveItemAction, forwardMessageAction } from "@/app/actions/saved";
 import { uploadChatMedia } from "@/lib/storage";
@@ -171,9 +176,70 @@ export default function ChatClient({
 
   const [forwardContent, setForwardContent] = useState<string | null>(null);
 
+  // Suhbat tarixini tozalash uchun holat
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
   async function saveMsg(content: string) {
     const res = await saveItemAction(content, "text");
     alert(res.error ? res.error : "📌 Saqlangan xabarlarga qo'shildi");
+  }
+
+  // Xabarni tahrirlash (optimistik)
+  async function editMsg(messageId: string, newContent: string) {
+    const text = newContent.trim();
+    if (!text) return;
+    const prev = messagesRef.current;
+    setMessages((cur) =>
+      cur.map((m) =>
+        m.id === messageId
+          ? { ...m, content: text, edited_at: new Date().toISOString() }
+          : m
+      )
+    );
+    const res = await editMessageAction(messageId, text);
+    if (res.error) {
+      setMessages(prev); // rollback
+      alert(res.error);
+    }
+  }
+
+  // Xabarni o'chirish (optimistik)
+  async function deleteMsg(messageId: string) {
+    const prev = messagesRef.current;
+    setMessages((cur) => cur.filter((m) => m.id !== messageId));
+    const res = await deleteMessageAction(messageId);
+    if (res.error) {
+      setMessages(prev); // rollback
+      alert(res.error);
+    }
+  }
+
+  // Butun suhbat tarixini o'chirish
+  async function clearConversation() {
+    if (!activeId || clearing) return;
+    setClearing(true);
+    const res = await clearConversationAction(activeId);
+    setClearing(false);
+    setClearOpen(false);
+    setHeaderMenuOpen(false);
+    if (res.error) {
+      alert(res.error);
+      return;
+    }
+    setMessages([]);
+    // Suhbatlar ro'yxati serverda yangilanishi uchun sahifani yangilaymiz
+    router.refresh();
+  }
+
+  // Nusxalash (Copy)
+  async function copyMsg(content: string) {
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch {
+      /* clipboard mavjud bo'lmasa — jimgina o'tkazamiz */
+    }
   }
 
   async function doForward(content: string, toUserId: string) {
@@ -211,6 +277,33 @@ export default function ChatClient({
           setMessages((prev) =>
             prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]
           );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${active.conversation_id}`,
+        },
+        (payload) => {
+          const upd = payload.new as Message;
+          setMessages((prev) => prev.map((m) => (m.id === upd.id ? upd : m)));
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          // DELETE payload uchun conversation_id kerak — SQL'da REPLICA IDENTITY FULL o'rnatilgan
+          filter: `conversation_id=eq.${active.conversation_id}`,
+        },
+        (payload) => {
+          const oldMsg = payload.old as { id: string };
+          setMessages((prev) => prev.filter((m) => m.id !== oldMsg.id));
         }
       )
       .on(
@@ -522,6 +615,43 @@ export default function ChatClient({
                   </svg>
                 </button>
                 <MatchBadge score={matchScore} showLabel />
+
+                {/* Suhbat menyusi (3 nuqta) — tarixni o'chirish */}
+                <div className="relative">
+                  <button
+                    onClick={() => setHeaderMenuOpen((o) => !o)}
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100"
+                    aria-label="Suhbat menyusi"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="2" />
+                      <circle cx="12" cy="12" r="2" />
+                      <circle cx="12" cy="19" r="2" />
+                    </svg>
+                  </button>
+                  {headerMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-20"
+                        onClick={() => setHeaderMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 top-11 z-30 w-52 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-card-hover">
+                        <button
+                          onClick={() => {
+                            setHeaderMenuOpen(false);
+                            setClearOpen(true);
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          Suhbatni o&apos;chirish
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -541,6 +671,9 @@ export default function ChatClient({
                   onReact={react}
                   onSave={saveMsg}
                   onForward={(c) => setForwardContent(c)}
+                  onCopy={copyMsg}
+                  onEdit={editMsg}
+                  onDelete={deleteMsg}
                 />
               ))}
               <div ref={bottomRef} />
@@ -604,6 +737,41 @@ export default function ChatClient({
         )}
       </section>
 
+      {/* Suhbatni o'chirish — tasdiqlash */}
+      {clearOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => !clearing && setClearOpen(false)}
+          />
+          <div className="relative w-full max-w-xs rounded-2xl bg-white p-5 text-center shadow-2xl">
+            <h3 className="text-base font-semibold text-gray-900">
+              Suhbatni o&apos;chirasizmi?
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-500">
+              {active?.partner.full_name} bilan bo&apos;lgan butun yozishmalar
+              har ikki tomon uchun ham butunlay o&apos;chib ketadi.
+            </p>
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={() => setClearOpen(false)}
+                disabled={clearing}
+                className="flex-1 rounded-xl bg-gray-100 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-200 disabled:opacity-50"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={clearConversation}
+                disabled={clearing}
+                className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {clearing ? "O'chirilmoqda..." : "O'chirish"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Forward modal — suhbat tanlash */}
       {forwardContent !== null && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
@@ -643,7 +811,21 @@ export default function ChatClient({
   );
 }
 
-/** Bitta xabar qatori — pufakcha, reaksiya tugmasi va reaksiya chiplari */
+/** Xabar matnli (tahrirlanadigan) turdami — ovoz/reel/media emas */
+function isEditableText(content: string): boolean {
+  const c = content.trim();
+  return (
+    !c.startsWith("voice:") &&
+    !c.startsWith("reel:") &&
+    !/^https?:\/\/\S+$/.test(c)
+  );
+}
+
+/**
+ * Bitta xabar qatori — Telegram uslubidagi uzoq bosish (long-press) / o'ng
+ * tugma menyusi bilan: Reaksiya, Nusxalash, Tahrirlash (faqat matn),
+ * Forward, Saqlash va O'chirish (faqat o'z xabari).
+ */
 function MessageRow({
   message,
   mine,
@@ -651,6 +833,9 @@ function MessageRow({
   onReact,
   onSave,
   onForward,
+  onCopy,
+  onEdit,
+  onDelete,
 }: {
   message: Message;
   mine: boolean;
@@ -658,95 +843,107 @@ function MessageRow({
   onReact: (messageId: string, emoji: string) => void;
   onSave: (content: string) => void;
   onForward: (content: string) => void;
+  onCopy: (content: string) => void;
+  onEdit: (messageId: string, content: string) => void;
+  onDelete: (messageId: string) => void;
 }) {
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(message.content);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const trigger = (
-    <div className="relative self-center">
-      <button
-        onClick={() => setPickerOpen((o) => !o)}
-        className="rounded-full p-1 text-gray-300 opacity-0 transition hover:bg-gray-100 hover:text-gray-500 group-hover:opacity-100"
-        aria-label="Reaksiya"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" strokeLinecap="round" />
-        </svg>
-      </button>
-      {pickerOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
-          <div
-            className={cn(
-              "absolute bottom-8 z-20 flex gap-1 rounded-full border border-gray-100 bg-white p-1 shadow-card-hover",
-              mine ? "right-0" : "left-0"
-            )}
-          >
-            {REACTION_EMOJIS.map((e) => (
-              <button
-                key={e}
-                onClick={() => {
-                  onReact(message.id, e);
-                  setPickerOpen(false);
-                }}
-                className="rounded-full px-1.5 text-lg transition hover:scale-125"
-              >
-                {e}
-              </button>
-            ))}
-            <span className="mx-0.5 w-px bg-gray-200" />
-            <button
-              onClick={() => {
-                onSave(message.content);
-                setPickerOpen(false);
-              }}
-              title="Saqlash"
-              className="rounded-full px-1.5 text-base transition hover:scale-125"
-            >
-              📌
-            </button>
-            <button
-              onClick={() => {
-                onForward(message.content);
-                setPickerOpen(false);
-              }}
-              title="Forward"
-              className="rounded-full px-1.5 text-base transition hover:scale-125"
-            >
-              ↪
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+  const editable = mine && isEditableText(message.content);
+
+  // Uzoq bosish (mobil) — 450ms ushlab turilsa menyu ochiladi
+  const startPress = () => {
+    pressTimer.current = setTimeout(() => setMenuOpen(true), 450);
+  };
+  const cancelPress = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  };
+
+  const closeMenu = () => setMenuOpen(false);
+
+  const startEdit = () => {
+    setEditText(message.content);
+    setEditing(true);
+    setMenuOpen(false);
+  };
+
+  const submitEdit = () => {
+    const t = editText.trim();
+    if (t && t !== message.content) onEdit(message.id, t);
+    setEditing(false);
+  };
 
   return (
     <div className={cn("group flex", mine ? "justify-end" : "justify-start")}>
       <div className={cn("flex max-w-[80%] flex-col", mine ? "items-end" : "items-start")}>
-        <div className="flex items-center gap-1">
-          {mine && trigger}
+        {editing ? (
+          /* --- Inline tahrirlash rejimi --- */
+          <div className="flex w-full min-w-[220px] flex-col gap-2 rounded-2xl bg-white p-2 shadow-sm">
+            <textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={2}
+              autoFocus
+              className="w-full resize-none rounded-lg bg-gray-50 p-2 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-brand/30"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  submitEdit();
+                }
+                if (e.key === "Escape") setEditing(false);
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setEditing(false)}
+                className="rounded-lg px-3 py-1 text-xs font-semibold text-gray-500 hover:bg-gray-100"
+              >
+                Bekor
+              </button>
+              <button
+                onClick={submitEdit}
+                className="rounded-lg bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-600"
+              >
+                Saqlash
+              </button>
+            </div>
+          </div>
+        ) : (
           <div
             className={cn(
-              "rounded-2xl px-4 py-2 text-sm",
+              "relative cursor-default select-none rounded-2xl px-4 py-2 text-sm",
               mine
                 ? "rounded-br-sm bg-brand text-white"
                 : "rounded-bl-sm bg-white text-gray-800 shadow-sm"
             )}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setMenuOpen(true);
+            }}
+            onTouchStart={startPress}
+            onTouchEnd={cancelPress}
+            onTouchMove={cancelPress}
           >
             {renderMessageContent(message.content, mine)}
             <span
               className={cn(
-                "mt-1 block text-[10px]",
+                "mt-1 flex items-center gap-1 text-[10px]",
                 mine ? "text-brand-100" : "text-gray-400"
               )}
             >
               {formatTime(message.created_at)}
+              {message.edited_at && <span>· tahrirlangan</span>}
             </span>
           </div>
-          {!mine && trigger}
-        </div>
+        )}
 
+        {/* Reaksiya chiplari */}
         {aggs.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
             {aggs.map((a) => (
@@ -767,7 +964,100 @@ function MessageRow({
           </div>
         )}
       </div>
+
+      {/* --- Kontekst menyu (long-press / o'ng tugma) --- */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-6" onClick={closeMenu}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative w-full max-w-xs overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Reaksiya emojilari */}
+            <div className="flex justify-around border-b border-gray-100 px-2 py-3">
+              {REACTION_EMOJIS.map((e) => (
+                <button
+                  key={e}
+                  onClick={() => {
+                    onReact(message.id, e);
+                    closeMenu();
+                  }}
+                  className="text-2xl transition hover:scale-125"
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+
+            {/* Amallar */}
+            <MenuItem
+              icon="📋"
+              label="Nusxalash"
+              onClick={() => {
+                onCopy(message.content);
+                closeMenu();
+              }}
+            />
+            {editable && (
+              <MenuItem icon="✏️" label="Tahrirlash" onClick={startEdit} />
+            )}
+            <MenuItem
+              icon="↪️"
+              label="Boshqa chatga yuborish"
+              onClick={() => {
+                onForward(message.content);
+                closeMenu();
+              }}
+            />
+            <MenuItem
+              icon="📌"
+              label="Saqlash"
+              onClick={() => {
+                onSave(message.content);
+                closeMenu();
+              }}
+            />
+            {mine && (
+              <MenuItem
+                icon="🗑"
+                label="O'chirish"
+                danger
+                onClick={() => {
+                  onDelete(message.id);
+                  closeMenu();
+                }}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+/** Kontekst menyu elementi */
+function MenuItem({
+  icon,
+  label,
+  onClick,
+  danger,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium transition hover:bg-gray-50",
+        danger ? "text-red-600 hover:bg-red-50" : "text-gray-700"
+      )}
+    >
+      <span className="text-base">{icon}</span>
+      {label}
+    </button>
   );
 }
 
@@ -779,6 +1069,28 @@ function renderMessageContent(content: string, mine: boolean) {
   if (trimmed.startsWith("voice:")) {
     const src = trimmed.slice("voice:".length);
     return <VoicePlayer src={src} mine={mine} />;
+  }
+
+  // Reel — "reel:<video_url>" konventsiyasi: chatda to'g'ridan-to'g'ri o'ynaydi
+  if (trimmed.startsWith("reel:")) {
+    const src = trimmed.slice("reel:".length);
+    return (
+      <div className="w-56">
+        <div className="mb-1 flex items-center gap-1 text-xs font-semibold opacity-80">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          Reel
+        </div>
+        <video
+          src={src}
+          controls
+          playsInline
+          preload="metadata"
+          className="aspect-[9/16] w-full rounded-lg bg-black object-cover"
+        />
+      </div>
+    );
   }
 
   const url = trimmed;
