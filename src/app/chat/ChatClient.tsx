@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,6 +50,8 @@ interface Props {
   activeId: string | null;
   initialMessages: Message[];
   matchScore: number;
+  /** Hikoyalar qatori (StoriesBar) — server komponent slot sifatida uzatiladi */
+  storiesSlot?: ReactNode;
 }
 
 export default function ChatClient({
@@ -58,6 +60,7 @@ export default function ChatClient({
   activeId,
   initialMessages,
   matchScore,
+  storiesSlot,
 }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -356,11 +359,11 @@ export default function ChatClient({
       {/* Chap panel: suhbatlar */}
       <aside
         className={cn(
-          "w-full border-r border-gray-100 sm:w-72 sm:shrink-0",
-          activeId ? "hidden sm:block" : "block"
+          "flex w-full flex-col border-r border-gray-100 sm:w-72 sm:shrink-0",
+          activeId ? "hidden sm:flex" : "flex"
         )}
       >
-        <div className="sticky top-0 z-10 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur">
+        <div className="shrink-0 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur">
           <h2 className="mb-2 font-semibold text-gray-900">Suhbatlar</h2>
           {/* Qidiruv inputi — real-time filtr */}
           <div className="relative">
@@ -387,7 +390,12 @@ export default function ChatClient({
             )}
           </div>
         </div>
-        <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
+        {/* Hikoyalar (Stories) — chatlar ro'yxati tepasida (Telegram uslubi),
+            doim ko'rinadi; faqat pastdagi ro'yxat skroll bo'ladi */}
+        {storiesSlot && <div className="shrink-0 px-3 pt-3">{storiesSlot}</div>}
+
+        {/* Chatlar ro'yxati — FAQAT shu qism vertikal skroll bo'ladi */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {/* Saqlangan xabarlar — faqat qidiruv bo'sh bo'lganda yuqorida */}
           {!q && (
             <Link

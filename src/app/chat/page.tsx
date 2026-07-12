@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import AppServices from "@/components/AppServices";
+import StoriesBar from "@/components/StoriesBar";
 import ChatClient, { type Conversation } from "./ChatClient";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getUserSkills } from "@/lib/queries";
@@ -128,6 +129,10 @@ export default async function ChatPage({
       activeId={activeId}
       initialMessages={activeMessages}
       matchScore={matchScore}
+      // StoriesBar — server komponent; client ChatClient'ga "slot" sifatida
+      // uzatiladi (client komponent ichida async server komponentni to'g'ridan-
+      // to'g'ri import qilib bo'lmaydi, lekin prop sifatida uzatish mumkin).
+      storiesSlot={<StoriesBar />}
     />
   );
 
