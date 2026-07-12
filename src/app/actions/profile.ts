@@ -184,24 +184,44 @@ export async function saveProfileAction(
 
   if (upErr) return { error: "Profilni saqlashda xatolik: " + upErr.message };
 
+  // Takrorlanuvchi id'larni olib tashlaymiz (bir xil ko'nikma ikki marta
+  // tanlansa, unique (user_id, skill_id, type) cheklovi buzilishini oldini oladi).
+  const uniqTeach = Array.from(new Set(teachIds));
+  const uniqLearn = Array.from(new Set(learnIds));
+
   // Eski ko'nikmalarni tozalab, qaytadan yozamiz
-  await supabase.from("user_skills").delete().eq("user_id", user.id);
+  const { error: delErr } = await supabase
+    .from("user_skills")
+    .delete()
+    .eq("user_id", user.id);
+  if (delErr)
+    return { error: "Ko'nikmalarni yangilashda xatolik: " + delErr.message };
 
   const rows = [
-    ...teachIds.map((skill_id) => ({
+    ...uniqTeach.map((skill_id) => ({
       user_id: user.id,
       skill_id,
       type: "teach" as const,
     })),
-    ...learnIds.map((skill_id) => ({
+    ...uniqLearn.map((skill_id) => ({
       user_id: user.id,
       skill_id,
       type: "learn" as const,
     })),
   ];
 
-  const { error: skErr } = await supabase.from("user_skills").insert(rows);
-  if (skErr) return { error: "Ko'nikmalarni saqlashda xatolik." };
+  // upsert + ignoreDuplicates: agar biror qator allaqachon mavjud bo'lsa,
+  // unique cheklov xatosini bermay, jimgina o'tkazib yuboradi.
+  // Xatolik bo'lsa — HAQIQIY sabab (message) ko'rsatiladi (masalan noto'g'ri
+  // skill_id yoki FK buzilishi), shunda muammoni aniq bilish mumkin.
+  const { error: skErr } = await supabase
+    .from("user_skills")
+    .upsert(rows, {
+      onConflict: "user_id,skill_id,type",
+      ignoreDuplicates: true,
+    });
+  if (skErr)
+    return { error: "Ko'nikmalarni saqlashda xatolik: " + skErr.message };
 
   revalidatePath("/discovery");
   revalidatePath(`/profile/${user.id}`);
