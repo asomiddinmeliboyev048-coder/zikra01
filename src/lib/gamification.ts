@@ -12,7 +12,7 @@ export interface LevelInfo {
 
 export const LEVELS: LevelInfo[] = [
   { name: "Yangi boshlovchi", min: 0, max: 200, color: "#9CA3AF" },
-  { name: "O'rta", min: 200, max: 500, color: "#534AB7" },
+  { name: "O'rta", min: 200, max: 500, color: "#12A594" },
   { name: "Tajribali", min: 500, max: 1000, color: "#1D9E75" },
   { name: "Ekspert", min: 1000, max: 2000, color: "#D85A30" },
   { name: "Master", min: 2000, max: Infinity, color: "#F59E0B" },

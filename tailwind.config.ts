@@ -10,19 +10,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Zikra brend ranglari
+        // Zikra brend ranglari — logo "Z" ning teal/yashil rangi
         brand: {
-          DEFAULT: "#534AB7", // binafsha — asosiy
-          50: "#EEEDF8",
-          100: "#DCDAF1",
-          200: "#B9B5E3",
-          300: "#9690D5",
-          400: "#736BC7",
-          500: "#534AB7",
-          600: "#433B92",
-          700: "#322C6E",
-          800: "#221D49",
-          900: "#110F25",
+          DEFAULT: "#12A594", // teal — asosiy (logo)
+          50: "#E9FBF6",
+          100: "#C9F4EA",
+          200: "#98E9D9",
+          300: "#5FD7C4",
+          400: "#2CC1AC",
+          500: "#12A594",
+          600: "#0E8578",
+          700: "#0C6961",
+          800: "#0D544E",
+          900: "#0B403B",
         },
         success: {
           DEFAULT: "#1D9E75", // yashil — o'rganish/muvaffaqiyat
@@ -33,12 +33,12 @@ const config: Config = {
           700: "#116047",
         },
         accent: {
-          DEFAULT: "#D85A30", // to'q sariq-qizil — muhim harakatlar
-          50: "#FBEDE7",
-          100: "#F7DBCF",
-          500: "#D85A30",
-          600: "#B14826",
-          700: "#86371D",
+          DEFAULT: "#C99A2E", // oltin — logo "Z" ning oltin nuri (muhim harakatlar)
+          50: "#FAF3E1",
+          100: "#F3E4B8",
+          500: "#C99A2E",
+          600: "#A67F26",
+          700: "#7D5F1D",
         },
       },
       fontFamily: {
@@ -46,7 +46,7 @@ const config: Config = {
       },
       boxShadow: {
         card: "0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
-        "card-hover": "0 10px 30px -12px rgba(83,74,183,0.25)",
+        "card-hover": "0 10px 30px -12px rgba(18,165,148,0.28)",
       },
       keyframes: {
         "fade-in": {
