@@ -37,17 +37,26 @@ alter table public.profiles add column if not exists last_login_at timestamptz;
 create index if not exists idx_profiles_status on public.profiles (status);
 
 -- ------------------------------------------------------------
--- 1) Bloklash ustunlarini himoyalovchi trigger
+-- 1) Bloklash ustunlarini himoyalovchi trigger (MUSTAHKAM versiya)
 -- ------------------------------------------------------------
+-- MANTIQ (is_admin() ga TAYANMAYDI, shuning uchun admin bloklashini
+-- hech qachon buzmaydi):
+--   * Admin panel BOSHQA foydalanuvchini bloklaydi  -> auth.uid() <> new.id
+--     (admin o'z profilini emas, o'zganikini yangilaydi) -> RUXSAT.
+--   * Bloklangan foydalanuvchi O'ZINI blokdan chiqarmoqchi bo'lsa
+--     -> auth.uid() = new.id VA admin emas -> TO'SILADI (eski qiymat saqlanadi).
+--   * Admin o'z profilini tahrirlasa (auth.uid() = new.id) lekin is_admin()=true
+--     -> RUXSAT.
+--   * Service role (auth.uid() null) -> RUXSAT.
 create or replace function public.protect_ban_columns()
 returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
 begin
-  -- Faqat admin (admin_users ro'yxatidagi email) bloklash ustunlarini
-  -- o'zgartira oladi. Boshqa hollarda eski qiymatlar saqlab qolinadi.
-  if not coalesce(public.is_admin(), false) then
+  -- Faqat foydalanuvchi O'Z profilidagi ban ustunlarini o'zgartirmoqchi bo'lsa
+  -- va u admin bo'lmasa — eski qiymatlarni tiklaymiz (self-unban hujumini to'sadi).
+  if auth.uid() = new.id and not coalesce(public.is_admin(), false) then
     new.status       := old.status;
     new.banned_until := old.banned_until;
     new.ban_reason   := old.ban_reason;
