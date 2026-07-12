@@ -91,6 +91,82 @@ export async function uploadVideo(
   return { url, duration };
 }
 
+/**
+ * Video faylidan avtomatik muqova (thumbnail) yasaydi.
+ * Videoni brauzerda ochib, ~1-soniyadagi kadrni <canvas> ga chizadi va
+ * JPEG Blob qaytaradi. Mahalliy fayldan (blob: URL) olingani uchun canvas
+ * "taint" bo'lmaydi — CORS muammosi yo'q.
+ *
+ * @param file    tanlangan video fayl
+ * @param seekTo  qaysi soniyadagi kadrni olish (default 1s)
+ * @returns JPEG Blob yoki xato bo'lsa null
+ */
+export function captureVideoThumbnail(
+  file: File,
+  seekTo = 1
+): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    try {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.muted = true;
+      video.playsInline = true;
+
+      const cleanup = () => URL.revokeObjectURL(url);
+
+      video.onloadedmetadata = () => {
+        // Boshidagi qora kadrni oldini olish uchun ozgina ichkariga suramiz,
+        // lekin video juda qisqa bo'lsa yarmiga o'tamiz.
+        const dur = Number.isFinite(video.duration) ? video.duration : 2;
+        video.currentTime = Math.min(seekTo, dur / 2);
+      };
+
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 360;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            cleanup();
+            return resolve(null);
+          }
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(
+            (blob) => {
+              cleanup();
+              resolve(blob);
+            },
+            "image/jpeg",
+            0.8
+          );
+        } catch {
+          cleanup();
+          resolve(null);
+        }
+      };
+
+      video.onerror = () => {
+        cleanup();
+        resolve(null);
+      };
+
+      video.src = url;
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/** Video muqovasini (JPEG Blob) 'videos' bucket'iga yuklab, public URL qaytaradi */
+export async function uploadVideoThumbnail(blob: Blob): Promise<string> {
+  const file = new File([blob], `thumb-${Date.now()}.jpg`, {
+    type: blob.type || "image/jpeg",
+  });
+  return uploadToBucket("videos", file);
+}
+
 /** Chat uchun rasm/video yuklash */
 export async function uploadChatMedia(file: File): Promise<string> {
   if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
