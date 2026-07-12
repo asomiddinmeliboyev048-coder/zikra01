@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 function previewText(content: string): string {
   const c = content.trim();
   if (c.startsWith("voice:")) return "🎤 Ovozli xabar";
+  if (c.startsWith("reel:")) return "🎬 Reel";
   if (/^https?:\/\/\S+$/.test(c)) {
     if (/\.(jpe?g|png|gif|webp)(\?.*)?$/i.test(c)) return "🖼 Rasm";
     if (/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(c)) return "🎬 Video";

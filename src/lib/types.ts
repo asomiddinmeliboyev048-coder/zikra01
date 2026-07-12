@@ -58,6 +58,7 @@ export interface Message {
   receiver_id: string | null;
   content: string;
   created_at: string;
+  edited_at?: string | null; // tahrirlangan bo'lsa — vaqti
 }
 
 export interface Lesson {
@@ -217,8 +218,11 @@ export interface ReelComment {
   id: string;
   reel_id: string;
   user_id: string;
+  parent_id: string | null; // javob (reply) bo'lsa — ota izoh id'si
   content: string;
   created_at: string;
   // reel_comments -> profiles join orqali to'ldiriladi
   author?: Pick<Profile, "id" | "full_name" | "avatar_url" | "username">;
+  // Client tomonda daraxt (thread) sifatida to'ldiriladi
+  replies?: ReelComment[];
 }

@@ -6,6 +6,9 @@ import Link from "next/link";
 import { avatarFallback, timeAgo } from "@/lib/utils";
 import ReelLikeButton from "@/components/ReelLikeButton";
 import ReelCommentsSheet from "@/components/ReelCommentsSheet";
+import ReelOwnerMenu from "@/components/ReelOwnerMenu";
+import ShareReelModal from "@/components/ShareReelModal";
+import { recordReelViewAction } from "@/app/actions/reels";
 import type { Reel } from "@/lib/types";
 
 interface CurrentUser {
@@ -35,11 +38,15 @@ export default function ReelsPlayer({
   initialIndex = 0,
   currentUser,
 }: ReelsPlayerProps) {
+  // Reels ro'yxati local state — o'chirish amalidan keyin UI'ni yangilash uchun
+  const [list, setList] = useState<Reel[]>(reels);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [muted, setMuted] = useState(false); // Boshlang'ich holat: ovoz yoqilgan
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   // Izohlar Bottom Sheet ochiqmi
   const [commentsOpen, setCommentsOpen] = useState(false);
+  // Reelni ulashish (chatga yuborish) oynasi ochiqmi
+  const [shareOpen, setShareOpen] = useState(false);
   // Har bir reel uchun izohlar soni (badge) — server'dan kelgan boshlang'ich qiymat
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>(
     () => Object.fromEntries(reels.map((r) => [r.id, r.comments ?? 0]))
@@ -47,8 +54,23 @@ export default function ReelsPlayer({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const touchStartY = useRef(0);
+  // Bir sessiyada bir reel uchun ko'rish bir marta yozilishini ta'minlaydi
+  const viewedRef = useRef<Set<string>>(new Set());
 
-  const currentReel = reels[currentIndex];
+  const currentReel = list[currentIndex];
+  const isOwner = currentReel?.user_id === currentUser.id;
+
+  // Reel egasi o'z reelini o'chirganda ro'yxatdan olib tashlaymiz va indeksni to'g'rilaymiz
+  const handleDeleted = useCallback(
+    (reelId: string) => {
+      setList((prev) => {
+        const next = prev.filter((r) => r.id !== reelId);
+        setCurrentIndex((idx) => Math.max(0, Math.min(idx, next.length - 1)));
+        return next;
+      });
+    },
+    []
+  );
 
   /**
    * Joriy videoni ijro etadi. Avval ovoz bilan urinadi; brauzer bloklasa,
@@ -87,6 +109,18 @@ export default function ReelsPlayer({
     playCurrent();
   }, [currentIndex, playCurrent]);
 
+  // Ko'rishlar hisobi — reel ko'rilganda bir marta yoziladi.
+  // O'z videosini ko'rish hisoblanmaydi; bir sessiyada takror yozilmaydi
+  // (server tomonda ham unique (reel_id,user_id) himoya bor).
+  useEffect(() => {
+    const reel = list[currentIndex];
+    if (!reel) return;
+    if (reel.user_id === currentUser.id) return;
+    if (viewedRef.current.has(reel.id)) return;
+    viewedRef.current.add(reel.id);
+    recordReelViewAction(reel.id);
+  }, [currentIndex, list, currentUser.id]);
+
   // Ovoz holatini almashtirish (foydalanuvchi qo'lda bosganda)
   const toggleMute = useCallback(() => {
     const video = videoRef.current;
@@ -105,8 +139,8 @@ export default function ReelsPlayer({
   }, [muted]);
 
   const goNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev < reels.length - 1 ? prev + 1 : prev));
-  }, [reels.length]);
+    setCurrentIndex((prev) => (prev < list.length - 1 ? prev + 1 : prev));
+  }, [list.length]);
 
   const goPrev = useCallback(() => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
@@ -118,8 +152,8 @@ export default function ReelsPlayer({
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    // Izohlar oynasi ochiq bo'lsa — reel navigatsiyasi o'chiriladi
-    if (commentsOpen) return;
+    // Izohlar/ulashish oynasi ochiq bo'lsa — reel navigatsiyasi o'chiriladi
+    if (commentsOpen || shareOpen) return;
     const diff = touchStartY.current - e.changedTouches[0].clientY;
     if (diff > 50) goNext();
     else if (diff < -50) goPrev();
@@ -128,17 +162,17 @@ export default function ReelsPlayer({
   // Klaviatura navigatsiya (desktop)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Izohlar oynasi ochiq bo'lsa — navigatsiya klavishlari ishlamaydi
-      if (commentsOpen) return;
+      // Izohlar/ulashish oynasi ochiq bo'lsa — navigatsiya klavishlari ishlamaydi
+      if (commentsOpen || shareOpen) return;
       if (e.key === "ArrowUp") goPrev();
       else if (e.key === "ArrowDown") goNext();
       else if (e.key === "m" || e.key === "M") toggleMute();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goPrev, goNext, toggleMute, commentsOpen]);
+  }, [goPrev, goNext, toggleMute, commentsOpen, shareOpen]);
 
-  if (reels.length === 0) {
+  if (list.length === 0 || !currentReel) {
     return (
       <div className="flex h-screen items-center justify-center bg-black text-white">
         <p className="text-lg">Hali reels mavjud emas</p>
@@ -191,6 +225,13 @@ export default function ReelsPlayer({
           </svg>
         </Link>
 
+        {/* Egasi uchun "..." menyu (o'chirish) — tepa o'ng, ovoz tugmasidan chapda */}
+        {isOwner && (
+          <div className="absolute right-16 top-4 z-20">
+            <ReelOwnerMenu reelId={currentReel.id} onDeleted={handleDeleted} />
+          </div>
+        )}
+
         {/* Ovoz tugmasi (tepa o'ng) */}
         <button
           onClick={toggleMute}
@@ -240,13 +281,17 @@ export default function ReelsPlayer({
             </span>
           </button>
 
-          {/* Ulashish (placeholder) */}
-          <button className="flex flex-col items-center gap-1" aria-label="Ulashish">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110">
+          {/* Ulashish — reelni chatdagi do'stga yuborish */}
+          <button
+            onClick={() => setShareOpen(true)}
+            className="flex flex-col items-center gap-1"
+            aria-label="Ulashish"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 transition hover:scale-110 active:scale-95">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </div>
+            </span>
           </button>
 
           {/* Muallif avatar (profilga link) */}
@@ -296,7 +341,7 @@ export default function ReelsPlayer({
 
         {/* Progress ko'rsatkichi (pastda markaz) */}
         <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
-          {reels.map((_, idx) => (
+          {list.map((_, idx) => (
             <div
               key={idx}
               className={`h-1 rounded-full transition-all ${
@@ -308,11 +353,11 @@ export default function ReelsPlayer({
       </div>
 
       {/* Qo'shni reels'ni oldindan yuklash (silliq o'tish uchun, ko'rinmaydi) */}
-      {currentIndex > 0 && (
-        <link rel="prefetch" href={reels[currentIndex - 1].video_url} as="video" />
+      {currentIndex > 0 && list[currentIndex - 1] && (
+        <link rel="prefetch" href={list[currentIndex - 1].video_url} as="video" />
       )}
-      {currentIndex < reels.length - 1 && (
-        <link rel="prefetch" href={reels[currentIndex + 1].video_url} as="video" />
+      {currentIndex < list.length - 1 && list[currentIndex + 1] && (
+        <link rel="prefetch" href={list[currentIndex + 1].video_url} as="video" />
       )}
 
       {/* Izohlar Bottom Sheet — joriy reel uchun */}
@@ -324,6 +369,13 @@ export default function ReelsPlayer({
         onCountChange={(count) =>
           setCommentCounts((prev) => ({ ...prev, [currentReel.id]: count }))
         }
+      />
+
+      {/* Reelni chatga yuborish oynasi */}
+      <ShareReelModal
+        videoUrl={currentReel.video_url}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
       />
     </div>
   );

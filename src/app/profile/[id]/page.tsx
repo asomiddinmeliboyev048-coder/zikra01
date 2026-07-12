@@ -18,7 +18,7 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 import CertificateViewer from "@/components/CertificateViewer";
 import CertificateUpload from "@/components/CertificateUpload";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo, getSkills, getUserReels, getReelStats } from "@/lib/queries";
+import { getCurrentUser, getProfileWithSkills, getVideoStats, getFollowInfo, getSkills, getUserReels, getReelStats, getReelViewCounts } from "@/lib/queries";
 import { avatarFallback, timeAgo } from "@/lib/utils";
 import type { UserBadge, Video, Rating } from "@/lib/types";
 
@@ -79,11 +79,13 @@ export default async function ProfilePage({
   // Foydalanuvchining reels'larini olish
   const reels = await getUserReels(profile.id);
   
-  // Obuna ma'lumotlari, video statistikasi va reel statistikasi
-  const [follow, vstats, rstats] = await Promise.all([
+  // Obuna ma'lumotlari, video statistikasi, reel like statistikasi va reel ko'rishlari
+  const reelIds = reels.map((r) => r.id);
+  const [follow, vstats, rstats, rviews] = await Promise.all([
     getFollowInfo(profile.id, me?.id),
     getVideoStats(videos.map((v) => v.id), me?.id),
-    getReelStats(reels.map((r) => r.id), me?.id),
+    getReelStats(reelIds, me?.id),
+    getReelViewCounts(reelIds),
   ]);
   for (const v of videos) {
     const s = vstats.get(v.id);
@@ -99,6 +101,8 @@ export default async function ProfilePage({
       r.likes = s.likes;
       r.liked = s.liked;
     }
+    // Ko'rishlar soni profil grid'ida video ustida ko'rsatiladi
+    r.views = rviews.get(r.id) ?? 0;
   }
 
   // "Hikoyalarim" — faqat o'z profilida, faol hikoyalar + ko'rish/like soni

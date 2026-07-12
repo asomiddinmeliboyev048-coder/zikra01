@@ -216,13 +216,32 @@ export async function getStoriesFeed(meId: string): Promise<{
   return { groups: Array.from(map.values()) };
 }
 
+// Reels + muallif profilini birga olish uchun select ifodasi.
+// DIQQAT: `profiles!reels_user_id_fkey` embed ishlashi uchun `reels.user_id`
+// FK'si `public.profiles(id)` ga ishora qilishi SHART (auth.users emas).
+// Buni 0008 migratsiyasi to'g'rilaydi. Aks holda join xato beradi va reels
+// "yo'qoladi". Shuning uchun quyida embed muvaffaqiyatsiz bo'lsa, profilsiz
+// oddiy select bilan fallback qilamiz.
+const REEL_WITH_USER =
+  "*, user:profiles!reels_user_id_fkey(id, full_name, avatar_url, username)";
+
 /** Barcha reels'larni olish (eng yangi birinchi) */
 export async function getReels(): Promise<Reel[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("reels")
-    .select("*, user:profiles!reels_user_id_fkey(id, full_name, avatar_url, username)")
+    .select(REEL_WITH_USER)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[getReels] embed xatosi, profilsiz fallback:", error.message);
+    const { data: plain, error: plainErr } = await supabase
+      .from("reels")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (plainErr) console.error("[getReels] fallback ham muvaffaqiyatsiz:", plainErr.message);
+    return (plain as unknown as Reel[]) ?? [];
+  }
 
   return (data as unknown as Reel[]) ?? [];
 }
@@ -230,11 +249,21 @@ export async function getReels(): Promise<Reel[]> {
 /** Muayyan foydalanuvchining reels'larini olish */
 export async function getUserReels(userId: string): Promise<Reel[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("reels")
-    .select("*, user:profiles!reels_user_id_fkey(id, full_name, avatar_url, username)")
+    .select(REEL_WITH_USER)
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[getUserReels] embed xatosi, profilsiz fallback:", error.message);
+    const { data: plain } = await supabase
+      .from("reels")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    return (plain as unknown as Reel[]) ?? [];
+  }
 
   return (data as unknown as Reel[]) ?? [];
 }
@@ -286,6 +315,26 @@ export async function getReelComments(reelId: string): Promise<ReelComment[]> {
   return (data as unknown as ReelComment[]) ?? [];
 }
 
+/** Bir nechta reel uchun ko'rishlar (views) sonini olish */
+export async function getReelViewCounts(
+  reelIds: string[]
+): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  reelIds.forEach((id) => map.set(id, 0));
+  if (reelIds.length === 0) return map;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reel_views")
+    .select("reel_id")
+    .in("reel_id", reelIds);
+
+  for (const r of (data as { reel_id: string }[]) ?? []) {
+    map.set(r.reel_id, (map.get(r.reel_id) ?? 0) + 1);
+  }
+  return map;
+}
+
 /** Bir nechta reel uchun izohlar sonini olish */
 export async function getReelCommentCounts(
   reelIds: string[]
@@ -304,4 +353,67 @@ export async function getReelCommentCounts(
     map.set(r.reel_id, (map.get(r.reel_id) ?? 0) + 1);
   }
   return map;
+}
+
+
+// ============================================================
+// SMART MATCHING (aqlli moslashtirish)
+// ============================================================
+
+/** Bitta ko'nikmani id bo'yicha olish */
+export async function getSkillById(skillId: string): Promise<Skill | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("skills")
+    .select("*")
+    .eq("id", skillId)
+    .maybeSingle();
+  return (data as Skill | null) ?? null;
+}
+
+/**
+ * Ko'nikma bo'yicha moslashuvchi profillarni olish.
+ *   - role="teacher": men o'rgataman -> menga O'RGANMOQCHILAR ro'yxati (learn)
+ *   - role="learner": men o'rganaman -> menga O'RGATA OLADIGANLAR ro'yxati (teach)
+ *
+ * Tartib: tasdiqlangan (is_verified) foydalanuvchilar DOIM birinchi qatorda,
+ * so'ng o'rtacha reyting (trust_score) bo'yicha kamayish tartibida.
+ */
+export async function getSkillMatchProfiles(
+  skillId: string,
+  role: "teacher" | "learner",
+  excludeUserId?: string
+): Promise<Profile[]> {
+  const supabase = await createClient();
+  // teacher ko'radi -> learnerlarni; learner ko'radi -> teacherlarni
+  const wantedType = role === "teacher" ? "learn" : "teach";
+
+  const { data } = await supabase
+    .from("user_skills")
+    .select("profile:profiles!user_skills_user_id_fkey(*)")
+    .eq("skill_id", skillId)
+    .eq("type", wantedType);
+
+  const rows =
+    (data as unknown as { profile: Profile | null }[]) ?? [];
+  const profiles: Profile[] = [];
+  const seen = new Set<string>();
+  for (const r of rows) {
+    const p = r.profile;
+    if (!p) continue;
+    if (excludeUserId && p.id === excludeUserId) continue;
+    if (seen.has(p.id)) continue;
+    seen.add(p.id);
+    profiles.push(p);
+  }
+
+  // Tasdiqlanganlar birinchi, keyin reyting bo'yicha
+  profiles.sort((a, b) => {
+    const av = a.is_verified ? 1 : 0;
+    const bv = b.is_verified ? 1 : 0;
+    if (av !== bv) return bv - av;
+    return (b.trust_score ?? 0) - (a.trust_score ?? 0);
+  });
+
+  return profiles;
 }
