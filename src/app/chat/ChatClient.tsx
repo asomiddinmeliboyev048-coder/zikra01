@@ -44,6 +44,8 @@ interface Props {
   activeId: string | null;
   initialMessages: Message[];
   matchScore: number;
+  /** Hikoyalar qatori (server komponent) — suhbatlar ro'yxati tepasida ko'rsatiladi */
+  storiesSlot?: React.ReactNode;
 }
 
 export default function ChatClient({
@@ -52,6 +54,7 @@ export default function ChatClient({
   activeId,
   initialMessages,
   matchScore,
+  storiesSlot,
 }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -67,6 +70,16 @@ export default function ChatClient({
   const mediaRef = useRef<HTMLInputElement>(null);
 
   const active = conversations.find((c) => c.partner.id === activeId) ?? null;
+
+  // To'liq ekran rejimi: mobil'da suhbat ochilganda <html> ga "chat-active"
+  // klassini qo'shamiz. globals.css shu klass orqali navbar va bottom nav'ni
+  // (faqat mobil ekranda) yashiradi — chat Telegram kabi to'liq ekran bo'ladi.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (activeId) root.classList.add("chat-active");
+    else root.classList.remove("chat-active");
+    return () => root.classList.remove("chat-active");
+  }, [activeId]);
 
   // Qidiruvga mos mavjud suhbatlar (ism yoki @username bo'yicha)
   const q = query.trim().toLowerCase();
@@ -314,6 +327,12 @@ export default function ChatClient({
           </div>
         </div>
         <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
+          {/* Hikoyalar qatori — suhbatlar ro'yxatining eng tepasida (gorizontal skroll).
+              Faqat qidiruv bo'sh bo'lganda ko'rsatamiz. */}
+          {storiesSlot && !q && (
+            <div className="border-b border-gray-100 px-3 pt-3">{storiesSlot}</div>
+          )}
+
           {/* Saqlangan xabarlar — faqat qidiruv bo'sh bo'lganda yuqorida */}
           {!q && (
             <Link
