@@ -10,19 +10,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Zikra brend ranglari
+        // Zikra brend ranglari — logotipdagi teal/mint palitra
         brand: {
-          DEFAULT: "#534AB7", // binafsha — asosiy
-          50: "#EEEDF8",
-          100: "#DCDAF1",
-          200: "#B9B5E3",
-          300: "#9690D5",
-          400: "#736BC7",
-          500: "#534AB7",
-          600: "#433B92",
-          700: "#322C6E",
-          800: "#221D49",
-          900: "#110F25",
+          DEFAULT: "#14A08E", // teal — asosiy
+          50: "#E7F7F4",
+          100: "#C7ECE6",
+          200: "#97DDD1",
+          300: "#62CBBA",
+          400: "#33B7A3",
+          500: "#14A08E",
+          600: "#0F8375",
+          700: "#0C665B",
+          800: "#0A4E46",
+          900: "#073630",
         },
         success: {
           DEFAULT: "#1D9E75", // yashil — o'rganish/muvaffaqiyat
@@ -46,7 +46,7 @@ const config: Config = {
       },
       boxShadow: {
         card: "0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
-        "card-hover": "0 10px 30px -12px rgba(83,74,183,0.25)",
+        "card-hover": "0 10px 30px -12px rgba(20,160,142,0.28)",
       },
       keyframes: {
         "fade-in": {

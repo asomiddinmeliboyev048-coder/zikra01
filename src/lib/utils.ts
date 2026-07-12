@@ -13,7 +13,7 @@ export function conversationId(a: string, b: string): string {
 /** Avatar yo'q bo'lsa ism harflaridan avatar URL */
 export function avatarFallback(name: string): string {
   const initials = encodeURIComponent(name || "Zikra");
-  return `https://ui-avatars.com/api/?name=${initials}&background=534AB7&color=fff&bold=true`;
+  return `https://ui-avatars.com/api/?name=${initials}&background=14A08E&color=fff&bold=true`;
 }
 
 /** Soniyani "5:30" formatiga o'tkazish */

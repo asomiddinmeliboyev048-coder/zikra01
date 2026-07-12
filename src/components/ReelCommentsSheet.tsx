@@ -303,12 +303,12 @@ export default function ReelCommentsSheet({
               onChange={(e) => setText(e.target.value)}
               placeholder={replyTo ? "Javobingizni yozing..." : "Izoh qoldiring..."}
               maxLength={1000}
-              className="flex-1 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-[#534AB7]/40"
+              className="flex-1 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-[#14A08E]/40"
             />
             <button
               type="submit"
               disabled={!text.trim() || submitting}
-              className="shrink-0 rounded-full px-3 py-2 text-sm font-semibold text-[#534AB7] transition disabled:opacity-40"
+              className="shrink-0 rounded-full px-3 py-2 text-sm font-semibold text-[#14A08E] transition disabled:opacity-40"
             >
               {submitting ? "..." : "Yuborish"}
             </button>

@@ -15,9 +15,26 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export default function VideoUpload({ skills }: { skills: Skill[] }) {
+export default function VideoUpload({
+  skills,
+  open: openProp,
+  onOpenChange,
+  hideTrigger = false,
+}: {
+  skills: Skill[];
+  /** Tashqaridan boshqarish uchun (ProfileUploadMenu). Berilmasa — o'zi boshqaradi. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** true bo'lsa ichki "+ Video yuklash" tugmasi ko'rsatilmaydi. */
+  hideTrigger?: boolean;
+}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => {
+    setOpenState(o);
+    onOpenChange?.(o);
+  };
   const [mode, setMode] = useState<"file" | "link">("file");
   const [title, setTitle] = useState("");
   const [skillId, setSkillId] = useState("");
@@ -96,9 +113,11 @@ export default function VideoUpload({ skills }: { skills: Skill[] }) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="btn-accent">
-        + Video yuklash
-      </button>
+      {!hideTrigger && (
+        <button onClick={() => setOpen(true)} className="btn-accent">
+          + Video yuklash
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

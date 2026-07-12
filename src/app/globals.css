@@ -25,6 +25,7 @@ body {
   background: #f7f7fb;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent; /* mobil bosishda ko'k highlightni o'chirish */
+  overscroll-behavior-y: none; /* pull-to-refresh reels swipe'ni to'xtatmasligi uchun */
 }
 
 /* iOS uchun dinamik viewport balandligi (100vh muammosini bartaraf etadi) */
@@ -93,7 +94,7 @@ body {
 
 /* ===== Dizayn yordamchilari ===== */
 .text-gradient {
-  background: linear-gradient(90deg, #534ab7 0%, #1d9e75 100%);
+  background: linear-gradient(90deg, #0f7d70 0%, #6fd0b6 60%, #cfe08a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -101,7 +102,7 @@ body {
 
 /* Nuqtali fon naqshi */
 .bg-dots {
-  background-image: radial-gradient(rgba(83, 74, 183, 0.12) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(20, 160, 142, 0.12) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
@@ -128,6 +129,17 @@ body {
 }
 .animate-float {
   animation: float-soft 5s ease-in-out infinite;
+}
+
+/* Reels: video ustiga 2 marta bosilganda yurakcha "portlashi" */
+@keyframes heart-pop {
+  0% { transform: scale(0) rotate(-8deg); opacity: 0; }
+  15% { transform: scale(1.25) rotate(0deg); opacity: 0.95; }
+  40% { transform: scale(1) rotate(0deg); opacity: 0.95; }
+  100% { transform: scale(1.15) rotate(0deg); opacity: 0; }
+}
+.animate-heart-pop {
+  animation: heart-pop 0.8s ease-out forwards;
 }
 
 
