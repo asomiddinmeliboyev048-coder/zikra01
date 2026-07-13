@@ -4,6 +4,7 @@ import "./globals.css";
 import PWAInstall from "@/components/PWAInstall";
 import PinGate from "@/components/auth/PinGate";
 import AuthListener from "@/components/auth/AuthListener";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -61,6 +62,7 @@ export default function RootLayout({
         <PWAInstall />
         <AuthListener />
         <PinGate />
+        <Analytics />
       </body>
     </html>
   );
