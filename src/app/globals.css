@@ -286,6 +286,10 @@ body {
 .chat-active .zikra-bottom-nav {
   display: none !important;
 }
+/* Chat to'liq ekran rejimida "Yaratish" (+) suzuvchi tugmani ham yashiramiz */
+.chat-active .zikra-create-fab {
+  display: none !important;
+}
 /* Chat sahifasida body pastki bo'sh joyi shart emas (bottom nav yashiringan) */
 .chat-active body {
   padding-bottom: 0 !important;

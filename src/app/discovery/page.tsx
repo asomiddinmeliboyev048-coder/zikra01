@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import StoriesBar from "@/components/StoriesBar";
@@ -83,6 +84,42 @@ export default async function DiscoveryPage() {
             Sizga eng mos keladigan odamlar yuqorida. Moslik foizi o&apos;zaro
             almashinuv imkoniyatini ko&apos;rsatadi.
           </p>
+        </div>
+
+        {/* Tavsiyalar sahifasiga o'tish (kim o'rgata oladi / kim o'rganmoqchi) */}
+        <div className="mb-6 grid gap-3 sm:grid-cols-2">
+          <Link
+            href="/matches?tab=teachers"
+            className="card flex items-center gap-3 p-4 transition hover:shadow-card-hover"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-success-50 text-xl">
+              🎓
+            </span>
+            <span>
+              <span className="block font-semibold text-gray-900">
+                Menga kim o&apos;rgata oladi?
+              </span>
+              <span className="block text-xs text-gray-500">
+                Siz o&apos;rganmoqchi bo&apos;lgan ko&apos;nikma egalari
+              </span>
+            </span>
+          </Link>
+          <Link
+            href="/matches?tab=learners"
+            className="card flex items-center gap-3 p-4 transition hover:shadow-card-hover"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl">
+              📚
+            </span>
+            <span>
+              <span className="block font-semibold text-gray-900">
+                Mendan kim o&apos;rganmoqchi?
+              </span>
+              <span className="block text-xs text-gray-500">
+                Siz o&apos;rgata oladigan ko&apos;nikmani xohlaganlar
+              </span>
+            </span>
+          </Link>
         </div>
 
         <DiscoveryClient

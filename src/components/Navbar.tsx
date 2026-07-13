@@ -1,5 +1,4 @@
 import { getCurrentProfile, getUnreadCount } from "@/lib/queries";
-import { createClient } from "@/lib/supabase/server";
 import Logo from "./Logo";
 import NavbarClient from "./NavbarClient";
 import FixedWidgets from "./FixedWidgets";
@@ -7,15 +6,13 @@ import FixedWidgets from "./FixedWidgets";
 /**
  * Authenticated sahifalar uchun yuqori navigatsiya paneli.
  * Server komponent — joriy profil va o'qilmagan bildirishnomalar sonini oladi.
+ *
+ * Eslatma: `touch_streak` (kunlik faollik) endi shu yerda emas — u klient
+ * tomonda (FixedWidgets) kuniga bir marta chaqiriladi. Shu sabab har bir
+ * sahifa ochilishida qo'shimcha DB yozuvi (kechikish) bo'lmaydi.
  */
 export default async function Navbar() {
   const profile = await getCurrentProfile();
-
-  // Kunlik faollik (streak) ni yangilash — kuniga bir marta hisoblanadi
-  if (profile) {
-    const supabase = await createClient();
-    await supabase.rpc("touch_streak", { uid: profile.id });
-  }
 
   const unread = profile ? await getUnreadCount(profile.id) : 0;
 

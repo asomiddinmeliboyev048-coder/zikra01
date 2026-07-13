@@ -16,9 +16,24 @@ const ALLOWED_TYPES = ["video/mp4", "video/quicktime"]; // .mp4, .mov
  *      fetch hali yuklash progressini bermaydi).
  *   3) Muvaffaqiyatdan so'ng ommaviy URL'ni saveReelAction orqali saqlaymiz.
  */
-export default function ReelUpload() {
+export default function ReelUpload({
+  showTrigger = true,
+  open: openProp,
+  onOpenChange,
+}: {
+  /** O'z tugmasini ko'rsatishmi (profil sahifasida true, CreateMenu'da false) */
+  showTrigger?: boolean;
+  /** Tashqaridan boshqarish uchun (CreateMenu) */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+} = {}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => {
+    setOpenState(o);
+    onOpenChange?.(o);
+  };
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [progress, setProgress] = useState(0);
@@ -103,9 +118,11 @@ export default function ReelUpload() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="btn-accent">
-        + Reel yuklash
-      </button>
+      {showTrigger && (
+        <button onClick={() => setOpen(true)} className="btn-accent">
+          + Reel yuklash
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

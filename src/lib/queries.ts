@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type {
   Profile,
@@ -7,23 +8,26 @@ import type {
   Reel,
 } from "@/lib/types";
 
-/** Joriy kirgan foydalanuvchi (auth) */
-export async function getCurrentUser() {
+/**
+ * Joriy kirgan foydalanuvchi (auth).
+ * `cache()` — bitta so'rov (request) davomida faqat BIR MARTA chaqiriladi.
+ * Navbar + sahifa ikkalasi ham chaqirsa, auth serveriga qayta murojaat
+ * qilinmaydi — navigatsiya sezilarli tezlashadi.
+ */
+export const getCurrentUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
-/** Joriy foydalanuvchi profili */
-export async function getCurrentProfile(): Promise<Profile | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+/** Joriy foydalanuvchi profili (bitta so'rovda keshlanadi) */
+export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
+  const user = await getCurrentUser();
   if (!user) return null;
 
+  const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
     .select("*")
@@ -31,7 +35,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .single();
 
   return data as Profile | null;
-}
+});
 
 /** Barcha ko'nikmalar (kategoriya bo'yicha tartib) */
 export async function getSkills(): Promise<Skill[]> {
