@@ -333,3 +333,22 @@ export async function getShareTargetsAction(): Promise<{
 
   return { targets: (profiles as ShareTarget[]) ?? [] };
 }
+
+
+/**
+ * Reelning video URL manzilini qaytaradi (chatga forward qilish uchun).
+ * Chatga havola emas, aynan shu video URL yuboriladi -> chat uni video
+ * pleyer sifatida ko'rsatadi.
+ */
+export async function getReelVideoUrlAction(
+  reelId: string
+): Promise<{ error?: string; videoUrl?: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reels")
+    .select("video_url")
+    .eq("id", reelId)
+    .single();
+  if (error) return { error: error.message };
+  return { videoUrl: (data as { video_url: string }).video_url };
+}

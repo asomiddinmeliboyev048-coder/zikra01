@@ -5,7 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { sendMessageAction } from "@/app/actions/chat";
+import {
+  sendMessageAction,
+  editMessageAction,
+  deleteMessageAction,
+  clearChatAction,
+} from "@/app/actions/chat";
 import { setReactionAction } from "@/app/actions/social";
 import { saveItemAction, forwardMessageAction } from "@/app/actions/saved";
 import { uploadChatMedia } from "@/lib/storage";
@@ -227,6 +232,36 @@ export default function ChatClient({
           );
         }
       )
+      // Xabar tahrirlanganda (ikkala tomonda yangilanadi)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${active.conversation_id}`,
+        },
+        (payload) => {
+          const upd = payload.new as Message;
+          setMessages((prev) =>
+            prev.map((m) => (m.id === upd.id ? { ...m, ...upd } : m))
+          );
+        }
+      )
+      // Xabar o'chirilganda (ikkala tomonda yo'qoladi)
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${active.conversation_id}`,
+        },
+        (payload) => {
+          const oldId = (payload.old as { id?: string }).id;
+          if (oldId) setMessages((prev) => prev.filter((m) => m.id !== oldId));
+        }
+      )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "message_reactions" },
@@ -288,6 +323,39 @@ export default function ChatClient({
   async function sendVoice(content: string) {
     if (!activeId) return;
     const res = await sendMessageAction(activeId, content);
+    if (res.error) alert(res.error);
+  }
+
+  // Xabarni tahrirlash (optimistik)
+  async function editMsg(id: string, oldContent: string) {
+    const next = prompt("Xabarni tahrirlang:", oldContent);
+    if (next === null) return;
+    const t = next.trim();
+    if (!t || t === oldContent) return;
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, content: t } : m)));
+    const res = await editMessageAction(id, t);
+    if (res.error) alert(res.error);
+  }
+
+  // Bitta xabarni o'chirish (ikkala tomondan)
+  async function deleteMsg(id: string) {
+    if (!confirm("Ushbu xabarni o'chirasizmi?")) return;
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    const res = await deleteMessageAction(id);
+    if (res.error) alert(res.error);
+  }
+
+  // Butun suhbat tarixini tozalash (ikkala tomon uchun)
+  async function clearChat() {
+    if (!activeId) return;
+    if (
+      !confirm(
+        "Butun suhbat tarixini ikkala tomon uchun o'chirasizmi?\n\nBu amalni ortga qaytarib bo'lmaydi."
+      )
+    )
+      return;
+    setMessages([]);
+    const res = await clearChatAction(activeId);
     if (res.error) alert(res.error);
   }
 
@@ -542,6 +610,17 @@ export default function ChatClient({
                   </svg>
                 </button>
                 <MatchBadge score={matchScore} showLabel />
+                {/* Suhbat tarixini butunlay tozalash */}
+                <button
+                  onClick={clearChat}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                  title="Suhbatni tozalash"
+                  aria-label="Suhbat tarixini tozalash"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -561,6 +640,8 @@ export default function ChatClient({
                   onReact={react}
                   onSave={saveMsg}
                   onForward={(c) => setForwardContent(c)}
+                  onEdit={editMsg}
+                  onDelete={deleteMsg}
                 />
               ))}
               <div ref={bottomRef} />
@@ -678,6 +759,8 @@ function MessageRow({
   onReact,
   onSave,
   onForward,
+  onEdit,
+  onDelete,
 }: {
   message: Message;
   mine: boolean;
@@ -685,8 +768,29 @@ function MessageRow({
   onReact: (messageId: string, emoji: string) => void;
   onSave: (content: string) => void;
   onForward: (content: string) => void;
+  onEdit: (id: string, content: string) => void;
+  onDelete: (id: string) => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Uzoq bosish (long press) -> menyuni ochish
+  function startLongPress() {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    longPressTimer.current = setTimeout(() => setPickerOpen(true), 450);
+  }
+  function cancelLongPress() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }
+
+  // Faqat oddiy matnli xabarni tahrirlash mumkin (ovoz/video/rasm emas)
+  const isPlainText =
+    !/^https?:\/\/\S+$/.test(message.content.trim()) &&
+    !message.content.trim().startsWith("voice:") &&
+    !message.content.trim().startsWith("roundvideo:");
 
   const trigger = (
     <div className="relative self-center">
@@ -737,11 +841,37 @@ function MessageRow({
                 onForward(message.content);
                 setPickerOpen(false);
               }}
-              title="Forward"
+              title="Boshqa chatga yuborish"
               className="rounded-full px-1.5 text-base transition hover:scale-125"
             >
               ↪
             </button>
+
+            {/* Tahrirlash / O'chirish — faqat o'z xabari */}
+            {mine && isPlainText && (
+              <button
+                onClick={() => {
+                  onEdit(message.id, message.content);
+                  setPickerOpen(false);
+                }}
+                title="Tahrirlash"
+                className="rounded-full px-1.5 text-base transition hover:scale-125"
+              >
+                ✏️
+              </button>
+            )}
+            {mine && (
+              <button
+                onClick={() => {
+                  onDelete(message.id);
+                  setPickerOpen(false);
+                }}
+                title="O'chirish"
+                className="rounded-full px-1.5 text-base transition hover:scale-125"
+              >
+                🗑
+              </button>
+            )}
           </div>
         </>
       )}
@@ -754,8 +884,18 @@ function MessageRow({
         <div className="flex items-center gap-1">
           {mine && trigger}
           <div
+            onTouchStart={startLongPress}
+            onTouchEnd={cancelLongPress}
+            onTouchMove={cancelLongPress}
+            onMouseDown={startLongPress}
+            onMouseUp={cancelLongPress}
+            onMouseLeave={cancelLongPress}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setPickerOpen(true);
+            }}
             className={cn(
-              "rounded-2xl px-4 py-2 text-sm",
+              "select-none rounded-2xl px-4 py-2 text-sm",
               mine
                 ? "rounded-br-sm bg-brand text-white"
                 : "rounded-bl-sm bg-white text-gray-800 shadow-sm"
