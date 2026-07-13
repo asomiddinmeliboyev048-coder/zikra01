@@ -58,6 +58,14 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
     if (videoRef.current) videoRef.current.muted = muted;
   }, [muted]);
 
+  // Ovoz holatini HAR DOIM yangi ushlash uchun ref.
+  // (IntersectionObserver [reel.id] deps bilan yaratilgani uchun eski `muted`
+  //  qiymatini "yodda saqlab" qolardi -> keyingi reelsda ovoz o'chib qolardi.)
+  const mutedRef = useRef(muted);
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
+
   // Ekranda ko'rinishni kuzatish -> play/pause + ko'rishni qayd etish
   useEffect(() => {
     const el = containerRef.current;
@@ -67,7 +75,8 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-          video.muted = muted;
+          // mutedRef.current — joriy (eng yangi) ovoz holati
+          video.muted = mutedRef.current;
           video.play().then(() => setPaused(false)).catch(() => {
             // Ovozli avtoplay bloklansa — ovozsiz urinib ko'ramiz
             video.muted = true;
@@ -251,6 +260,22 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
 
         {/* O'ng harakat paneli */}
         <div className="absolute bottom-28 right-2.5 z-20 flex flex-col items-center gap-5">
+          {/* Muallif avatari (TikTok uslubi) — ko'rishlar soni o'rniga */}
+          <Link
+            href={`/profile/${reel.user_id}`}
+            className="mb-1"
+            aria-label="Muallif profili"
+          >
+            <Image
+              src={author?.avatar_url || avatarFallback(author?.full_name ?? "Z")}
+              alt={author?.full_name ?? ""}
+              width={44}
+              height={44}
+              className="h-11 w-11 rounded-full border-2 border-white object-cover"
+              unoptimized
+            />
+          </Link>
+
           <LikeButton liked={liked} count={likeCount} onToggle={toggleLike} />
 
           {/* Izohlar */}
@@ -283,20 +308,8 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
             <span className="text-xs font-semibold text-white drop-shadow">Yuborish</span>
           </button>
 
-          {/* Ko'rishlar soni — faqat reel egasiga */}
-          {isOwner && (
-            <div className="flex flex-col items-center gap-1">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/25 backdrop-blur-sm">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </span>
-              <span className="text-xs font-semibold text-white drop-shadow">
-                {formatCount(reel.views ?? 0)}
-              </span>
-            </div>
-          )}
+          {/* Ko'rishlar soni feed'da KO'RSATILMAYDI — u faqat muallifning
+              o'z profilidagi Reels grid'ida ko'rinadi. */}
         </div>
 
         {/* Pastki chap: muallif + obuna + tavsif */}
