@@ -77,15 +77,15 @@ export default function ChatClient({
 
   const active = conversations.find((c) => c.partner.id === activeId) ?? null;
 
-  // To'liq ekran rejimi: mobil'da suhbat ochilganda <html> ga "chat-active"
-  // klassini qo'shamiz. globals.css shu klass orqali navbar va bottom nav'ni
-  // (faqat mobil ekranda) yashiradi — chat Telegram kabi to'liq ekran bo'ladi.
+  // To'liq ekran rejimi (Telegram uslubi): /chat sahifasi ochilgani zahoti
+  // <html> ga "chat-active" klassini qo'shamiz. globals.css shu klass orqali
+  // yuqori navbar va pastki navigatsiyani BARCHA ekranlarda yashiradi — chat
+  // butun ekranni egallaydi (noutbukda: chapda ro'yxat, o'ngda suhbat).
   useEffect(() => {
     const root = document.documentElement;
-    if (activeId) root.classList.add("chat-active");
-    else root.classList.remove("chat-active");
+    root.classList.add("chat-active");
     return () => root.classList.remove("chat-active");
-  }, [activeId]);
+  }, []);
 
   // Qidiruvga mos mavjud suhbatlar (ism yoki @username bo'yicha)
   const q = query.trim().toLowerCase();
@@ -360,16 +360,39 @@ export default function ChatClient({
   }
 
   return (
-    <div className="card flex w-full overflow-hidden rounded-none border-0 sm:rounded-2xl sm:border">
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-white dark:bg-[#0e1525]">
       {/* Chap panel: suhbatlar */}
       <aside
         className={cn(
-          "w-full border-r border-gray-100 sm:w-72 sm:shrink-0",
-          activeId ? "hidden sm:block" : "block"
+          "flex h-full min-h-0 w-full flex-col border-r border-gray-100 sm:w-80 sm:shrink-0 dark:border-white/10",
+          activeId ? "hidden sm:flex" : "flex"
         )}
       >
-        <div className="sticky top-0 z-10 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur">
-          <h2 className="mb-2 font-semibold text-gray-900">Suhbatlar</h2>
+        {/* Sidebar sarlavhasi — bosh sahifaga qaytish + navigatsiya */}
+        <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2.5 dark:border-white/10">
+          <Link
+            href="/discovery"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 dark:hover:bg-white/10"
+            title="Bosh sahifa"
+            aria-label="Bosh sahifa"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+          <span className="font-semibold text-gray-900 dark:text-white">Suhbatlar</span>
+          <Link
+            href="/notifications"
+            className="ml-auto flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 dark:hover:bg-white/10"
+            title="Bildirishnomalar"
+            aria-label="Bildirishnomalar"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+        </div>
+        <div className="border-b border-gray-100 px-4 py-3 dark:border-white/10">
           {/* Qidiruv inputi — real-time filtr */}
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -395,7 +418,7 @@ export default function ChatClient({
             )}
           </div>
         </div>
-        <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {/* Hikoyalar qatori — suhbatlar ro'yxatining eng tepasida (gorizontal skroll).
               Faqat qidiruv bo'sh bo'lganda ko'rsatamiz. */}
           {storiesSlot && !q && (
@@ -625,7 +648,7 @@ export default function ChatClient({
             </div>
 
             {/* Xabarlar oqimi */}
-            <div className="flex-1 space-y-2 overflow-y-auto bg-gray-50/50 p-4">
+            <div className="chat-wallpaper flex-1 space-y-2 overflow-y-auto p-4">
               {messages.length === 0 && (
                 <p className="mt-8 text-center text-sm text-gray-400">
                   Suhbatni boshlang — birinchi xabarni yuboring 👋
@@ -773,6 +796,7 @@ function MessageRow({
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTapRef = useRef(0);
 
   // Uzoq bosish (long press) -> menyuni ochish
   function startLongPress() {
@@ -786,6 +810,17 @@ function MessageRow({
     }
   }
 
+  // Ikki marta bosish (double tap) -> tez ❤️ reaksiya (Telegram/Instagram uslubi)
+  function handleBubbleTap() {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      lastTapRef.current = 0;
+      onReact(message.id, "❤️");
+    } else {
+      lastTapRef.current = now;
+    }
+  }
+
   // Faqat oddiy matnli xabarni tahrirlash mumkin (ovoz/video/rasm emas)
   const isPlainText =
     !/^https?:\/\/\S+$/.test(message.content.trim()) &&
@@ -796,7 +831,7 @@ function MessageRow({
     <div className="relative self-center">
       <button
         onClick={() => setPickerOpen((o) => !o)}
-        className="rounded-full p-1 text-gray-300 opacity-0 transition hover:bg-gray-100 hover:text-gray-500 group-hover:opacity-100"
+        className="rounded-full p-1 text-gray-400 opacity-70 transition hover:bg-gray-100 hover:text-gray-600 sm:opacity-0 sm:group-hover:opacity-100"
         aria-label="Reaksiya"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -890,6 +925,7 @@ function MessageRow({
             onMouseDown={startLongPress}
             onMouseUp={cancelLongPress}
             onMouseLeave={cancelLongPress}
+            onClick={handleBubbleTap}
             onContextMenu={(e) => {
               e.preventDefault();
               setPickerOpen(true);

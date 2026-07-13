@@ -1,9 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
 import { likeReelAction, unlikeReelAction } from "@/app/actions/reels";
 import { cn, formatCount } from "@/lib/utils";
+
+/** Tashqi (double-tap) chaqiruvlar uchun imperativ handle */
+export interface LikeButtonHandle {
+  /** Faqat hali yoqtirmagan bo'lsa like bosadi (Instagram double-tap) */
+  like: () => void;
+  /** Joriy holat yoqtirilganmi */
+  isLiked: () => boolean;
+}
 
 /**
  * Reels uchun like tugmasi — optimistik UI + Supabase Realtime.
@@ -11,18 +26,17 @@ import { cn, formatCount } from "@/lib/utils";
  * - Bosilganda darhol (optimistik) holat o'zgaradi va server action chaqiriladi.
  * - reel_likes jadvalidagi o'zgarishlar realtime kuzatiladi: boshqa
  *   foydalanuvchi like bosganda ham son yangilanadi (haqiqiy son qayta olinadi).
+ * - `ref` orqali double-tap'dan `like()` chaqirish mumkin.
  */
-export default function LikeButton({
-  reelId,
-  initialLiked,
-  initialCount,
-  onLikedChange,
-}: {
-  reelId: string;
-  initialLiked: boolean;
-  initialCount: number;
-  onLikedChange?: (liked: boolean) => void;
-}) {
+const LikeButton = forwardRef<
+  LikeButtonHandle,
+  {
+    reelId: string;
+    initialLiked: boolean;
+    initialCount: number;
+    onLikedChange?: (liked: boolean) => void;
+  }
+>(function LikeButton({ reelId, initialLiked, initialCount, onLikedChange }, ref) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [burst, setBurst] = useState(false);
@@ -59,33 +73,57 @@ export default function LikeButton({
     };
   }, [reelId, refreshCount]);
 
-  const toggle = useCallback(async () => {
-    if (busy.current) return;
-    busy.current = true;
+  // liked qiymatiga har doim yangi ref orqali murojaat (double-tap uchun)
+  const likedRef = useRef(liked);
+  useEffect(() => {
+    likedRef.current = liked;
+  }, [liked]);
 
-    const next = !liked;
-    setLiked(next);
-    setCount((c) => Math.max(0, c + (next ? 1 : -1)));
-    onLikedChange?.(next);
-    if (next) {
-      setBurst(true);
-      setTimeout(() => setBurst(false), 500);
-    }
+  // Ichki: berilgan yo'nalishda (like/unlike) holatni o'zgartirish
+  const setLikeState = useCallback(
+    async (next: boolean) => {
+      if (busy.current) return;
+      if (next === likedRef.current) return; // o'zgarish yo'q
+      busy.current = true;
 
-    try {
-      const res = next
-        ? await likeReelAction(reelId)
-        : await unlikeReelAction(reelId);
-      if (res?.error) {
-        // Orqaga qaytarish
-        setLiked(!next);
-        setCount((c) => Math.max(0, c + (next ? -1 : 1)));
-        onLikedChange?.(!next);
+      setLiked(next);
+      setCount((c) => Math.max(0, c + (next ? 1 : -1)));
+      onLikedChange?.(next);
+      if (next) {
+        setBurst(true);
+        setTimeout(() => setBurst(false), 500);
       }
-    } finally {
-      busy.current = false;
-    }
-  }, [liked, reelId, onLikedChange]);
+
+      try {
+        const res = next
+          ? await likeReelAction(reelId)
+          : await unlikeReelAction(reelId);
+        if (res?.error) {
+          // Orqaga qaytarish
+          setLiked(!next);
+          setCount((c) => Math.max(0, c + (next ? -1 : 1)));
+          onLikedChange?.(!next);
+        }
+      } finally {
+        busy.current = false;
+      }
+    },
+    [reelId, onLikedChange]
+  );
+
+  const toggle = useCallback(() => {
+    setLikeState(!likedRef.current);
+  }, [setLikeState]);
+
+  // Double-tap: faqat yoqtirish (mavjud like'ni bekor qilmaydi)
+  useImperativeHandle(
+    ref,
+    () => ({
+      like: () => setLikeState(true),
+      isLiked: () => likedRef.current,
+    }),
+    [setLikeState]
+  );
 
   return (
     <button
@@ -115,4 +153,6 @@ export default function LikeButton({
       </span>
     </button>
   );
-}
+});
+
+export default LikeButton;

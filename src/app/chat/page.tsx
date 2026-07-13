@@ -121,9 +121,11 @@ export default async function ChatPage({
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-[100dvh] flex-col overflow-hidden">
+      {/* Navbar 'chat-active' klassi bilan yashiriladi, lekin DOM'da qoladi —
+          FixedWidgets ichidagi CallProvider (video/audio qo'ng'iroq) ishlashi uchun. */}
       <Navbar />
-      <main className="flex min-h-0 flex-1 px-0 py-0 sm:container-app sm:py-6">
+      <main className="flex min-h-0 flex-1">
         <ChatClient
           meId={me.id}
           conversations={conversations}
