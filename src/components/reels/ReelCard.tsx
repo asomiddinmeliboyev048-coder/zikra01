@@ -7,7 +7,7 @@ import { avatarFallback, formatCount, timeAgo } from "@/lib/utils";
 import { recordReelViewAction } from "@/app/actions/reels";
 import { toggleFollowAction } from "@/app/actions/social";
 import type { Reel } from "@/lib/types";
-import LikeButton from "./LikeButton";
+import LikeButton, { type LikeButtonHandle } from "./LikeButton";
 import CommentSheet from "./CommentSheet";
 import ShareSheet from "./ShareSheet";
 
@@ -29,18 +29,25 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const viewCounted = useRef(false);
+  const likeRef = useRef<LikeButtonHandle>(null);
 
   const [paused, setPaused] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [commentCount, setCommentCount] = useState(reel.comments ?? 0);
+  // Double-tap ❤️ animatsiyasi (ekran markazida katta yurak)
+  const [showHeart, setShowHeart] = useState(false);
 
   const isOwner = me?.id === reel.user_id;
   const [following, setFollowing] = useState(Boolean(reel.following));
   const [followBusy, setFollowBusy] = useState(false);
 
-  // Ovoz holatini video elementga qo'llash
+  // `muted` doim yangi qiymatda bo'lishi uchun ref (IntersectionObserver
+  // eski (stale) qiymatni ushlab qolmasligi kerak — aks holda keyingi reelga
+  // o'tganda video noto'g'ri qayta "mute" bo'lib qolardi).
+  const mutedRef = useRef(muted);
   useEffect(() => {
+    mutedRef.current = muted;
     if (videoRef.current) videoRef.current.muted = muted;
   }, [muted]);
 
@@ -53,11 +60,18 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-          video.muted = muted;
+          // Global ovoz holatini (ref orqali — doim yangi) qo'llaymiz
+          video.muted = mutedRef.current;
           video.play().then(() => setPaused(false)).catch(() => {
-            // Ovozli avtoplay bloklansa — ovozsiz urinib ko'ramiz
-            video.muted = true;
-            video.play().catch(() => setPaused(true));
+            if (mutedRef.current) {
+              // Ovozsiz ham ijro bo'lmasa — pauza ko'rsatamiz
+              setPaused(true);
+            } else {
+              // Ovoz YOQILGAN: elementni jimlatmaymiz (aks holda keyingi
+              // reellarda ovoz chiqmay qolardi). Yana bir bor urinib ko'ramiz,
+              // bo'lmasa foydalanuvchi bosib ijro etadi.
+              video.play().catch(() => setPaused(true));
+            }
           });
 
           // Ko'rishni qayd etish (2 soniyadan keyin, faqat bir marta)
@@ -99,6 +113,37 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
     }
   }, []);
 
+  // Double-tap (Instagram) → yoqtirish + katta yurak animatsiyasi
+  const triggerHeart = useCallback(() => {
+    likeRef.current?.like();
+    setShowHeart(true);
+    setTimeout(() => setShowHeart(false), 700);
+  }, []);
+
+  // Bitta bosish = play/pause, ikki marta bosish = like.
+  // Bir bosishni biroz kechiktirib, ikkinchisi kelmasa play/pause qilamiz.
+  const lastTapRef = useRef(0);
+  const singleTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleVideoTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 280) {
+      // Double tap
+      if (singleTapTimer.current) {
+        clearTimeout(singleTapTimer.current);
+        singleTapTimer.current = null;
+      }
+      lastTapRef.current = 0;
+      triggerHeart();
+      return;
+    }
+    lastTapRef.current = now;
+    if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
+    singleTapTimer.current = setTimeout(() => {
+      togglePlay();
+      singleTapTimer.current = null;
+    }, 280);
+  }, [togglePlay, triggerHeart]);
+
   const toggleFollow = useCallback(async () => {
     if (followBusy || isOwner) return;
     setFollowBusy(true);
@@ -130,9 +175,18 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
           playsInline
           muted={muted}
           preload="metadata"
-          onClick={togglePlay}
+          onClick={handleVideoTap}
           className="h-full w-full cursor-pointer bg-black object-contain"
         />
+
+        {/* Double-tap yurak animatsiyasi */}
+        {showHeart && (
+          <span className="pointer-events-none absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2 animate-scale-in">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="#ef4444" className="drop-shadow-2xl">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+            </svg>
+          </span>
+        )}
 
         {/* Pauza ko'rsatkichi */}
         {paused && (
@@ -183,6 +237,7 @@ export default function ReelCard({ reel, me, muted, onToggleMute }: Props) {
         {/* O'ng harakat paneli */}
         <div className="absolute bottom-28 right-2.5 z-20 flex flex-col items-center gap-5">
           <LikeButton
+            ref={likeRef}
             reelId={reel.id}
             initialLiked={Boolean(reel.liked)}
             initialCount={reel.likes ?? 0}

@@ -286,3 +286,21 @@ body {
 .chat-active .zikra-bottom-nav {
   display: none !important;
 }
+/* Chat sahifasida body pastki bo'sh joyi shart emas (bottom nav yashiringan) */
+.chat-active body {
+  padding-bottom: 0 !important;
+}
+
+/* Telegram uslubidagi yumshoq chat foni (xabarlar oqimi) */
+.chat-wallpaper {
+  background-color: #eef1f6;
+  background-image:
+    radial-gradient(40rem 40rem at 100% 0%, rgba(18, 165, 148, 0.06), transparent 55%),
+    radial-gradient(36rem 36rem at 0% 100%, rgba(201, 154, 46, 0.05), transparent 55%);
+}
+.dark .chat-wallpaper {
+  background-color: #0b1120;
+  background-image:
+    radial-gradient(40rem 40rem at 100% 0%, rgba(18, 165, 148, 0.10), transparent 55%),
+    radial-gradient(36rem 36rem at 0% 100%, rgba(201, 154, 46, 0.07), transparent 55%);
+}
