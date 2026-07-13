@@ -3,7 +3,7 @@
 // MUHIM: kesh nomi o'zgarganda (v2, v3...) eski kesh AVTOMATIK tozalanadi
 // (activate hodisasida). Shu tufayli yangi deploy'dan keyin foydalanuvchi
 // ESKI (keshlangan) dizayn/logo o'rniga YANGISINI ko'radi.
-const CACHE = "zikra-v3";
+const CACHE = "zikra-v4";
 const CORE = ["/", "/discovery", "/manifest.json", "/icon.svg"];
 
 self.addEventListener("install", (event) => {

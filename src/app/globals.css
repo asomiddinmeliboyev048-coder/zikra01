@@ -276,15 +276,13 @@ body {
 /* ============================================================
    Chat to'liq ekran rejimi (Telegram uslubi)
    ChatClient <html> ga "chat-active" klassini qo'shganda ishlaydi.
-   Faqat MOBIL ekranda (sm=640px dan kichik) yuqori navbar va pastki
-   navigatsiyani yashiramiz — chat butun ekranni egallaydi.
-   Desktop/noutbukda hech narsa o'zgarmaydi (ikki panelli ko'rinish saqlanadi).
+   BARCHA ekranlarda (telefon + noutbuk) yuqori navbar (.zikra-navbar) va pastki
+   navigatsiyani (.zikra-bottom-nav) yashiradi — suhbat Telegram kabi butun
+   ekranni egallaydi. Suhbatlar RO'YXATIda (aktiv chat yo'q) nav ko'rinadi.
    ============================================================ */
-@media (max-width: 639px) {
-  .chat-active .zikra-navbar {
-    display: none !important;
-  }
-  .chat-active .zikra-bottom-nav {
-    display: none !important;
-  }
+.chat-active .zikra-navbar {
+  display: none !important;
+}
+.chat-active .zikra-bottom-nav {
+  display: none !important;
 }

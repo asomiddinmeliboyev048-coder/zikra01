@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 /**
  * Mobil qurilmalar uchun pastki navigatsiya paneli (faqat md dan kichik ekranlarda).
  *
- * 6 ta bo'lim: Kashf etish, Video darslar, Darslar, Suhbatlar, Profil, Reels.
- * 6 element ekranga sig'ishi uchun ixcham ikonkalar + kichik matn ishlatilgan;
- * aktiv bo'lim brend rangi va yuqoridagi indikator bilan ajralib turadi.
+ * 5 ta bo'lim: Kashf etish, Video darslar, Reels, Suhbatlar, Profil.
+ * Ixcham ikonkalar + kichik matn; aktiv bo'lim brend rangi va yuqoridagi
+ * indikator bilan ajralib turadi.
  */
 export default function BottomNav({ profileId }: { profileId: string; unread?: number }) {
   const pathname = usePathname();
@@ -17,10 +17,9 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
   const items = [
     { href: "/discovery", label: "Kashf", icon: DiscoverIcon },
     { href: "/videos", label: "Video", icon: VideoIcon },
-    { href: "/lessons", label: "Darslar", icon: LessonsIcon },
+    { href: "/reels", label: "Reels", icon: ReelsIcon },
     { href: "/chat", label: "Suhbat", icon: ChatIcon },
     { href: `/profile/${profileId}`, label: "Profil", icon: UserIcon },
-    { href: "/reels", label: "Reels", icon: ReelsIcon },
   ];
 
   return (
@@ -83,14 +82,6 @@ function VideoIcon({ active }: { active: boolean }) {
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
       <rect x="2" y="5" width="15" height="14" rx="2.5" />
       <path d="M17 9l5-2.5v11L17 15" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function LessonsIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
-      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z" strokeLinejoin="round" />
-      <path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z" strokeLinejoin="round" />
     </svg>
   );
 }
