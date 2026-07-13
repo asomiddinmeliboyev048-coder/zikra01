@@ -83,3 +83,64 @@ export async function sendMessageAction(
 
   return {};
 }
+
+
+/** Xabarni tahrirlash (faqat o'z xabari) */
+export async function editMessageAction(
+  messageId: string,
+  newContent: string
+): Promise<SendResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const text = newContent.trim();
+  if (!text) return { error: "Bo'sh xabar bo'lmasligi kerak." };
+
+  const { error } = await supabase
+    .from("messages")
+    .update({ content: text })
+    .eq("id", messageId)
+    .eq("sender_id", user.id); // faqat o'z xabarini tahrirlaydi
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Bitta xabarni o'chirish (faqat o'z xabari — ikkala tomondan yo'qoladi) */
+export async function deleteMessageAction(
+  messageId: string
+): Promise<SendResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+
+  const { error } = await supabase
+    .from("messages")
+    .delete()
+    .eq("id", messageId)
+    .eq("sender_id", user.id); // faqat o'z xabarini o'chiradi
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Butun suhbat tarixini o'chirish (ikkala tomon uchun) */
+export async function clearChatAction(partnerId: string): Promise<SendResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Avtorizatsiya talab qilinadi." };
+  if (!partnerId) return { error: "Suhbatdosh topilmadi." };
+
+  const convId = conversationId(user.id, partnerId);
+  const { error } = await supabase
+    .from("messages")
+    .delete()
+    .eq("conversation_id", convId);
+  if (error) return { error: error.message };
+  return {};
+}

@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { getShareTargetsAction, type ShareTarget } from "@/app/actions/reels";
+import {
+  getShareTargetsAction,
+  getReelVideoUrlAction,
+  type ShareTarget,
+} from "@/app/actions/reels";
 import { sendMessageAction } from "@/app/actions/chat";
 import { avatarFallback } from "@/lib/utils";
 
@@ -24,6 +28,8 @@ export default function ShareSheet({ reelId, onClose }: Props) {
   const [copied, setCopied] = useState(false);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState<string | null>(null);
+  // Reel videosining haqiqiy URL'i — chatga aynan shu yuboriladi (video pleyer bo'lib chiqadi)
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const reelUrl =
     typeof window !== "undefined"
@@ -33,15 +39,19 @@ export default function ShareSheet({ reelId, onClose }: Props) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const res = await getShareTargetsAction();
+      const [tRes, vRes] = await Promise.all([
+        getShareTargetsAction(),
+        getReelVideoUrlAction(reelId),
+      ]);
       if (!alive) return;
-      setTargets(res.targets ?? []);
+      setTargets(tRes.targets ?? []);
+      if (vRes.videoUrl) setVideoUrl(vRes.videoUrl);
       setLoading(false);
     })();
     return () => {
       alive = false;
     };
-  }, []);
+  }, [reelId]);
 
   async function copyLink() {
     try {
@@ -56,7 +66,9 @@ export default function ShareSheet({ reelId, onClose }: Props) {
   async function sendTo(target: ShareTarget) {
     if (sending || sentTo.has(target.id)) return;
     setSending(target.id);
-    const res = await sendMessageAction(target.id, reelUrl);
+    // Havola emas, videoning o'zini yuboramiz -> chatda video pleyer bo'lib ko'rinadi.
+    // (Agar video URL topilmasa, zaxira sifatida sahifa havolasi ketadi.)
+    const res = await sendMessageAction(target.id, videoUrl ?? reelUrl);
     setSending(null);
     if (res.error) {
       alert(res.error);
