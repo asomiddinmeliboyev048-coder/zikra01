@@ -83,6 +83,27 @@ export default function VideoThumb({
           className="object-cover"
           unoptimized
         />
+      ) : canPreview ? (
+        // Muqova saqlanmagan (eski videolar) — yashil/gradient fon o'rniga
+        // videoning birinchi kadrini avtomatik ko'rsatamiz. onLoadedMetadata'da
+        // ~1-soniyaga o'tkazamiz, shunda video element o'sha kadrni "poster"
+        // sifatida ko'rsatadi (CORS yoki canvas shart emas).
+        <video
+          src={videoUrl}
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-cover"
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            const dur = Number.isFinite(v.duration) ? v.duration : 2;
+            try {
+              v.currentTime = Math.min(1, dur / 2);
+            } catch {
+              /* ba'zi brauzerlarda seek qo'llab-quvvatlanmasligi mumkin */
+            }
+          }}
+        />
       ) : (
         <div className="flex h-full items-center justify-center bg-gradient-to-br from-brand to-brand-700">
           <PlayIcon />
@@ -138,7 +159,7 @@ function PlayIcon({ dark = false }: { dark?: boolean }) {
       width="28"
       height="28"
       viewBox="0 0 24 24"
-      fill={dark ? "#534AB7" : "white"}
+      fill={dark ? "#12A594" : "white"}
       aria-hidden
     >
       <path d="M8 5v14l11-7z" />

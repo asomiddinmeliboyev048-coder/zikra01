@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Skill } from "@/lib/types";
-import { uploadVideo } from "@/lib/storage";
+import {
+  uploadVideo,
+  captureVideoThumbnail,
+  uploadVideoThumbnail,
+} from "@/lib/storage";
 import { saveVideoAction } from "@/app/actions/video";
 import { cn } from "@/lib/utils";
 
@@ -70,11 +74,22 @@ export default function VideoUpload({
           setBusy(false);
           return setError("Video faylni tanlang.");
         }
-        setProgress(40);
+        setProgress(30);
         const result = await uploadVideo(file);
-        setProgress(90);
         videoUrl = result.url;
         duration = result.duration;
+
+        // Videoning birinchi kadridan avtomatik muqova (thumbnail) yasaymiz.
+        // Muqova ixtiyoriy — agar yasashda/yuklashda xato bo'lsa, davom etamiz
+        // (bunda ko'rsatishda VideoThumb baribir 1-kadrni ko'rsatadi).
+        setProgress(70);
+        try {
+          const thumbBlob = await captureVideoThumbnail(file);
+          if (thumbBlob) thumb = await uploadVideoThumbnail(thumbBlob);
+        } catch {
+          /* muqova majburiy emas */
+        }
+        setProgress(90);
       } else {
         const clean = link.trim();
         if (!clean) {

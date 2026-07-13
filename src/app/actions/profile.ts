@@ -184,24 +184,42 @@ export async function saveProfileAction(
 
   if (upErr) return { error: "Profilni saqlashda xatolik: " + upErr.message };
 
+  // Takrorlanuvchi id'larni olib tashlaymiz (bir xil ko'nikma ikki marta
+  // tanlansa, unique (user_id, skill_id, type) cheklovi buzilishini oldini oladi).
+  const uniqTeach = Array.from(new Set(teachIds));
+  const uniqLearn = Array.from(new Set(learnIds));
+
   // Eski ko'nikmalarni tozalab, qaytadan yozamiz
-  await supabase.from("user_skills").delete().eq("user_id", user.id);
+  const { error: delErr } = await supabase
+    .from("user_skills")
+    .delete()
+    .eq("user_id", user.id);
+  if (delErr)
+    return { error: "Ko'nikmalarni yangilashda xatolik: " + delErr.message };
 
   const rows = [
-    ...teachIds.map((skill_id) => ({
+    ...uniqTeach.map((skill_id) => ({
       user_id: user.id,
       skill_id,
       type: "teach" as const,
     })),
-    ...learnIds.map((skill_id) => ({
+    ...uniqLearn.map((skill_id) => ({
       user_id: user.id,
       skill_id,
       type: "learn" as const,
     })),
   ];
 
+  // Oddiy insert: yuqorida barcha eski ko'nikmalar o'chirildi va massivlar
+  // dedup qilindi, shuning uchun konflikt bo'lmaydi.
+  //
+  // MUHIM: bu yerda .upsert({ onConflict: "...type" }) ISHLATILMAYDI, chunki
+  // `type` ustuni enum (skill_type). PostgREST enum ustunni onConflict'da
+  // ishlatganda "operator does not exist: text = skill_type" xatosini beradi.
+  // Oddiy insert bu muammoni butunlay chetlab o'tadi.
   const { error: skErr } = await supabase.from("user_skills").insert(rows);
-  if (skErr) return { error: "Ko'nikmalarni saqlashda xatolik." };
+  if (skErr)
+    return { error: "Ko'nikmalarni saqlashda xatolik: " + skErr.message };
 
   revalidatePath("/discovery");
   revalidatePath(`/profile/${user.id}`);

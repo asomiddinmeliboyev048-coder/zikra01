@@ -10,10 +10,10 @@
 :root {
   --background: #f6f7fb;
   --foreground: #1a1a2e;
-  --brand: #534ab7;
-  --brand-600: #433b92;
+  --brand: #12a594;
+  --brand-600: #0e8578;
   --success: #1d9e75;
-  --accent: #d85a30;
+  --accent: #c99a2e;
   --ring: rgba(83, 74, 183, 0.35);
 }
 
@@ -159,7 +159,7 @@ body {
 
 /* Brend gradientli matn */
 .text-gradient {
-  background: linear-gradient(90deg, #534ab7 0%, #1d9e75 100%);
+  background: linear-gradient(90deg, #12a594 0%, #1d9e75 50%, #c99a2e 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -272,6 +272,20 @@ body {
 /* Kartochka soyasi (dark rejimda kuchliroq) */
 .dark .shadow-card { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3) !important; }
 
+
+/* ============================================================
+   Chat to'liq ekran rejimi (Telegram uslubi)
+   ChatClient <html> ga "chat-active" klassini qo'shganda ishlaydi.
+   BARCHA ekranlarda (telefon + noutbuk) yuqori navbar (.zikra-navbar) va pastki
+   navigatsiyani (.zikra-bottom-nav) yashiradi — suhbat Telegram kabi butun
+   ekranni egallaydi. Suhbatlar RO'YXATIda (aktiv chat yo'q) nav ko'rinadi.
+   ============================================================ */
+.chat-active .zikra-navbar {
+  display: none !important;
+}
+.chat-active .zikra-bottom-nav {
+  display: none !important;
+}
 
 /* ============================================================
    Reels — double-tap "katta yurakcha" animatsiyasi (Instagram uslubi)
