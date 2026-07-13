@@ -840,75 +840,75 @@ function MessageRow({
         </svg>
       </button>
       {pickerOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
+        <div
+          className="fixed inset-0 z-[75] flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          onClick={() => setPickerOpen(false)}
+        >
           <div
-            className={cn(
-              "absolute bottom-8 z-20 flex gap-1 rounded-full border border-gray-100 bg-white p-1 shadow-card-hover",
-              mine ? "right-0" : "left-0"
-            )}
+            className="w-full max-w-xs overflow-hidden rounded-2xl bg-white shadow-card-hover animate-slide-up dark:bg-[#161d31]"
+            onClick={(e) => e.stopPropagation()}
           >
-            {REACTION_EMOJIS.map((e) => (
-              <button
-                key={e}
-                onClick={() => {
-                  onReact(message.id, e);
-                  setPickerOpen(false);
-                }}
-                className="rounded-full px-1.5 text-lg transition hover:scale-125"
-              >
-                {e}
-              </button>
-            ))}
-            <span className="mx-0.5 w-px bg-gray-200" />
-            <button
-              onClick={() => {
-                onSave(message.content);
-                setPickerOpen(false);
-              }}
-              title="Saqlash"
-              className="rounded-full px-1.5 text-base transition hover:scale-125"
-            >
-              📌
-            </button>
-            <button
-              onClick={() => {
-                onForward(message.content);
-                setPickerOpen(false);
-              }}
-              title="Boshqa chatga yuborish"
-              className="rounded-full px-1.5 text-base transition hover:scale-125"
-            >
-              ↪
-            </button>
+            {/* Reaksiyalar qatori */}
+            <div className="flex items-center justify-between gap-1 border-b border-gray-100 p-2 dark:border-white/10">
+              {REACTION_EMOJIS.map((e) => (
+                <button
+                  key={e}
+                  onClick={() => {
+                    onReact(message.id, e);
+                    setPickerOpen(false);
+                  }}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-2xl transition hover:scale-125 hover:bg-gray-100 dark:hover:bg-white/10"
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
 
-            {/* Tahrirlash / O'chirish — faqat o'z xabari */}
-            {mine && isPlainText && (
+            {/* Amallar ro'yxati */}
+            <div className="flex flex-col py-1 text-sm">
               <button
                 onClick={() => {
-                  onEdit(message.id, message.content);
+                  onSave(message.content);
                   setPickerOpen(false);
                 }}
-                title="Tahrirlash"
-                className="rounded-full px-1.5 text-base transition hover:scale-125"
+                className="flex items-center gap-3 px-4 py-2.5 text-left text-gray-800 transition hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-white/5"
               >
-                ✏️
+                <span className="text-lg">📌</span> Saqlash
               </button>
-            )}
-            {mine && (
               <button
                 onClick={() => {
-                  onDelete(message.id);
+                  onForward(message.content);
                   setPickerOpen(false);
                 }}
-                title="O'chirish"
-                className="rounded-full px-1.5 text-base transition hover:scale-125"
+                className="flex items-center gap-3 px-4 py-2.5 text-left text-gray-800 transition hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-white/5"
               >
-                🗑
+                <span className="text-lg">↪</span> Boshqa chatga yuborish
               </button>
-            )}
+              {mine && isPlainText && (
+                <button
+                  onClick={() => {
+                    onEdit(message.id, message.content);
+                    setPickerOpen(false);
+                  }}
+                  className="flex items-center gap-3 px-4 py-2.5 text-left text-gray-800 transition hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-white/5"
+                >
+                  <span className="text-lg">✏️</span> Tahrirlash
+                </button>
+              )}
+              {mine && (
+                <button
+                  onClick={() => {
+                    onDelete(message.id);
+                    setPickerOpen(false);
+                  }}
+                  className="flex items-center gap-3 px-4 py-2.5 text-left text-red-600 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                >
+                  <span className="text-lg">🗑</span> O&apos;chirish
+                </button>
+              )}
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

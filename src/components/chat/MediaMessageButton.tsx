@@ -5,26 +5,21 @@ import { uploadVoiceMessage, uploadRoundVideo } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 /**
- * Telegram uslubidagi ovozli / yumaloq video xabar tugmasi.
+ * Telegram uslubidagi ovozli / yumaloq video xabar tugmasi (mobil uchun ishonchli).
  *
- * Boshqaruv:
- *   - QISQA BOSISH (tap): rejimni almashtiradi — Mikrofon (🎤) ↔ Kamera (🎥).
- *   - BOSIB TURISH (hold): yozishni boshlaydi. Qo'yib yuborilganda yuboradi.
- *   - CHAPGA SURISH: yozishni bekor qiladi.
- *   - TEPAGA SURISH: "lock" (qo'lsiz) rejim — keyin Yuborish/Bekor/Kamera
- *     tugmalari chiqadi.
- *   - Video rejimda yozayotganda ekranda YUMALOQ jonli oyna ko'rinadi.
- *   - Kamera almashtirish (old/orqa) lock rejimda mumkin.
+ * Boshqaruv (bosib turishga tayanmaydi — mobil'da eng ishonchli usul):
+ *   - Kichik "almashtirish" tugmasi: Mikrofon (🎤) ↔ Kamera (🎥) rejimini almashtiradi.
+ *   - Asosiy tugmani BOSISH: yozishni boshlaydi (getUserMedia to'g'ridan-to'g'ri
+ *     bosish hodisasida chaqiriladi — shu sabab kamera/mikrofon ruxsati ishonchli).
+ *   - Yozayotganda ekranda: Bekor (🗑), Yuborish (➤) va video rejimda kamera
+ *     almashtirish (old/orqa) tugmalari chiqadi.
+ *   - Video rejimda jonli YUMALOQ oyna ko'rinadi.
  *
  * Yuborish: onSend("voice:<url>") yoki onSend("roundvideo:<url>").
  */
 
 type Mode = "audio" | "video";
 type Phase = "idle" | "starting" | "recording" | "uploading";
-
-const HOLD_DELAY = 180; // ms — shu vaqtdan keyin bosib turish "yozish" deb hisoblanadi
-const CANCEL_DX = -80; // px — chapga shuncha surilsa bekor qilinadi
-const LOCK_DY = -70; // px — tepaga shuncha surilsa lock bo'ladi
 
 export default function MediaMessageButton({
   onSend,
@@ -35,35 +30,26 @@ export default function MediaMessageButton({
 }) {
   const [mode, setMode] = useState<Mode>("audio");
   const [phase, setPhase] = useState<Phase>("idle");
-  const [locked, setLocked] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [facing, setFacing] = useState<"user" | "environment">("user");
-  const [cancelZone, setCancelZone] = useState(false);
 
-  // Ref'lar — async/pointer hodisalarida "stale closure" muammosini oldini oladi
-  const phaseRef = useRef<Phase>("idle");
+  // Ref'lar — async hodisalarda "stale closure" muammosini oldini oladi
   const modeRef = useRef<Mode>("audio");
   const facingRef = useRef<"user" | "environment">("user");
-  const lockedRef = useRef(false);
   const cancelledRef = useRef(false);
-  const cancelZoneRef = useRef(false);
-  const stopRequestedRef = useRef(false);
   const flippingRef = useRef(false);
+  const phaseRef = useRef<Phase>("idle");
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const startXRef = useRef(0);
-  const startYRef = useRef(0);
   const previewRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
 
-  // Komponent yo'qolganda barcha resurslarni tozalash
   useEffect(() => {
     return () => cleanupStream();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,10 +71,6 @@ export default function MediaMessageButton({
     cleanupStream();
     recorderRef.current = null;
     chunksRef.current = [];
-    lockedRef.current = false;
-    cancelZoneRef.current = false;
-    setLocked(false);
-    setCancelZone(false);
     setSeconds(0);
     setPhaseBoth("idle");
   }
@@ -101,27 +83,19 @@ export default function MediaMessageButton({
     return candidates.find((c) => MediaRecorder.isTypeSupported(c)) || "";
   }
 
-  // --- Yozishni boshlash (getUserMedia + MediaRecorder) ---
+  // --- Yozishni boshlash (getUserMedia TO'G'RIDAN-TO'G'RI bosishda chaqiriladi) ---
   async function startRecording() {
+    // Faqat "idle" (yangi yozuv) yoki "starting" (kamera almashtirilgach qayta
+    // boshlash) holatida ruxsat beramiz.
+    if (phaseRef.current !== "idle" && phaseRef.current !== "starting") return;
     setPhaseBoth("starting");
     cancelledRef.current = false;
-    cancelZoneRef.current = false;
-    setCancelZone(false);
     try {
       const constraints: MediaStreamConstraints =
         modeRef.current === "video"
           ? { audio: true, video: { facingMode: facingRef.current } }
           : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      // Foydalanuvchi tayyor bo'lishidan oldin qo'yib yuborgan bo'lsa — bekor
-      if (stopRequestedRef.current) {
-        stopRequestedRef.current = false;
-        stream.getTracks().forEach((t) => t.stop());
-        resetIdle();
-        return;
-      }
-
       streamRef.current = stream;
       chunksRef.current = [];
       const mime = pickMime(modeRef.current);
@@ -137,7 +111,6 @@ export default function MediaMessageButton({
       setSeconds(0);
       timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
 
-      // Video rejimda jonli yumaloq oynani ko'rsatamiz
       if (modeRef.current === "video" && previewRef.current) {
         previewRef.current.srcObject = stream;
         previewRef.current.muted = true;
@@ -146,8 +119,8 @@ export default function MediaMessageButton({
     } catch {
       alert(
         modeRef.current === "video"
-          ? "Kameraga ruxsat berilmadi yoki mavjud emas."
-          : "Mikrofonga ruxsat berilmadi yoki mavjud emas."
+          ? "Kameraga ruxsat berilmadi yoki mavjud emas. Brauzer sozlamalaridan ruxsat bering."
+          : "Mikrofonga ruxsat berilmadi yoki mavjud emas. Brauzer sozlamalaridan ruxsat bering."
       );
       resetIdle();
     }
@@ -161,7 +134,6 @@ export default function MediaMessageButton({
     if (flippingRef.current) {
       flippingRef.current = false;
       setPhaseBoth("starting");
-      // kichik kechikish bilan yangi oqimni ochamiz
       setTimeout(() => startRecording(), 150);
       return;
     }
@@ -174,15 +146,12 @@ export default function MediaMessageButton({
     const blob = new Blob(chunksRef.current, {
       type: recorderRef.current?.mimeType || (wasVideo ? "video/webm" : "audio/webm"),
     });
-    // Juda qisqa/bo'sh yozuvni yubormaymiz
     if (blob.size < 1000) {
       resetIdle();
       return;
     }
 
     setPhaseBoth("uploading");
-    lockedRef.current = false;
-    setLocked(false);
     try {
       if (wasVideo) {
         const url = await uploadRoundVideo(blob);
@@ -214,84 +183,29 @@ export default function MediaMessageButton({
   }
 
   function toggleMode() {
-    setMode((m) => (m === "audio" ? "video" : "audio"));
+    if (phaseRef.current !== "idle") return;
+    const next: Mode = modeRef.current === "audio" ? "video" : "audio";
+    modeRef.current = next;
+    setMode(next);
   }
 
-  async function flipCamera() {
-    // Faqat video rejimda va yozayotganda — yangi kamera bilan qayta boshlaymiz
+  function flipCamera() {
     facingRef.current = facingRef.current === "user" ? "environment" : "user";
     setFacing(facingRef.current);
     if (phaseRef.current === "recording") {
       flippingRef.current = true;
       cancelledRef.current = false;
       if (recorderRef.current && recorderRef.current.state !== "inactive") {
-        recorderRef.current.stop(); // handleStop flippingRef'ni ko'radi va qayta boshlaydi
+        recorderRef.current.stop(); // handleStop qayta boshlaydi
       }
     }
   }
 
-  // --- Pointer (sichqoncha + sensor) hodisalari ---
-  function onPointerDown(e: React.PointerEvent) {
-    if (disabled || phaseRef.current !== "idle") return;
-    e.preventDefault();
-    // Pointer capture — barmoq tugmadan tashqariga surilsa ham move/up hodisalari
-    // shu tugmaga kelaveradi (chapga/tepaga surish ishlashi uchun zarur).
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      /* qo'llab-quvvatlanmasa e'tiborsiz */
-    }
-    startXRef.current = e.clientX;
-    startYRef.current = e.clientY;
-    cancelledRef.current = false;
-    stopRequestedRef.current = false;
-    cancelZoneRef.current = false;
-    setCancelZone(false);
-    // HOLD_DELAY dan keyin yozish boshlanadi (qisqa bosish = toggle)
-    pressTimerRef.current = setTimeout(() => {
-      startRecording();
-    }, HOLD_DELAY);
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (phaseRef.current !== "recording" || lockedRef.current) return;
-    const dx = e.clientX - startXRef.current;
-    const dy = e.clientY - startYRef.current;
-
-    // Tepaga surish → lock (qo'lsiz rejim)
-    if (dy < LOCK_DY) {
-      lockedRef.current = true;
-      setLocked(true);
-      return;
-    }
-    // Chapga surish → bekor qilish zonasi
-    const inCancel = dx < CANCEL_DX;
-    if (inCancel !== cancelZoneRef.current) {
-      cancelZoneRef.current = inCancel;
-      setCancelZone(inCancel);
-    }
-  }
-
-  function onPointerUp() {
-    // Hali yozish boshlanmagan (arming) — bu QISQA BOSISH → rejim almashtirish
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-      pressTimerRef.current = null;
-    }
-    if (phaseRef.current === "idle") {
-      toggleMode();
-      return;
-    }
-    if (phaseRef.current === "starting") {
-      // getUserMedia hali tugamagan — qo'yib yuborildi, bekor qilamiz
-      stopRequestedRef.current = true;
-      return;
-    }
-    if (phaseRef.current === "recording") {
-      if (lockedRef.current) return; // lock rejimda tugmalar orqali boshqariladi
-      if (cancelZoneRef.current) cancelRecording();
-      else stopAndSend();
-    }
+  // Asosiy tugma: bo'sh bo'lsa yozishni boshlaydi, yozayotgan bo'lsa yuboradi
+  function onMainClick() {
+    if (disabled || phase === "uploading") return;
+    if (phaseRef.current === "idle") startRecording();
+    else if (phaseRef.current === "recording") stopAndSend();
   }
 
   const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -299,34 +213,65 @@ export default function MediaMessageButton({
   const recording = phase === "recording" || phase === "starting";
 
   return (
-    <>
-      {/* Ko'k dumaloq tugma */}
+    <div className="flex shrink-0 items-center gap-1">
+      {/* Rejim almashtirish (faqat idle) — Mikrofon ↔ Kamera */}
+      {phase === "idle" && (
+        <button
+          type="button"
+          onClick={toggleMode}
+          disabled={disabled}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 disabled:opacity-50"
+          title={mode === "audio" ? "Video xabarga o'tish" : "Ovozli xabarga o'tish"}
+          aria-label="Rejimni almashtirish"
+        >
+          {mode === "audio" ? (
+            // Hozir audio — kameraga o'tish uchun kamera ikonkasi
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m23 7-7 5 7 5V7z" strokeLinejoin="round" />
+              <rect x="1" y="5" width="15" height="14" rx="2" />
+            </svg>
+          ) : (
+            // Hozir video — mikrofonga o'tish uchun mikrofon ikonkasi
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="9" y="2" width="6" height="12" rx="3" />
+              <path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4M8 22h8" strokeLinecap="round" />
+            </svg>
+          )}
+        </button>
+      )}
+
+      {/* Asosiy yozish tugmasi */}
       <button
         type="button"
         disabled={disabled || phase === "uploading"}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerMove={onPointerMove}
-        onPointerCancel={cancelRecording}
-        onContextMenu={(e) => e.preventDefault()}
+        onClick={onMainClick}
         className={cn(
-          "flex h-11 w-11 shrink-0 select-none touch-none items-center justify-center rounded-full text-white transition",
-          recording ? "scale-110 bg-red-500" : "bg-brand hover:bg-brand-600",
+          "flex h-11 w-11 shrink-0 select-none items-center justify-center rounded-full text-white transition",
+          recording ? "scale-110 animate-pulse bg-red-500" : "bg-brand hover:bg-brand-600",
           "disabled:opacity-50"
         )}
-        title={mode === "audio" ? "Ovozli xabar (bosib turing)" : "Video xabar (bosib turing)"}
+        title={
+          recording
+            ? "Yuborish"
+            : mode === "audio"
+            ? "Ovozli xabar yozish"
+            : "Video xabar yozish"
+        }
         aria-label={mode === "audio" ? "Ovozli xabar" : "Video xabar"}
       >
         {phase === "uploading" ? (
           <span className="text-sm">⏳</span>
+        ) : recording ? (
+          // Yozayotganda — to'xtat/yubor belgisi
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="2" />
+          </svg>
         ) : mode === "audio" ? (
-          // Mikrofon ikonkasi
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="9" y="2" width="6" height="12" rx="3" />
             <path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4M8 22h8" strokeLinecap="round" />
           </svg>
         ) : (
-          // Kamera ikonkasi
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="m23 7-7 5 7 5V7z" strokeLinejoin="round" />
             <rect x="1" y="5" width="15" height="14" rx="2" />
@@ -336,16 +281,11 @@ export default function MediaMessageButton({
 
       {/* Yozish paytidagi qoplama (overlay) */}
       {recording && (
-        <div className="fixed inset-0 z-[80] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm">
           {/* Video rejim — jonli yumaloq oyna */}
           {mode === "video" && (
-            <div className="relative mb-6">
-              <div
-                className={cn(
-                  "h-64 w-64 overflow-hidden rounded-full border-4 shadow-2xl",
-                  cancelZone ? "border-red-500" : "border-white/80"
-                )}
-              >
+            <div className="relative mb-8">
+              <div className="h-64 w-64 overflow-hidden rounded-full border-4 border-white/80 shadow-2xl">
                 <video
                   ref={previewRef}
                   autoPlay
@@ -353,77 +293,71 @@ export default function MediaMessageButton({
                   muted
                   className={cn(
                     "h-full w-full object-cover",
-                    facing === "user" && "-scale-x-100" // old kamerada oyna effekti
+                    facing === "user" && "-scale-x-100"
                   )}
                 />
               </div>
-              {/* Kamera almashtirish — lock rejimda ko'rinadi */}
-              {locked && (
-                <button
-                  type="button"
-                  onClick={flipCamera}
-                  className="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-lg"
-                  title="Kamerani almashtirish"
-                  aria-label="Kamerani almashtirish"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 4h5v5M20 4l-6 6M9 20H4v-5M4 20l6-6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              )}
+              {/* Kamera almashtirish (old/orqa) */}
+              <button
+                type="button"
+                onClick={flipCamera}
+                className="absolute bottom-1 right-1 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-lg"
+                title="Kamerani almashtirish (old/orqa)"
+                aria-label="Kamerani almashtirish"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 4h5v5M20 4l-6 6M9 20H4v-5M4 20l6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
           )}
 
-          {/* Taymer + rang indikatori */}
-          <div className="mb-4 flex items-center gap-2 text-white">
+          {/* Taymer */}
+          <div className="mb-6 flex items-center gap-2 text-white">
             <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
             <span className="font-mono text-lg">
               {mm}:{ss}
             </span>
           </div>
 
-          {/* Ko'rsatma yoki lock tugmalari */}
-          {!locked ? (
-            <p className={cn("text-sm", cancelZone ? "text-red-400" : "text-white/80")}>
-              {cancelZone
-                ? "↩︎ Bekor qilish uchun qo'yib yuboring"
-                : "◀ Bekor qilish  ·  ▲ Qo'lsiz yozish (lock)"}
-            </p>
-          ) : (
-            <div className="flex items-center gap-4">
+          {/* Boshqaruv tugmalari: Bekor · Yuborish */}
+          <div className="flex items-center gap-6">
+            <button
+              type="button"
+              onClick={cancelRecording}
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-xl text-white"
+              title="Bekor qilish"
+              aria-label="Bekor qilish"
+            >
+              🗑
+            </button>
+            <button
+              type="button"
+              onClick={stopAndSend}
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-3xl text-white shadow-lg active:scale-95"
+              title="Yuborish"
+              aria-label="Yuborish"
+            >
+              ➤
+            </button>
+            {mode === "video" && (
               <button
                 type="button"
-                onClick={cancelRecording}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white"
-                title="Bekor qilish"
-                aria-label="Bekor qilish"
+                onClick={flipCamera}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-xl text-white"
+                title="Kamerani almashtirish"
+                aria-label="Kamerani almashtirish"
               >
-                🗑
+                🔄
               </button>
-              <button
-                type="button"
-                onClick={stopAndSend}
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-2xl text-white shadow-lg"
-                title="Yuborish"
-                aria-label="Yuborish"
-              >
-                ➤
-              </button>
-              {mode === "video" && (
-                <button
-                  type="button"
-                  onClick={flipCamera}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white"
-                  title="Kamerani almashtirish"
-                  aria-label="Kamerani almashtirish"
-                >
-                  🔄
-                </button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
+
+          <p className="mt-6 text-xs text-white/60">
+            {mode === "audio" ? "Ovozli xabar yozilmoqda…" : "Video xabar yozilmoqda…"}
+          </p>
         </div>
       )}
-    </>
+    </div>
   );
 }
