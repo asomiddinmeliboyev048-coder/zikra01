@@ -34,7 +34,12 @@ function resolveHref(link: string | null | undefined): string | null {
   const href = link.trim();
   if (!href) return null;
 
-  // Eski/noto'g'ri "/skills/<id yoki nom>" havolalari -> "/match/<...>"
+  // Eski/mos kelmaydigan havolalarni yangi "/match/<...>" sahifasiga o'tkazamiz:
+  //   "/matches/<...>" (ko'plikda) -> "/match/<...>"
+  //   "/skills/<...>"              -> "/match/<...>"
+  if (href.startsWith("/matches/")) {
+    return "/match/" + href.slice("/matches/".length);
+  }
   if (href.startsWith("/skills/")) {
     return "/match/" + href.slice("/skills/".length);
   }

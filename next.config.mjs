@@ -24,6 +24,28 @@ const nextConfig = {
       { protocol: "https", hostname: "*.amazonaws.com" },
     ],
   },
+
+  // ============================================================
+  // REDIRECT'LAR — eski/mos kelmaydigan match havolalari 404 bermasin.
+  // Route papkamiz `/match/[skillId]` (BIRLIKDA). Eski bildirishnomalar
+  // `/matches/...` (ko'plikda) yoki `/skills/...` bo'lishi mumkin edi —
+  // ularni bir xil `/match/...` sahifasiga yo'naltiramiz. Query (?mode=...)
+  // avtomatik saqlanadi.
+  // ============================================================
+  async redirects() {
+    return [
+      {
+        source: "/matches/:path*",
+        destination: "/match/:path*",
+        permanent: false,
+      },
+      {
+        source: "/skills/:path*",
+        destination: "/match/:path*",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
