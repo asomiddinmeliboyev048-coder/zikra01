@@ -19,6 +19,28 @@ const ICON: Record<NotificationType, string> = {
   new_comment: "💭",
 };
 
+/**
+ * Bildirishnoma havolasini xavfsiz, mavjud manzilga aylantiradi.
+ *
+ * MUAMMO: ko'nikma mosligi ("Siz o'rgata olarkansiz" / "Siz o'rganmoqchi
+ * bo'lgan ko'nikma egalari") bildirishnomalari mavjud bo'lmagan sahifaga
+ * ("/skills/...") ishora qilardi va bosilganda 404 chiqardi.
+ *
+ * YECHIM: bunday havolalarni yangi "/match/[skillId]" sahifasiga yo'naltiramiz.
+ * Boshqa barcha havolalar o'zgarishsiz qoladi.
+ */
+function resolveHref(link: string | null | undefined): string | null {
+  if (!link) return null;
+  const href = link.trim();
+  if (!href) return null;
+
+  // Eski/noto'g'ri "/skills/<id yoki nom>" havolalari -> "/match/<...>"
+  if (href.startsWith("/skills/")) {
+    return "/match/" + href.slice("/skills/".length);
+  }
+  return href;
+}
+
 export default function NotificationsList({
   userId,
   initial,
@@ -116,10 +138,12 @@ export default function NotificationsList({
               </div>
             );
 
+            const href = resolveHref(n.link);
+
             return (
               <li key={n.id} onClick={() => !n.is_read && handleRead(n.id)}>
-                {n.link ? (
-                  <Link href={n.link}>{content}</Link>
+                {href ? (
+                  <Link href={href}>{content}</Link>
                 ) : (
                   <div className="cursor-pointer">{content}</div>
                 )}

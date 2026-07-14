@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BannedScreen from "@/components/BannedScreen";
+import { isUserBanned } from "@/lib/ban";
 
 // Bu sahifa keshlanmasin — blok holati har doim yangi tekshirilsin
 export const dynamic = "force-dynamic";
@@ -24,15 +25,15 @@ export default async function BannedPage() {
   // Tizimga kirmagan bo'lsa — login sahifasiga
   if (!user) redirect("/login");
 
+  // "*" — middleware bilan bir xil ma'lumot (is_banned ustuni bo'lsa ham o'qiladi)
   const { data: prof } = await supabase
     .from("profiles")
-    .select("status, banned_until, ban_reason")
+    .select("*")
     .eq("id", user.id)
     .maybeSingle();
 
-  const isBanned =
-    prof?.status === "banned" &&
-    (!prof.banned_until || new Date(prof.banned_until) > new Date());
+  // Middleware bilan AYNAN bir xil mantiq — aks holda redirect loop bo'ladi
+  const isBanned = isUserBanned(prof);
 
   // Bloklanmagan (yoki muddat tugagan) bo'lsa — saytga qaytaramiz
   if (!isBanned) redirect("/discovery");
