@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { parseUserAgent } from "@/lib/utils";
+import { isUserBanned } from "@/lib/ban";
 
 /** So'rov sarlavhalaridan foydalanuvchi IP manzilini olish */
 function getClientIp(request: NextRequest): string {
@@ -57,16 +58,18 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/auth");
 
   if (user && !skipBanCheck) {
+    // "*" ni tanlaymiz: shunda status/banned_until dan tashqari, agar admin
+    // panel `is_banned` boolean ustunidan foydalansa, u ham o'qiladi. Mavjud
+    // bo'lmagan ustunni nom bilan tanlash xato berardi — "*" esa xavfsiz.
     const { data: prof } = await supabase
       .from("profiles")
-      .select("status, banned_until")
+      .select("*")
       .eq("id", user.id)
       .maybeSingle();
 
-    // Bloklangan: status='banned' VA (doimiy YOKI muddat hali tugamagan)
-    const isBanned =
-      prof?.status === "banned" &&
-      (!prof.banned_until || new Date(prof.banned_until) > new Date());
+    // Mustahkam tekshiruv (status='banned' YOKI is_banned=true, muddat hisobga
+    // olingan holda). /banned sahifasi ham AYNAN shu funksiyadan foydalanadi.
+    const isBanned = isUserBanned(prof);
 
     if (isBanned) {
       // Qaysi sahifaga kirmasin — qora ekranga yo'naltiramiz
