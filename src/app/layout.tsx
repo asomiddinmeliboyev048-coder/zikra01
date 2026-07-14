@@ -4,6 +4,8 @@ import "./globals.css";
 import PWAInstall from "@/components/PWAInstall";
 import PinGate from "@/components/auth/PinGate";
 import AuthListener from "@/components/auth/AuthListener";
+import NavProgress from "@/components/NavProgress";
+import RoutePrefetcher from "@/components/RoutePrefetcher";
 import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
@@ -58,6 +60,11 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#f7f7fb] font-sans text-gray-900 antialiased dark:bg-[#0e1525] dark:text-gray-100">
+        {/* Lahzali navigatsiya: yuqoridagi progress chizig'i + fon prefetch.
+            Ikkalasi ham {children} dan TASHQARIDA — sahifa o'tish
+            animatsiyasidan (template.tsx) ta'sirlanmaydi. */}
+        <NavProgress />
+        <RoutePrefetcher />
         {children}
         <PWAInstall />
         <AuthListener />
