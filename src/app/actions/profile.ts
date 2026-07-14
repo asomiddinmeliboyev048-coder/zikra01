@@ -103,6 +103,132 @@ export async function removeCertificateAction(): Promise<ProfileState> {
   return { success: true };
 }
 
+/** Server Supabase klient turi (yordamchi funksiyalar uchun) */
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
+
+/** Ko'nikma nomini id bo'yicha olish (topilmasa "ko'nikma") */
+async function getSkillName(
+  supabase: SupabaseServer,
+  skillId: string
+): Promise<string> {
+  const { data } = await supabase
+    .from("skills")
+    .select("name")
+    .eq("id", skillId)
+    .maybeSingle();
+  return (data as { name: string } | null)?.name ?? "ko'nikma";
+}
+
+/**
+ * MATCHMAKING BILDIRISHNOMALARI.
+ *
+ * Foydalanuvchi profilida YANGI ko'nikma qo'shganda, mos hamkorlar bo'lsa,
+ * o'ziga bildirishnoma yaratamiz:
+ *  - Yangi O'RGANMOQCHI (learn) ko'nikma  -> uni o'rgata oladiganlar bormi?
+ *    (link: /match/<id>?mode=mentors)
+ *  - Yangi O'RGATA oladigan (teach) ko'nikma -> uni o'rganmoqchi bo'lganlar bormi?
+ *    (link: /match/<id>?mode=students)
+ *
+ * MUHIM:
+ *  - Faqat YANGI qo'shilgan ko'nikmalar tekshiriladi (spam bo'lmasligi uchun).
+ *  - Har bir qadam try/catch bilan o'ralgan va xatolar console'ga log qilinadi.
+ *    Bu funksiya HECH QACHON profil saqlashni buzmaydi (chaqiruvchi ham
+ *    try/catch ichida chaqiradi).
+ *  - Bildirishnoma FAQAT o'ziga (user_id = meId) yaratiladi -> RLS
+ *    "notifications_insert_self" siyosati bilan ishlaydi (SQL skriptga qarang).
+ */
+async function notifyMatches(
+  supabase: SupabaseServer,
+  meId: string,
+  newLearnIds: string[],
+  newTeachIds: string[]
+): Promise<void> {
+  const notifications: {
+    user_id: string;
+    type: string;
+    message: string;
+    link: string;
+  }[] = [];
+
+  // 1) Men O'RGANMOQCHI bo'lgan yangi ko'nikmalar -> ularni O'RGATA oladiganlar
+  for (const skillId of newLearnIds) {
+    try {
+      const { data: teachers, error } = await supabase
+        .from("user_skills")
+        .select("user_id")
+        .eq("skill_id", skillId)
+        .eq("type", "teach")
+        .neq("user_id", meId);
+      if (error) {
+        console.error(
+          `[MATCH] O'rgatuvchilarni olishda xato (skill=${skillId}):`,
+          error.message
+        );
+        continue;
+      }
+      const count = new Set(
+        ((teachers ?? []) as { user_id: string }[]).map((t) => t.user_id)
+      ).size;
+      if (count === 0) continue;
+      const name = await getSkillName(supabase, skillId);
+      notifications.push({
+        user_id: meId,
+        type: "match",
+        message: `🤝 «${name}» ni o'rgata oladigan ${count} ta hamkor topildi! Ko'rib chiqing.`,
+        link: `/match/${skillId}?mode=mentors`,
+      });
+    } catch (e) {
+      console.error(`[MATCH] learn ko'nikma ${skillId} bo'yicha xato:`, e);
+    }
+  }
+
+  // 2) Men O'RGATA oladigan yangi ko'nikmalar -> ularni O'RGANMOQCHI bo'lganlar
+  for (const skillId of newTeachIds) {
+    try {
+      const { data: learners, error } = await supabase
+        .from("user_skills")
+        .select("user_id")
+        .eq("skill_id", skillId)
+        .eq("type", "learn")
+        .neq("user_id", meId);
+      if (error) {
+        console.error(
+          `[MATCH] O'rganuvchilarni olishda xato (skill=${skillId}):`,
+          error.message
+        );
+        continue;
+      }
+      const count = new Set(
+        ((learners ?? []) as { user_id: string }[]).map((t) => t.user_id)
+      ).size;
+      if (count === 0) continue;
+      const name = await getSkillName(supabase, skillId);
+      notifications.push({
+        user_id: meId,
+        type: "match",
+        message: `🎓 «${name}» ni o'rganmoqchi bo'lgan ${count} ta odam bor — ularga o'rgatishingiz mumkin!`,
+        link: `/match/${skillId}?mode=students`,
+      });
+    } catch (e) {
+      console.error(`[MATCH] teach ko'nikma ${skillId} bo'yicha xato:`, e);
+    }
+  }
+
+  if (notifications.length === 0) {
+    console.log("[MATCH] Yangi mos hamkor topilmadi — bildirishnoma yaratilmadi.");
+    return;
+  }
+
+  const { error } = await supabase.from("notifications").insert(notifications);
+  if (error) {
+    console.error("[MATCH] Bildirishnomalarni saqlashda xato:", error.message);
+  } else {
+    console.log(
+      `[MATCH] ${notifications.length} ta match bildirishnoma yaratildi (user=${meId}).`
+    );
+  }
+}
+
 /**
  * Onboarding / profilni saqlash.
  * teach_skills va learn_skills — vergul bilan ajratilgan skill_id'lar.
@@ -189,6 +315,24 @@ export async function saveProfileAction(
   const uniqTeach = Array.from(new Set(teachIds));
   const uniqLearn = Array.from(new Set(learnIds));
 
+  // MATCHMAKING uchun: o'chirishdan OLDIN eski ko'nikmalarni o'qib olamiz.
+  // Shu tufayli keyin qaysi ko'nikmalar YANGI qo'shilganini aniqlaymiz
+  // (faqat yangilar bo'yicha bildirishnoma yuboriladi — takror/spam bo'lmaydi).
+  const { data: prevSkills } = await supabase
+    .from("user_skills")
+    .select("skill_id, type")
+    .eq("user_id", user.id);
+  const prevLearn = new Set(
+    ((prevSkills ?? []) as { skill_id: string; type: string }[])
+      .filter((r) => r.type === "learn")
+      .map((r) => r.skill_id)
+  );
+  const prevTeach = new Set(
+    ((prevSkills ?? []) as { skill_id: string; type: string }[])
+      .filter((r) => r.type === "teach")
+      .map((r) => r.skill_id)
+  );
+
   // Eski ko'nikmalarni tozalab, qaytadan yozamiz
   const { error: delErr } = await supabase
     .from("user_skills")
@@ -221,8 +365,23 @@ export async function saveProfileAction(
   if (skErr)
     return { error: "Ko'nikmalarni saqlashda xatolik: " + skErr.message };
 
+  // --- MATCHMAKING BILDIRISHNOMALARI ---
+  // Yangi qo'shilgan ko'nikmalar bo'yicha mos hamkorlar haqida xabar beramiz.
+  // Butun blok try/catch ichida — bu HECH QACHON profil saqlashni buzmaydi.
+  try {
+    const newLearn = uniqLearn.filter((id) => !prevLearn.has(id));
+    const newTeach = uniqTeach.filter((id) => !prevTeach.has(id));
+    console.log(
+      `[MATCH] Yangi ko'nikmalar -> learn: ${newLearn.length}, teach: ${newTeach.length}`
+    );
+    await notifyMatches(supabase, user.id, newLearn, newTeach);
+  } catch (e) {
+    console.error("[MATCH] Matchmaking bloki kutilmagan xato bilan tugadi:", e);
+  }
+
   revalidatePath("/discovery");
   revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/notifications");
   redirect("/discovery");
 }
 
