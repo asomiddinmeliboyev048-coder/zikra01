@@ -808,24 +808,59 @@ function MessageRow({
   onEdit: (id: string, content: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapRef = useRef(0);
+  const didLongPressRef = useRef(false);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
 
-  // Uzoq bosish (long press) -> menyuni ochish
-  function startLongPress() {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-    longPressTimer.current = setTimeout(() => setPickerOpen(true), 450);
+  // Faqat oddiy matnli xabarni tahrirlash mumkin (ovoz/video/rasm emas)
+  const isPlainText =
+    !/^https?:\/\/\S+$/.test(message.content.trim()) &&
+    !message.content.trim().startsWith("voice:") &&
+    !message.content.trim().startsWith("roundvideo:");
+
+  function openMenu() {
+    if (bubbleRef.current) setAnchor(bubbleRef.current.getBoundingClientRect());
+    setOpen(true);
   }
-  function cancelLongPress() {
+  function closeMenu() {
+    setOpen(false);
+  }
+
+  // --- Uzoq bosish (long press, 500ms) — Pointer Events bilan ---
+  function handlePointerDown(e: React.PointerEvent) {
+    didLongPressRef.current = false;
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    longPressTimer.current = setTimeout(() => {
+      didLongPressRef.current = true;
+      openMenu();
+    }, 500);
+  }
+  function clearLongPress() {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
   }
+  function handlePointerMove(e: React.PointerEvent) {
+    const s = pointerStartRef.current;
+    if (!s) return;
+    // Barmoq siljisa (scroll) — long press bekor
+    if (Math.abs(e.clientX - s.x) > 10 || Math.abs(e.clientY - s.y) > 10) {
+      clearLongPress();
+    }
+  }
 
-  // Ikki marta bosish (double tap) -> tez ❤️ reaksiya (Telegram/Instagram uslubi)
-  function handleBubbleTap() {
+  // Ikki marta bosish (double tap) -> tez ❤️ (long press bo'lgan bo'lsa e'tiborsiz)
+  function handleBubbleClick() {
+    if (didLongPressRef.current) {
+      didLongPressRef.current = false;
+      return;
+    }
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
       lastTapRef.current = 0;
@@ -835,96 +870,158 @@ function MessageRow({
     }
   }
 
-  // Faqat oddiy matnli xabarni tahrirlash mumkin (ovoz/video/rasm emas)
-  const isPlainText =
-    !/^https?:\/\/\S+$/.test(message.content.trim()) &&
-    !message.content.trim().startsWith("voice:") &&
-    !message.content.trim().startsWith("roundvideo:");
+  // Nusxalash (matn yoki media URL'ini)
+  function copyContent() {
+    const c = message.content.trim();
+    const text = c.startsWith("voice:")
+      ? c.slice("voice:".length)
+      : c.startsWith("roundvideo:")
+        ? c.slice("roundvideo:".length)
+        : c;
+    try {
+      navigator.clipboard?.writeText(text);
+    } catch {
+      /* e'tiborsiz */
+    }
+  }
 
-  const trigger = (
-    <div className="relative self-center">
+  // Amallar ro'yxati — mobil sheet va desktop popup uchun YAGONA manba
+  type ActionItem = {
+    key: string;
+    label: string;
+    icon: string;
+    onClick: () => void;
+    danger?: boolean;
+  };
+  const actions: ActionItem[] = [
+    { key: "copy", label: "Nusxalash", icon: "📋", onClick: copyContent },
+    { key: "save", label: "Saqlash", icon: "📌", onClick: () => onSave(message.content) },
+    { key: "forward", label: "Yo'naltirish", icon: "↪", onClick: () => onForward(message.content) },
+  ];
+  if (mine && isPlainText)
+    actions.push({ key: "edit", label: "Tahrirlash", icon: "✏️", onClick: () => onEdit(message.id, message.content) });
+  if (mine)
+    actions.push({ key: "delete", label: "O'chirish", icon: "🗑", onClick: () => onDelete(message.id), danger: true });
+
+  function runAction(fn: () => void) {
+    fn();
+    closeMenu();
+  }
+
+  // Desktop popup joylashuvi (ekran chetidan chiqmasin — boundary detection)
+  const MENU_W = 264;
+  let desktopStyle: React.CSSProperties = { visibility: "hidden" };
+  if (anchor) {
+    const vw = typeof window !== "undefined" ? window.innerWidth : 1024;
+    const vh = typeof window !== "undefined" ? window.innerHeight : 768;
+    const estH = 300;
+    let left = mine ? anchor.right - MENU_W : anchor.left;
+    left = Math.max(8, Math.min(left, vw - MENU_W - 8));
+    // Tepada joy bo'lsa yuqorida, aks holda pastda ochamiz
+    let top = anchor.top - 8 - estH;
+    if (top < 8) top = Math.min(anchor.bottom + 8, vh - estH - 8);
+    top = Math.max(8, top);
+    desktopStyle = { top, left, width: MENU_W, visibility: "visible" };
+  }
+
+  // Reaksiyalar qatori (mobil va desktop uchun) — bir marta yoziladi
+  const reactionButtons = (size: string) =>
+    REACTION_EMOJIS.map((e) => (
       <button
-        onClick={() => setPickerOpen((o) => !o)}
-        className="rounded-full p-1 text-gray-400 opacity-70 transition hover:bg-gray-100 hover:text-gray-600 sm:opacity-0 sm:group-hover:opacity-100"
-        aria-label="Reaksiya"
+        key={e}
+        onClick={() => runAction(() => onReact(message.id, e))}
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-full transition hover:scale-125 active:scale-110",
+          size
+        )}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" strokeLinecap="round" />
-        </svg>
+        {e}
       </button>
-      {pickerOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
-          <div
-            className={cn(
-              "absolute bottom-8 z-20 flex gap-1 rounded-full border border-gray-100 bg-white p-1 shadow-card-hover",
-              mine ? "right-0" : "left-0"
-            )}
-          >
-            {REACTION_EMOJIS.map((e) => (
+    ));
+
+  const menu = open ? (
+    <>
+      {/* Fon (tashqariga bosilsa yopiladi) */}
+      <div
+        className="fixed inset-0 z-[90] animate-fade-in bg-black/40 md:bg-black/20"
+        onClick={closeMenu}
+        onContextMenu={(e) => e.preventDefault()}
+      />
+
+      {/* MOBIL (<768px): pastdan chiquvchi Telegram uslubidagi Bottom Sheet */}
+      <div className="fixed inset-x-0 bottom-0 z-[95] animate-slide-up md:hidden">
+        <div className="mx-auto max-w-md rounded-t-2xl border-t border-gray-100 bg-white pb-[env(safe-area-inset-bottom)] shadow-2xl dark:border-white/10 dark:bg-[#1b2436]">
+          {/* Tutqich chizig'i */}
+          <div className="flex justify-center pt-2.5">
+            <span className="h-1 w-10 rounded-full bg-gray-300 dark:bg-white/20" />
+          </div>
+          {/* Reaksiyalar (gorizontal, sig'masa scroll) */}
+          <div className="flex gap-1.5 overflow-x-auto px-3 py-3">
+            {reactionButtons("h-12 w-12 text-2xl")}
+          </div>
+          <div className="h-px bg-gray-100 dark:bg-white/10" />
+          {/* Amallar (vertikal, to'liq kenglik) */}
+          <div className="py-1">
+            {actions.map((a) => (
               <button
-                key={e}
-                onClick={() => {
-                  onReact(message.id, e);
-                  setPickerOpen(false);
-                }}
-                className="rounded-full px-1.5 text-lg transition hover:scale-125"
+                key={a.key}
+                onClick={() => runAction(a.onClick)}
+                className={cn(
+                  "flex w-full items-center gap-3.5 px-5 py-3.5 text-left text-[15px] transition active:bg-gray-100 dark:active:bg-white/10",
+                  a.danger
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-gray-800 dark:text-gray-100"
+                )}
               >
-                {e}
+                <span className="w-6 text-center text-lg">{a.icon}</span>
+                <span>{a.label}</span>
               </button>
             ))}
-            <span className="mx-0.5 w-px bg-gray-200" />
-            <button
-              onClick={() => {
-                onSave(message.content);
-                setPickerOpen(false);
-              }}
-              title="Saqlash"
-              className="rounded-full px-1.5 text-base transition hover:scale-125"
-            >
-              📌
-            </button>
-            <button
-              onClick={() => {
-                onForward(message.content);
-                setPickerOpen(false);
-              }}
-              title="Boshqa chatga yuborish"
-              className="rounded-full px-1.5 text-base transition hover:scale-125"
-            >
-              ↪
-            </button>
-
-            {/* Tahrirlash / O'chirish — faqat o'z xabari */}
-            {mine && isPlainText && (
-              <button
-                onClick={() => {
-                  onEdit(message.id, message.content);
-                  setPickerOpen(false);
-                }}
-                title="Tahrirlash"
-                className="rounded-full px-1.5 text-base transition hover:scale-125"
-              >
-                ✏️
-              </button>
-            )}
-            {mine && (
-              <button
-                onClick={() => {
-                  onDelete(message.id);
-                  setPickerOpen(false);
-                }}
-                title="O'chirish"
-                className="rounded-full px-1.5 text-base transition hover:scale-125"
-              >
-                🗑
-              </button>
-            )}
           </div>
-        </>
-      )}
-    </div>
+        </div>
+      </div>
+
+      {/* DESKTOP (>=768px): xabarga yopishgan, chegaradan chiqmaydigan popup */}
+      <div
+        style={desktopStyle}
+        className="fixed z-[95] hidden animate-scale-in overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl transition-all duration-200 md:block dark:border-white/10 dark:bg-[#1b2436]"
+      >
+        <div className="flex gap-1 overflow-x-auto border-b border-gray-100 p-2 dark:border-white/10">
+          {reactionButtons("h-9 w-9 text-xl")}
+        </div>
+        <div className="py-1">
+          {actions.map((a) => (
+            <button
+              key={a.key}
+              onClick={() => runAction(a.onClick)}
+              className={cn(
+                "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-gray-100 dark:hover:bg-white/10",
+                a.danger
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-gray-800 dark:text-gray-100"
+              )}
+            >
+              <span className="w-5 text-center">{a.icon}</span>
+              <span>{a.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  ) : null;
+
+  // Kichik "amallar" tugmasi — desktop'da hover'da ko'rinadi
+  const trigger = (
+    <button
+      onClick={openMenu}
+      className="hidden shrink-0 self-center rounded-full p-1 text-gray-400 opacity-0 transition hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100 dark:hover:bg-white/10 sm:block"
+      aria-label="Amallar"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" strokeLinecap="round" />
+      </svg>
+    </button>
   );
 
   return (
@@ -933,16 +1030,15 @@ function MessageRow({
         <div className="flex items-center gap-1">
           {mine && trigger}
           <div
-            onTouchStart={startLongPress}
-            onTouchEnd={cancelLongPress}
-            onTouchMove={cancelLongPress}
-            onMouseDown={startLongPress}
-            onMouseUp={cancelLongPress}
-            onMouseLeave={cancelLongPress}
-            onClick={handleBubbleTap}
+            ref={bubbleRef}
+            onPointerDown={handlePointerDown}
+            onPointerUp={clearLongPress}
+            onPointerMove={handlePointerMove}
+            onPointerCancel={clearLongPress}
+            onClick={handleBubbleClick}
             onContextMenu={(e) => {
               e.preventDefault();
-              setPickerOpen(true);
+              openMenu();
             }}
             className={cn(
               "select-none rounded-2xl px-4 py-2 text-sm",
@@ -963,6 +1059,8 @@ function MessageRow({
           </div>
           {!mine && trigger}
         </div>
+
+        {menu}
 
         {aggs.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
