@@ -556,37 +556,45 @@ export default function ChatClient({
         {active ? (
           <>
             {/* Sarlavha */}
-            <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
-              <button
-                onClick={() => router.push("/chat")}
-                className="rounded-lg p-1 text-gray-500 hover:bg-gray-100 sm:hidden"
-                aria-label="Orqaga"
-              >
-                ←
-              </button>
-              <Link
-                href={`/profile/${active.partner.id}`}
-                className="flex items-center gap-3"
-              >
-                <Image
-                  src={
-                    active.partner.avatar_url ||
-                    avatarFallback(active.partner.full_name)
-                  }
-                  alt={active.partner.full_name}
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 rounded-full object-cover"
-                  unoptimized
-                />
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {active.partner.full_name}
-                  </p>
-                  <p className="text-xs text-gray-400">Profilni ko&apos;rish</p>
-                </div>
-              </Link>
-              <div className="ml-auto flex items-center gap-1">
+            <div className="flex items-center gap-2 border-b border-gray-100 px-2 py-2 sm:px-4 sm:py-3">
+              {/* CHAP BLOK: orqaga + avatar + ism.
+                  min-w-0 flex-1 => ism uzun bo'lsa qisqaradi (pastga tushmaydi). */}
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <button
+                  onClick={() => router.push("/chat")}
+                  className="shrink-0 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 sm:hidden"
+                  aria-label="Orqaga"
+                >
+                  ←
+                </button>
+                <Link
+                  href={`/profile/${active.partner.id}`}
+                  className="flex min-w-0 flex-1 items-center gap-2.5"
+                >
+                  <Image
+                    src={
+                      active.partner.avatar_url ||
+                      avatarFallback(active.partner.full_name)
+                    }
+                    alt={active.partner.full_name}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 rounded-full object-cover"
+                    unoptimized
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-gray-900">
+                      {active.partner.full_name}
+                    </p>
+                    {/* Juda kichik ekranlarda (<400px) yashiriladi */}
+                    <p className="hidden truncate text-xs text-gray-400 min-[400px]:block">
+                      Profilni ko&apos;rish
+                    </p>
+                  </div>
+                </Link>
+              </div>
+              {/* O'NG BLOK: tugmalar. shrink-0 => hech qachon qisqarmaydi/ustma-ust tushmaydi. */}
+              <div className="flex shrink-0 items-center gap-0.5">
                 {/* Video qo'ng'iroq */}
                 <button
                   onClick={() =>
@@ -632,7 +640,13 @@ export default function ChatClient({
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" strokeLinejoin="round" />
                   </svg>
                 </button>
-                <MatchBadge score={matchScore} showLabel />
+                {/* Moslik: mobil'da ixcham (faqat foiz), katta ekranda yozuv bilan */}
+                <span className="hidden sm:inline-flex">
+                  <MatchBadge score={matchScore} showLabel />
+                </span>
+                <span className="inline-flex sm:hidden">
+                  <MatchBadge score={matchScore} />
+                </span>
                 {/* Suhbat tarixini butunlay tozalash */}
                 <button
                   onClick={clearChat}
