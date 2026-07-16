@@ -3,18 +3,24 @@
 @tailwind utilities;
 
 /* ============================================================
-   ZIKRA — Global uslublar
-   Brend: brand #534AB7 · success #1D9E75 · accent #D85A30
+   ZIKRA — Premium visual system
+   Brend: chuqur emerald-teal · success: yashil · accent: nazokatli oltin
    ============================================================ */
 
 :root {
-  --background: #f6f7fb;
-  --foreground: #1a1a2e;
-  --brand: #12a594;
-  --brand-600: #0e8578;
-  --success: #1d9e75;
-  --accent: #c99a2e;
-  --ring: rgba(83, 74, 183, 0.35);
+  --background: #f4f8f7;
+  --foreground: #102321;
+  --brand: #0b9b88;
+  --brand-600: #087d70;
+  --success: #168a62;
+  --accent: #c99332;
+  --ring: rgba(11, 155, 136, 0.28);
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --surface-border: rgba(255, 255, 255, 0.82);
+  --ink-muted: #5f716f;
+  --premium-shadow: 0 24px 65px -34px rgba(7, 100, 91, 0.34),
+    0 10px 28px -20px rgba(8, 63, 59, 0.22);
 }
 
 * {
@@ -32,23 +38,25 @@ body {
 
 body {
   color: var(--foreground);
-  /* Yumshoq, ko'p qatlamli fon — tekis rangdan chiroyliroq */
-  background-color: #f6f7fb;
+  background-color: var(--background);
   background-image:
-    radial-gradient(60rem 60rem at 110% -10%, rgba(83, 74, 183, 0.07), transparent 60%),
-    radial-gradient(50rem 50rem at -10% 0%, rgba(29, 158, 117, 0.06), transparent 55%),
-    radial-gradient(40rem 40rem at 50% 120%, rgba(216, 90, 48, 0.05), transparent 60%);
+    radial-gradient(70rem 48rem at 105% -8%, rgba(11, 155, 136, 0.13), transparent 62%),
+    radial-gradient(58rem 42rem at -12% 10%, rgba(22, 138, 98, 0.10), transparent 58%),
+    radial-gradient(44rem 34rem at 48% 108%, rgba(201, 147, 50, 0.08), transparent 64%),
+    linear-gradient(180deg, #f8fbfa 0%, #f2f7f6 48%, #f7faf9 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  letter-spacing: -0.008em;
 }
 
 /* Matn tanlash rangi */
 ::selection {
-  background: rgba(83, 74, 183, 0.2);
-  color: inherit;
+  background: rgba(11, 155, 136, 0.2);
+  color: #083f3b;
 }
 
 /* Nozik, zamonaviy scrollbar */
@@ -61,13 +69,13 @@ body {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(83, 74, 183, 0.25);
+    background: rgba(11, 155, 136, 0.24);
     border-radius: 9999px;
-    border: 2px solid transparent;
+    border: 3px solid transparent;
     background-clip: content-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(83, 74, 183, 0.45);
+    background: rgba(11, 155, 136, 0.48);
     background-clip: content-box;
   }
 }
@@ -95,49 +103,49 @@ body {
 @layer components {
   /* ---- Tugmalar ---- */
   .btn {
-    @apply inline-flex min-h-[44px] touch-manipulation select-none items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-[44px] touch-manipulation select-none items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold tracking-[-0.01em] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-primary {
-    @apply btn bg-brand text-white shadow-[0_6px_18px_-6px_rgba(83,74,183,0.55)] hover:bg-brand-600 hover:shadow-[0_10px_24px_-8px_rgba(83,74,183,0.65)] active:scale-[0.97];
+    @apply btn border border-white/10 bg-gradient-to-br from-brand via-brand to-brand-700 text-white shadow-[0_12px_30px_-14px_rgba(11,155,136,0.72)] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_18px_38px_-16px_rgba(11,155,136,0.78)] active:translate-y-0 active:scale-[0.97];
   }
   .btn-success {
-    @apply btn bg-success text-white shadow-[0_6px_18px_-6px_rgba(29,158,117,0.5)] hover:bg-success-600 hover:shadow-[0_10px_24px_-8px_rgba(29,158,117,0.6)] active:scale-[0.97];
+    @apply btn border border-white/10 bg-gradient-to-br from-success to-success-700 text-white shadow-[0_12px_28px_-14px_rgba(22,138,98,0.62)] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_18px_36px_-16px_rgba(22,138,98,0.72)] active:translate-y-0 active:scale-[0.97];
   }
   .btn-accent {
-    @apply btn bg-accent text-white shadow-[0_6px_18px_-6px_rgba(216,90,48,0.5)] hover:bg-accent-600 hover:shadow-[0_10px_24px_-8px_rgba(216,90,48,0.6)] active:scale-[0.97];
+    @apply btn border border-white/10 bg-gradient-to-br from-accent to-accent-700 text-white shadow-[0_12px_28px_-14px_rgba(201,147,50,0.62)] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_18px_36px_-16px_rgba(201,147,50,0.72)] active:translate-y-0 active:scale-[0.97];
   }
   .btn-outline {
-    @apply btn border border-gray-300 bg-white/80 text-gray-700 backdrop-blur hover:border-brand hover:bg-white hover:text-brand active:scale-[0.97];
+    @apply btn border border-white/80 bg-white/70 text-gray-700 shadow-[0_8px_24px_-18px_rgba(8,63,59,0.38)] backdrop-blur-xl hover:-translate-y-0.5 hover:border-brand/30 hover:bg-white/95 hover:text-brand hover:shadow-glow active:translate-y-0 active:scale-[0.97];
   }
   .btn-ghost {
-    @apply btn text-gray-600 hover:bg-gray-100 active:scale-[0.97];
+    @apply btn text-gray-600 hover:-translate-y-0.5 hover:bg-white/[0.65] hover:text-brand hover:shadow-[0_10px_24px_-18px_rgba(8,63,59,0.38)] active:translate-y-0 active:scale-[0.97];
   }
 
   /* ---- Formalar ---- */
   .input {
-    @apply w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-brand focus:ring-4 focus:ring-brand/15;
+    @apply w-full rounded-2xl border border-white/80 bg-white/75 px-4 py-3 text-sm text-gray-900 shadow-[0_8px_24px_-20px_rgba(8,63,59,0.34)] outline-none backdrop-blur-xl transition-all duration-300 placeholder:text-gray-400 hover:border-brand/20 hover:bg-white/90 focus:border-brand/40 focus:bg-white focus:ring-4 focus:ring-brand/10 focus:shadow-glow;
   }
   .label {
-    @apply mb-1.5 block text-sm font-medium text-gray-700;
+    @apply mb-1.5 block text-sm font-semibold tracking-[-0.01em] text-gray-700;
   }
 
   /* ---- Kartochkalar ---- */
   .card {
-    @apply rounded-2xl border border-gray-100 bg-white shadow-card transition-shadow;
+    @apply rounded-3xl border border-white/80 bg-white/75 shadow-card backdrop-blur-xl transition-all duration-300;
   }
   .card-hover {
-    @apply card hover:-translate-y-0.5 hover:shadow-card-hover;
+    @apply card hover:-translate-y-1 hover:border-brand/20 hover:bg-white/90 hover:shadow-card-hover;
   }
 
   /* ---- Teglar (ko'nikma chiplari) ---- */
   .tag {
-    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium;
+    @apply inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold tracking-[-0.01em] backdrop-blur-sm transition-colors;
   }
   .tag-teach {
-    @apply tag bg-success-50 text-success-700;
+    @apply tag border-success/10 bg-success-50/80 text-success-700 hover:border-success/25 hover:bg-success-100/80;
   }
   .tag-learn {
-    @apply tag bg-brand-50 text-brand-700;
+    @apply tag border-brand/10 bg-brand-50/80 text-brand-700 hover:border-brand/25 hover:bg-brand-100/80;
   }
 
   /* ---- Konteyner ---- */
@@ -149,7 +157,7 @@ body {
 /* ===== Mobil: pastki navigatsiya mavjud bo'lsa kontentga joy qoldirish ===== */
 @media (max-width: 767px) {
   body:has(.zikra-bottom-nav) {
-    padding-bottom: 4.75rem;
+    padding-bottom: 5.75rem;
   }
 }
 
@@ -159,23 +167,27 @@ body {
 
 /* Brend gradientli matn */
 .text-gradient {
-  background: linear-gradient(90deg, #12a594 0%, #1d9e75 50%, #c99a2e 100%);
+  background: linear-gradient(110deg, #087d70 0%, #0b9b88 42%, #168a62 68%, #c99332 118%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 10px 20px rgba(11, 155, 136, 0.10));
 }
 
 /* Nuqtali fon naqshi */
 .bg-dots {
-  background-image: radial-gradient(rgba(83, 74, 183, 0.12) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-image: radial-gradient(rgba(11, 155, 136, 0.15) 0.8px, transparent 0.8px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(to bottom, black, transparent 92%);
 }
 
 /* Shisha (glass) effekti */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.62));
+  border: 1px solid rgba(255, 255, 255, 0.84);
+  box-shadow: var(--premium-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(22px) saturate(155%);
+  -webkit-backdrop-filter: blur(22px) saturate(155%);
 }
 
 /* Scrollbarni yashirish (lentalar, carousel) */
@@ -226,27 +238,29 @@ body {
    DARK MODE — global remap (komponentlarni avtomatik moslashtirish)
    ============================================================ */
 .dark body {
-  background-color: #0e1525;
+  background-color: #071513;
   background-image:
-    radial-gradient(60rem 60rem at 110% -10%, rgba(83, 74, 183, 0.16), transparent 60%),
-    radial-gradient(50rem 50rem at -10% 0%, rgba(29, 158, 117, 0.10), transparent 55%);
-  color: #e2e8f0;
+    radial-gradient(64rem 50rem at 108% -12%, rgba(11, 155, 136, 0.18), transparent 62%),
+    radial-gradient(54rem 44rem at -12% 4%, rgba(22, 138, 98, 0.12), transparent 58%),
+    radial-gradient(40rem 36rem at 50% 112%, rgba(201, 147, 50, 0.08), transparent 66%),
+    linear-gradient(180deg, #081715 0%, #071210 100%);
+  color: #e7f0ee;
 }
 
 /* Yuzalar (cards, sections) */
-.dark .bg-white { background-color: #161d31 !important; }
-.dark .bg-white\/70 { background-color: rgba(22, 29, 49, 0.7) !important; }
-.dark .bg-white\/80 { background-color: rgba(22, 29, 49, 0.8) !important; }
-.dark .bg-white\/85 { background-color: rgba(22, 29, 49, 0.85) !important; }
-.dark .bg-white\/90 { background-color: rgba(22, 29, 49, 0.9) !important; }
-.dark .bg-white\/95 { background-color: rgba(22, 29, 49, 0.95) !important; }
+.dark .bg-white { background-color: #102824 !important; }
+.dark .bg-white\/70 { background-color: rgba(16, 40, 36, 0.7) !important; }
+.dark .bg-white\/80 { background-color: rgba(16, 40, 36, 0.8) !important; }
+.dark .bg-white\/85 { background-color: rgba(16, 40, 36, 0.85) !important; }
+.dark .bg-white\/90 { background-color: rgba(16, 40, 36, 0.9) !important; }
+.dark .bg-white\/95 { background-color: rgba(16, 40, 36, 0.95) !important; }
 
-.dark .bg-gray-50 { background-color: #0e1525 !important; }
-.dark .bg-gray-50\/40 { background-color: rgba(14, 21, 37, 0.5) !important; }
-.dark .bg-gray-50\/50 { background-color: rgba(14, 21, 37, 0.6) !important; }
-.dark .bg-gray-50\/60 { background-color: rgba(14, 21, 37, 0.6) !important; }
-.dark .bg-gray-100 { background-color: #232c44 !important; }
-.dark .bg-gray-900 { background-color: #0b1120 !important; }
+.dark .bg-gray-50 { background-color: #091a17 !important; }
+.dark .bg-gray-50\/40 { background-color: rgba(9, 26, 23, 0.5) !important; }
+.dark .bg-gray-50\/50 { background-color: rgba(9, 26, 23, 0.6) !important; }
+.dark .bg-gray-50\/60 { background-color: rgba(9, 26, 23, 0.6) !important; }
+.dark .bg-gray-100 { background-color: #173a34 !important; }
+.dark .bg-gray-900 { background-color: #06110f !important; }
 
 /* Matn ranglari */
 .dark .text-gray-900 { color: #f1f5f9 !important; }
@@ -257,20 +271,22 @@ body {
 .dark .text-gray-400 { color: #64748b !important; }
 
 /* Chegaralar */
-.dark .border-gray-100 { border-color: #232c44 !important; }
-.dark .border-gray-200 { border-color: #2f3a57 !important; }
-.dark .border-gray-300 { border-color: #3a4565 !important; }
+.dark .border-gray-100 { border-color: #183a34 !important; }
+.dark .border-gray-200 { border-color: #214841 !important; }
+.dark .border-gray-300 { border-color: #2d5b52 !important; }
 
 /* Inputlar */
-.dark .input { background-color: #161d31 !important; border-color: #2f3a57 !important; color: #f1f5f9 !important; }
-.dark .input::placeholder { color: #64748b !important; }
+.dark .input { background-color: rgba(16, 40, 36, 0.88) !important; border-color: rgba(255,255,255,0.10) !important; color: #f1f5f4 !important; }
+.dark .input:hover { border-color: rgba(52, 207, 183, 0.24) !important; }
+.dark .input:focus { background-color: #102824 !important; border-color: rgba(52, 207, 183, 0.42) !important; }
+.dark .input::placeholder { color: #6d8f88 !important; }
 
 /* Hover holatlari */
-.dark .hover\:bg-gray-50:hover { background-color: #1a2238 !important; }
-.dark .hover\:bg-gray-100:hover { background-color: #232c44 !important; }
+.dark .hover\:bg-gray-50:hover { background-color: #13312c !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #173a34 !important; }
 
 /* Kartochka soyasi (dark rejimda kuchliroq) */
-.dark .shadow-card { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3) !important; }
+.dark .shadow-card { box-shadow: 0 18px 48px -30px rgba(0, 0, 0, 0.74), 0 1px 0 rgba(255,255,255,0.04) inset !important; }
 
 
 /* ============================================================
@@ -333,8 +349,8 @@ body {
   left: 0;
   height: 2.5px;
   z-index: 100;
-  background: linear-gradient(90deg, #12a594, #1d9e75 55%, #c99a2e);
-  box-shadow: 0 0 10px rgba(18, 165, 148, 0.55);
+  background: linear-gradient(90deg, #087d70, #0b9b88 48%, #168a62 72%, #c99332);
+  box-shadow: 0 0 12px rgba(11, 155, 136, 0.5);
   border-radius: 0 3px 3px 0;
   transition: width 0.2s ease, opacity 0.3s ease;
   pointer-events: none;
@@ -359,4 +375,50 @@ body {
     rgba(148, 163, 184, 0.08) 63%
   );
   background-size: 200% 100%;
+}
+
+
+/* ============================================================
+   PREMIUM SURFACE POLISH — shared light/dark visual treatment
+   ============================================================ */
+.dark .card,
+.dark .card-hover {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(145deg, rgba(16, 40, 36, 0.88), rgba(9, 29, 26, 0.78)) !important;
+  box-shadow: 0 24px 64px -34px rgba(0, 0, 0, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+.dark .card-hover:hover {
+  border-color: rgba(52, 207, 183, 0.24) !important;
+  background: linear-gradient(145deg, rgba(18, 47, 41, 0.94), rgba(10, 33, 29, 0.88)) !important;
+  box-shadow: 0 30px 70px -34px rgba(11, 155, 136, 0.4) !important;
+}
+.dark .glass {
+  background: linear-gradient(145deg, rgba(18, 47, 41, 0.82), rgba(8, 26, 23, 0.7));
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 28px 70px -36px rgba(0, 0, 0, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.dark .btn-outline {
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  background: rgba(15, 42, 37, 0.7) !important;
+  color: #d7e5e2 !important;
+}
+.dark .btn-outline:hover {
+  border-color: rgba(52, 207, 183, 0.32) !important;
+  background: rgba(18, 52, 45, 0.9) !important;
+  color: #6ee7ce !important;
+}
+.dark .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+.dark .tag-teach {
+  border-color: rgba(22, 138, 98, 0.22) !important;
+  background: rgba(22, 138, 98, 0.12) !important;
+  color: #86efc2 !important;
+}
+.dark .tag-learn {
+  border-color: rgba(11, 155, 136, 0.22) !important;
+  background: rgba(11, 155, 136, 0.12) !important;
+  color: #6ee7ce !important;
 }

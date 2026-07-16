@@ -21,7 +21,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-transparent text-gray-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/15 hover:bg-white/80 hover:text-brand hover:shadow-glow active:translate-y-0 dark:hover:border-white/10 dark:hover:bg-white/[0.06]"
       aria-label="Rejimni almashtirish"
       title={dark ? "Yorug' rejim" : "Qorong'i rejim"}
     >
