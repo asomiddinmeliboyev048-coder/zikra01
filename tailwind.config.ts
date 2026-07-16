@@ -10,43 +10,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Zikra brend ranglari — logo "Z" ning teal/yashil rangi
+        // Zikra premium palitrasi — chuqur emerald/teal + nazokatli oltin
         brand: {
-          DEFAULT: "#12A594", // teal — asosiy (logo)
-          50: "#E9FBF6",
-          100: "#C9F4EA",
-          200: "#98E9D9",
-          300: "#5FD7C4",
-          400: "#2CC1AC",
-          500: "#12A594",
-          600: "#0E8578",
-          700: "#0C6961",
-          800: "#0D544E",
-          900: "#0B403B",
+          DEFAULT: "#0B9B88",
+          50: "#ECFDF8",
+          100: "#D1FAEF",
+          200: "#A7F3DF",
+          300: "#6EE7CE",
+          400: "#34CFB7",
+          500: "#0B9B88",
+          600: "#087D70",
+          700: "#07645B",
+          800: "#084F49",
+          900: "#083F3B",
         },
         success: {
-          DEFAULT: "#1D9E75", // yashil — o'rganish/muvaffaqiyat
-          50: "#E8F6F1",
-          100: "#D1EDE3",
-          500: "#1D9E75",
-          600: "#17805F",
-          700: "#116047",
+          DEFAULT: "#168A62",
+          50: "#ECFDF5",
+          100: "#D1FAE5",
+          500: "#168A62",
+          600: "#107451",
+          700: "#0D5D43",
         },
         accent: {
-          DEFAULT: "#C99A2E", // oltin — logo "Z" ning oltin nuri (muhim harakatlar)
-          50: "#FAF3E1",
-          100: "#F3E4B8",
-          500: "#C99A2E",
-          600: "#A67F26",
-          700: "#7D5F1D",
+          DEFAULT: "#C99332",
+          50: "#FFFAEB",
+          100: "#FDF0C4",
+          500: "#C99332",
+          600: "#A97524",
+          700: "#80581C",
         },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
-        "card-hover": "0 10px 30px -12px rgba(18,165,148,0.28)",
+        card: "0 1px 2px rgba(8,63,59,0.03), 0 8px 24px -12px rgba(8,63,59,0.16), inset 0 1px 0 rgba(255,255,255,0.7)",
+        "card-hover": "0 22px 55px -24px rgba(7,100,91,0.42), 0 10px 24px -18px rgba(8,63,59,0.26), inset 0 1px 0 rgba(255,255,255,0.85)",
+        premium: "0 30px 80px -32px rgba(7,100,91,0.38), 0 12px 32px -20px rgba(8,63,59,0.22)",
+        glow: "0 0 0 1px rgba(11,155,136,0.10), 0 12px 35px -15px rgba(11,155,136,0.45)",
       },
       keyframes: {
         "fade-in": {

@@ -23,7 +23,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
   ];
 
   return (
-    <nav className="zikra-bottom-nav fixed inset-x-0 bottom-0 z-40 flex border-t border-gray-100 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden dark:border-white/10">
+    <nav className="zikra-bottom-nav fixed inset-x-2 bottom-2 z-40 flex overflow-hidden rounded-2xl border border-white/80 bg-white/80 pb-[env(safe-area-inset-bottom)] shadow-[0_20px_48px_-22px_rgba(8,63,59,0.5)] backdrop-blur-2xl md:hidden dark:border-white/10 dark:bg-[#0d2420]/[0.88]">
       {items.map((item) => {
         const active = item.href.startsWith("/profile")
           ? pathname.startsWith("/profile")
@@ -34,30 +34,32 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             key={item.href}
             href={item.href}
             className={cn(
-              "group relative flex flex-1 flex-col items-center gap-1 pb-1.5 pt-2 transition-colors",
-              active ? "text-brand" : "text-gray-400"
+              "group relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 transition-all duration-300",
+              active ? "text-brand-700 dark:text-brand-300" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             )}
           >
             {/* Aktiv indikator (yuqori chiziqcha) */}
             <span
               className={cn(
-                "absolute top-0 h-0.5 rounded-full bg-brand transition-all duration-300",
-                active ? "w-6 opacity-100" : "w-0 opacity-0"
+                "absolute top-0 h-[3px] rounded-b-full bg-gradient-to-r from-brand to-success shadow-[0_3px_10px_rgba(11,155,136,0.45)] transition-all duration-300",
+                active ? "w-8 opacity-100" : "w-0 opacity-0"
               )}
             />
             {/* Ikonka + aktiv fon */}
             <span
               className={cn(
-                "flex h-7 w-11 items-center justify-center rounded-full transition-all duration-200",
-                active ? "bg-brand-50 dark:bg-brand/15" : "group-active:bg-gray-100"
+                "flex h-8 w-12 items-center justify-center rounded-xl transition-all duration-300",
+                active
+                  ? "-translate-y-0.5 bg-brand-50 shadow-[0_8px_18px_-12px_rgba(11,155,136,0.65)] dark:bg-brand/15"
+                  : "group-active:scale-95 group-active:bg-gray-100 dark:group-active:bg-white/5"
               )}
             >
               <Icon active={active} />
             </span>
             <span
               className={cn(
-                "text-[10px] leading-none transition-all",
-                active ? "font-semibold" : "font-medium"
+                "text-[10px] tracking-[-0.01em] transition-all duration-300",
+                active ? "font-bold" : "font-medium"
               )}
             >
               {item.label}

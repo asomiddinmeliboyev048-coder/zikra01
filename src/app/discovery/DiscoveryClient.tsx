@@ -52,7 +52,7 @@ export default function DiscoveryClient({
   return (
     <div>
       {/* Filtrlar */}
-      <div className="card mb-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+      <div className="card mb-8 flex flex-col gap-3 border-white/90 bg-white/[0.65] p-4 shadow-premium backdrop-blur-2xl sm:flex-row sm:items-center sm:p-5 dark:border-white/[0.07]">
         <input
           type="text"
           value={query}
@@ -84,12 +84,12 @@ export default function DiscoveryClient({
             </option>
           ))}
         </select>
-        <label className="flex cursor-pointer items-center gap-2 whitespace-nowrap text-sm text-gray-600">
+        <label className="flex cursor-pointer items-center gap-2.5 whitespace-nowrap rounded-xl px-2 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-brand-50/60 hover:text-brand-700 dark:hover:bg-brand/10 dark:hover:text-brand-300">
           <input
             type="checkbox"
             checked={onlyMatches}
             onChange={(e) => setOnlyMatches(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+            className="h-4 w-4 rounded border-gray-300 text-brand shadow-sm focus:ring-brand/30"
           />
           Faqat mosliklar
         </label>
@@ -109,7 +109,7 @@ export default function DiscoveryClient({
           <p className="mb-4 text-sm text-gray-500">
             {filtered.length} ta foydalanuvchi topildi
           </p>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
             {filtered.map((p) => (
               <UserCard key={p.id} profile={p} />
             ))}

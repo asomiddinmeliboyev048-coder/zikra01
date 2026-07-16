@@ -48,7 +48,7 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen overflow-hidden">
       {/* NAVBAR */}
-      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/70 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-white/70 bg-white/70 shadow-[0_8px_30px_-24px_rgba(8,63,59,0.34)] backdrop-blur-2xl dark:border-white/[0.06] dark:bg-[#081715]/75">
         <div className="container-app flex h-16 items-center justify-between">
           <Logo />
           <nav className="flex items-center gap-2 sm:gap-3">
@@ -63,23 +63,23 @@ export default async function LandingPage() {
       </header>
 
       {/* HERO */}
-      <section className="relative isolate overflow-hidden bg-white">
+      <section className="relative isolate overflow-hidden bg-gradient-to-b from-white/90 via-white/[0.65] to-transparent dark:from-[#0b201c]/90 dark:via-[#081715]/[0.65]">
         {/* Fon bezaklari */}
         <div className="absolute inset-0 -z-10 bg-dots opacity-70" />
-        <div className="absolute -left-24 -top-24 -z-10 h-72 w-72 rounded-full bg-brand-200/50 blur-3xl animate-blob" />
-        <div className="absolute -right-20 top-10 -z-10 h-72 w-72 rounded-full bg-success-100/70 blur-3xl animate-blob [animation-delay:3s]" />
+        <div className="absolute -left-24 -top-24 -z-10 h-80 w-80 animate-blob rounded-full bg-brand-200/[0.55] blur-[90px] dark:bg-brand/20" />
+        <div className="absolute -right-20 top-10 -z-10 h-80 w-80 animate-blob rounded-full bg-success-100/75 blur-[100px] [animation-delay:3s] dark:bg-success/15" />
         <div className="absolute bottom-0 left-1/3 -z-10 h-64 w-64 rounded-full bg-accent-100/50 blur-3xl animate-blob [animation-delay:6s]" />
 
-        <div className="container-app grid items-center gap-12 py-16 sm:py-24 lg:grid-cols-2">
+        <div className="container-app grid items-center gap-12 py-20 sm:py-28 lg:grid-cols-2 lg:gap-16 lg:py-32">
           <div className="animate-fade-in">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-white/70 px-3 py-1 text-xs font-semibold text-brand-700 shadow-sm">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/70 px-4 py-2 text-xs font-bold tracking-[-0.01em] text-brand-700 shadow-[0_10px_30px_-20px_rgba(8,63,59,0.45)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06] dark:text-brand-300">
               🇺🇿 O&apos;zbekistonda birinchi · 🌍 Dunyoda o&apos;ziga xos
             </span>
-            <h1 className="mt-5 text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-6xl">
+            <h1 className="mt-7 text-4xl font-extrabold leading-[1.04] tracking-[-0.055em] text-gray-900 sm:text-6xl lg:text-[4.25rem]">
               Bilim qoldiring,{" "}
               <span className="text-gradient">tajriba oling</span>
             </h1>
-            <p className="mt-5 max-w-lg text-lg text-gray-600">
+            <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600 sm:text-xl sm:leading-9">
               Zikra — bepul P2P ko&apos;nikma almashish platformasi.{" "}
               <span className="font-semibold text-gray-800">
                 &quot;Sen menga Python o&apos;rgat, men senga Ingliz tili
@@ -87,20 +87,20 @@ export default async function LandingPage() {
               </span>{" "}
               Hech qanday to&apos;lov yo&apos;q — faqat bilim almashinuvi.
             </p>
-            <p className="mt-3 inline-block rounded-lg bg-brand-50 px-3 py-1 text-sm font-semibold italic text-brand-700">
+            <p className="mt-4 inline-block rounded-xl border border-brand/10 bg-brand-50/75 px-4 py-2 text-sm font-bold italic tracking-wide text-brand-700 shadow-[0_8px_20px_-16px_rgba(11,155,136,0.42)] backdrop-blur dark:border-brand/20 dark:bg-brand/10 dark:text-brand-300">
               Learn. Teach. Be remembered.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/register" className="btn-primary px-7 py-3 text-base shadow-card-hover">
+            <div className="mt-9 flex flex-wrap gap-3.5">
+              <Link href="/register" className="btn-primary px-8 py-3.5 text-base shadow-card-hover">
                 Bepul boshlash →
               </Link>
-              <Link href="/login" className="btn-outline px-7 py-3 text-base">
+              <Link href="/login" className="btn-outline px-8 py-3.5 text-base">
                 Hisobim bor
               </Link>
             </div>
 
             {/* Mini ishonch belgilari */}
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500">
+            <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-gray-500">
               <span className="flex items-center gap-1.5">✅ 100% bepul</span>
               <span className="flex items-center gap-1.5">🔁 O&apos;zaro almashinuv</span>
               <span className="flex items-center gap-1.5">🏆 Gamifikatsiya</span>
@@ -108,10 +108,10 @@ export default async function LandingPage() {
           </div>
 
           {/* Hero kartochkalar */}
-          <div className="relative h-[380px] animate-fade-in">
-            <div className="glass absolute right-0 top-4 w-72 rotate-2 rounded-2xl border border-white/60 p-5 shadow-card-hover animate-float">
+          <div className="relative h-[400px] animate-fade-in sm:h-[430px]">
+            <div className="glass absolute right-0 top-4 w-72 rotate-2 rounded-3xl p-6 shadow-card-hover transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] animate-float">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-700 text-lg font-bold text-white shadow-glow">
                   M
                 </div>
                 <div>
@@ -128,9 +128,9 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            <div className="glass absolute bottom-6 left-0 w-64 -rotate-3 rounded-2xl border border-white/60 p-5 shadow-card-hover animate-float [animation-delay:1.5s]">
+            <div className="glass absolute bottom-6 left-0 w-64 -rotate-3 rounded-3xl p-6 shadow-card-hover transition-transform duration-500 hover:rotate-0 hover:scale-[1.02] animate-float [animation-delay:1.5s]">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success text-lg font-bold text-white">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-success to-success-700 text-lg font-bold text-white shadow-[0_10px_24px_-14px_rgba(22,138,98,0.7)]">
                   J
                 </div>
                 <div>
@@ -144,7 +144,7 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            <div className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-2xl text-white shadow-card-hover animate-float [animation-delay:0.7s]">
+            <div className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-accent to-accent-700 text-2xl text-white shadow-[0_18px_38px_-16px_rgba(201,147,50,0.72)] ring-8 ring-white/30 backdrop-blur animate-float [animation-delay:0.7s] dark:ring-white/5">
               🔁
             </div>
           </div>
@@ -152,8 +152,8 @@ export default async function LandingPage() {
       </section>
 
       {/* STATISTIKA */}
-      <section className="border-y border-gray-100 bg-white">
-        <div className="container-app grid grid-cols-3 gap-4 py-10 text-center">
+      <section className="border-y border-white/80 bg-white/60 shadow-[0_18px_50px_-38px_rgba(8,63,59,0.3)] backdrop-blur-xl dark:border-white/[0.06] dark:bg-white/[0.025]">
+        <div className="container-app grid grid-cols-3 gap-4 py-12 text-center sm:py-14">
           <Stat icon="👥" value={stats.users} label="Foydalanuvchi" suffix="+" />
           <Stat icon="🎯" value={stats.skills} label="Ko'nikma" suffix="+" />
           <Stat icon="🤝" value={stats.exchanges} label="Bilim almashuvi" suffix="+" />
@@ -161,12 +161,12 @@ export default async function LandingPage() {
       </section>
 
       {/* QANDAY ISHLAYDI */}
-      <section className="container-app py-16 sm:py-24">
+      <section className="container-app py-20 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-sm font-semibold uppercase tracking-widest text-brand">
+          <span className="text-xs font-extrabold uppercase tracking-[0.2em] text-brand">
             Oddiy va tez
           </span>
-          <h2 className="mt-2 text-3xl font-bold text-gray-900 sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] text-gray-900 sm:text-4xl">
             Qanday ishlaydi?
           </h2>
           <p className="mt-3 text-gray-600">
@@ -185,10 +185,10 @@ export default async function LandingPage() {
       </section>
 
       {/* NEGA NOYOB */}
-      <section className="bg-gradient-to-b from-brand-50/60 to-white py-16 sm:py-20">
+      <section className="border-y border-white/70 bg-gradient-to-b from-brand-50/[0.55] via-white/[0.45] to-transparent py-20 sm:py-24 dark:border-white/[0.05] dark:from-brand/[0.07] dark:via-transparent">
         <div className="container-app">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-[-0.04em] text-gray-900 sm:text-4xl">
               Nega <span className="text-gradient">Zikra</span> noyob?
             </h2>
             <p className="mt-3 text-gray-600">
@@ -206,10 +206,10 @@ export default async function LandingPage() {
 
       {/* FOYDALANUVCHILAR */}
       {featured.length > 0 && (
-        <section className="bg-white py-16">
+        <section className="bg-white/[0.55] py-20 backdrop-blur-sm dark:bg-white/[0.02]">
           <div className="container-app">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-extrabold tracking-[-0.04em] text-gray-900">
                 Platformadagi odamlar
               </h2>
               <p className="mt-3 text-gray-600">
@@ -226,18 +226,18 @@ export default async function LandingPage() {
       )}
 
       {/* CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-brand via-brand-600 to-brand-700 py-20 text-center text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-800 via-brand-700 to-[#06483f] py-24 text-center text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
         <div className="absolute -left-10 top-0 h-40 w-40 rounded-full bg-white/10 blur-2xl animate-blob" />
         <div className="absolute -right-10 bottom-0 h-40 w-40 rounded-full bg-success/20 blur-2xl animate-blob [animation-delay:4s]" />
         <div className="container-app relative">
-          <h2 className="text-3xl font-bold sm:text-4xl">Bugun o&apos;rganishni boshlang</h2>
+          <h2 className="text-3xl font-extrabold tracking-[-0.04em] sm:text-4xl">Bugun o&apos;rganishni boshlang</h2>
           <p className="mx-auto mt-3 max-w-xl text-brand-100">
             Bepul. Cheksiz. Faqat bilim almashinuvi. Zikra hamjamiyatiga
             qo&apos;shiling va o&apos;z izingizni qoldiring.
           </p>
           <Link
             href="/register"
-            className="btn mt-8 bg-white px-8 py-3 text-base font-semibold text-brand shadow-card-hover hover:bg-brand-50"
+            className="btn mt-9 border border-white/50 bg-white/95 px-9 py-3.5 text-base font-bold text-brand-800 shadow-premium hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_20px_42px_-18px_rgba(255,255,255,0.42)]"
           >
             Bepul ro&apos;yxatdan o&apos;tish →
           </Link>
@@ -245,7 +245,7 @@ export default async function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-gray-900 py-12 text-gray-300">
+      <footer className="border-t border-white/[0.06] bg-[#06110f] py-14 text-gray-300">
         <div className="container-app">
           <div className="grid gap-8 md:grid-cols-3">
             {/* Brend */}
@@ -373,15 +373,15 @@ function Step({
   emoji: string;
 }) {
   return (
-    <div className="card relative p-6 transition hover:-translate-y-1 hover:shadow-card-hover">
-      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${color} text-xl text-white shadow-sm`}>
+    <div className="card-hover relative overflow-hidden p-6 before:absolute before:inset-x-8 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-brand/30 before:to-transparent">
+      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${color} text-xl text-white shadow-[0_12px_26px_-14px_rgba(8,63,59,0.58)] ring-4 ring-white/70 dark:ring-white/[0.06]`}>
         {emoji}
       </div>
-      <span className="absolute right-5 top-5 text-3xl font-extrabold text-gray-100">
+      <span className="absolute right-5 top-4 text-4xl font-black tracking-[-0.08em] text-brand-100/70 dark:text-white/[0.06]">
         {n}
       </span>
-      <h3 className="mt-4 text-lg font-semibold text-gray-900">{title}</h3>
-      <p className="mt-2 text-sm text-gray-600">{desc}</p>
+      <h3 className="mt-5 text-lg font-bold tracking-[-0.02em] text-gray-900">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-gray-600">{desc}</p>
     </div>
   );
 }
@@ -396,10 +396,10 @@ function Feature({
   desc: string;
 }) {
   return (
-    <div className="card p-6 text-center transition hover:-translate-y-1 hover:shadow-card-hover">
-      <span className="text-3xl">{emoji}</span>
-      <h3 className="mt-3 font-semibold text-gray-900">{title}</h3>
-      <p className="mt-1.5 text-sm text-gray-600">{desc}</p>
+    <div className="card-hover group relative overflow-hidden p-6 text-center before:absolute before:inset-x-8 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-brand/25 before:to-transparent">
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/80 bg-white/70 text-3xl shadow-[0_12px_28px_-18px_rgba(8,63,59,0.42)] backdrop-blur-xl transition-transform duration-300 group-hover:scale-105 dark:border-white/[0.08] dark:bg-white/[0.05]">{emoji}</span>
+      <h3 className="mt-4 font-bold tracking-[-0.02em] text-gray-900">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-gray-600">{desc}</p>
     </div>
   );
 }

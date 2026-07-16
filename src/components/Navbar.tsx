@@ -21,7 +21,7 @@ export default async function Navbar() {
 
   return (
     <>
-      <header className="zikra-navbar sticky top-0 z-40 border-b border-gray-100 bg-white/85 backdrop-blur">
+      <header className="zikra-navbar sticky top-0 z-40 border-b border-white/70 bg-white/70 shadow-[0_8px_30px_-24px_rgba(8,63,59,0.34)] backdrop-blur-2xl dark:border-white/[0.06] dark:bg-[#081715]/75">
         <div className="container-app flex h-16 items-center justify-between gap-4">
           <Logo />
           <NavbarClient

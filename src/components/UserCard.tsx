@@ -14,20 +14,20 @@ export default function UserCard({
   showMatch?: boolean;
 }) {
   return (
-    <div className="card group flex flex-col p-5 transition hover:shadow-card-hover">
+    <div className="card group relative flex flex-col overflow-hidden p-5 transition-all duration-300 before:absolute before:inset-x-8 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-brand/30 before:to-transparent hover:-translate-y-1.5 hover:border-brand/20 hover:bg-white/90 hover:shadow-card-hover dark:hover:bg-[#12302a]/90">
       <div className="flex items-start gap-3">
         <Image
           src={profile.avatar_url || avatarFallback(profile.full_name)}
           alt={profile.full_name}
           width={52}
           height={52}
-          className="rounded-xl object-cover"
+          className="rounded-2xl object-cover shadow-[0_10px_24px_-14px_rgba(8,63,59,0.48)] ring-2 ring-white transition-transform duration-300 group-hover:scale-[1.04] dark:ring-white/10"
           style={{ width: 52, height: 52 }}
           unoptimized
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="flex min-w-0 items-center gap-1 font-semibold text-gray-900">
+            <h3 className="flex min-w-0 items-center gap-1.5 font-bold tracking-[-0.02em] text-gray-900">
               <span className="truncate">{profile.full_name}</span>
               {/* Spec: kartochkada belgi faqat admin tasdiqlagan (is_verified) bo'lsa ko'rinadi */}
               <VerifiedBadge verified={!!profile.is_verified} size={16} />
@@ -49,10 +49,10 @@ export default function UserCard({
       </div>
 
       {profile.bio && (
-        <p className="mt-3 line-clamp-2 text-sm text-gray-600">{profile.bio}</p>
+        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-600">{profile.bio}</p>
       )}
 
-      <div className="mt-3 space-y-2">
+      <div className="mt-4 space-y-3 border-t border-gray-100/70 pt-4 dark:border-white/[0.06]">
         <div>
           <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-success-700">
             O&apos;rgata oladi
