@@ -1,119 +1,181 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-type TabId = "reels" | "videos" | "certificates" | "reviews";
+type User = {
+  id: string;
+  username?: string | null;
+  full_name?: string | null;
+  avatar_url?: string | null;
+};
 
-interface ProfileTabsProps {
-  reelsCount: number;
-  videosCount: number;
-  certificatesCount: number;
-  reviewsCount: number;
-  reels: ReactNode;
-  videos: ReactNode;
-  certificates: ReactNode;
-  reviews: ReactNode;
-}
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  initialTab: "followers" | "following";
+  followers: User[];
+  following: User[];
+};
 
-export default function ProfileTabs({
-  reelsCount,
-  videosCount,
-  certificatesCount,
-  reviewsCount,
-  reels,
-  videos,
-  certificates,
-  reviews,
-}: ProfileTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("reels");
+export default function FollowersFollowingModal({
+  open,
+  onClose,
+  initialTab,
+  followers,
+  following,
+}: Props) {
+  const [tab, setTab] = useState<"followers" | "following">(initialTab);
+  const [search, setSearch] = useState("");
 
-  const tabs: {
-    id: TabId;
-    icon: string;
-    label: string;
-    count: number;
-  }[] = [
-    {
-      id: "reels",
-      icon: "🎬",
-      label: "Reels",
-      count: reelsCount,
-    },
-    {
-      id: "videos",
-      icon: "📚",
-      label: "Video darslar",
-      count: videosCount,
-    },
-    {
-      id: "certificates",
-      icon: "📜",
-      label: "Sertifikatlar",
-      count: certificatesCount,
-    },
-    {
-      id: "reviews",
-      icon: "⭐",
-      label: "Izohlar",
-      count: reviewsCount,
-    },
-  ];
+  useEffect(() => {
+    if (open) {
+      setTab(initialTab);
+      setSearch("");
+    }
+  }, [open, initialTab]);
+
+  if (!open) return null;
+
+  const users = tab === "followers" ? followers : following;
+
+  const filteredUsers = users.filter((user) => {
+    const value = `${user.full_name ?? ""} ${user.username ?? ""}`
+      .toLowerCase();
+
+    return value.includes(search.toLowerCase());
+  });
 
   return (
-    <div className="mt-6">
-      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <div className="flex min-w-max sm:min-w-0">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
+    <div className="fixed inset-0 z-[9999] bg-white">
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={[
-                    "relative flex min-w-[150px] flex-1 items-center justify-center gap-2 px-4 py-4 text-sm font-semibold transition-all sm:min-w-0",
-                    isActive
-                      ? "text-gray-950"
-                      : "text-gray-400 hover:bg-gray-50 hover:text-gray-700",
-                  ].join(" ")}
-                >
-                  <span className="text-base">{tab.icon}</span>
+      {/* HEADER */}
+      <div className="flex h-14 items-center border-b border-gray-200 px-4">
 
-                  <span>{tab.label}</span>
+        <button
+          onClick={onClose}
+          className="mr-4 text-2xl text-gray-900"
+          aria-label="Orqaga"
+        >
+          ←
+        </button>
 
-                  <span
-                    className={[
-                      "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                      isActive
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-100 text-gray-500",
-                    ].join(" ")}
-                  >
-                    {tab.count}
-                  </span>
+        <h2 className="text-lg font-semibold">
+          {tab === "followers" ? "Obunachilar" : "Obunalar"}
+        </h2>
 
-                  {isActive && (
-                    <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-gray-900" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+      </div>
+
+      {/* TABS */}
+      <div className="grid grid-cols-2 border-b border-gray-200">
+
+        <button
+          onClick={() => setTab("followers")}
+          className={`py-3 text-sm font-semibold ${
+            tab === "followers"
+              ? "border-b-2 border-black text-black"
+              : "text-gray-400"
+          }`}
+        >
+          Obunachilar {followers.length}
+        </button>
+
+        <button
+          onClick={() => setTab("following")}
+          className={`py-3 text-sm font-semibold ${
+            tab === "following"
+              ? "border-b-2 border-black text-black"
+              : "text-gray-400"
+          }`}
+        >
+          Obunalar {following.length}
+        </button>
+
+      </div>
+
+      {/* SEARCH */}
+      <div className="px-4 py-3">
+
+        <div className="flex items-center rounded-xl bg-gray-100 px-3">
+
+          <span className="mr-2 text-gray-400">
+            🔎
+          </span>
+
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Qidirish"
+            className="w-full bg-transparent py-2.5 text-sm outline-none"
+          />
+
         </div>
+
       </div>
 
-      <div className="mt-5">
-        {activeTab === "reels" && reels}
+      {/* USERS */}
+      <div className="px-4">
 
-        {activeTab === "videos" && videos}
+        {filteredUsers.length === 0 ? (
+          <div className="py-16 text-center text-sm text-gray-400">
+            Foydalanuvchilar topilmadi
+          </div>
+        ) : (
+          <div className="space-y-1">
 
-        {activeTab === "certificates" && certificates}
+            {filteredUsers.map((user) => (
 
-        {activeTab === "reviews" && reviews}
+              <div
+                key={user.id}
+                className="flex items-center justify-between py-3"
+              >
+
+                <div className="flex min-w-0 items-center">
+
+                  <div className="mr-3 h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gray-100">
+
+                    {user.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt={user.username ?? "User"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-lg">
+                        👤
+                      </div>
+                    )}
+
+                  </div>
+
+                  <div className="min-w-0">
+
+                    <div className="truncate text-sm font-semibold">
+                      {user.username ?? "username"}
+                    </div>
+
+                    <div className="truncate text-sm text-gray-500">
+                      {user.full_name ?? ""}
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <button
+                  className="ml-3 rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold"
+                >
+                  {tab === "following" ? "Obuna" : "Kuzatish"}
+                </button>
+
+              </div>
+
+            ))}
+
+          </div>
+        )}
+
       </div>
+
     </div>
   );
 }
