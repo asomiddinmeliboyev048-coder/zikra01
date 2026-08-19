@@ -32,7 +32,10 @@ import {
   getReelStats,
 } from "@/lib/queries";
 
-import { avatarFallback, timeAgo } from "@/lib/utils";
+import {
+  avatarFallback,
+  timeAgo,
+} from "@/lib/utils";
 
 import type {
   UserBadge,
@@ -51,7 +54,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
 
-  const profile = await getProfileWithSkills(id);
+  const profile =
+    await getProfileWithSkills(id);
 
   return {
     title: profile
@@ -415,6 +419,7 @@ export default async function ProfilePage({
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       <Navbar />
 
       <main className="container-app py-6 sm:py-8">
@@ -508,12 +513,15 @@ export default async function ProfilePage({
 
                     {/* =================================================
                        FOLLOWERS / FOLLOWING
+                       
+                       MUHIM:
+                       BU LINKLAR O'ZGARTIRILMADI
                     ================================================= */}
 
                     <div className="mt-4 flex items-center gap-5 text-sm">
 
                       <Link
-                        href={`/profile/${profile.id}/followers`}
+                        href={`/profile/${profile.id}/connections?tab=followers`}
                         className="rounded-lg px-1 py-1 transition hover:bg-gray-50 hover:text-brand"
                       >
                         <b className="text-gray-950">
@@ -528,7 +536,7 @@ export default async function ProfilePage({
                       </Link>
 
                       <Link
-                        href={`/profile/${profile.id}/following`}
+                        href={`/profile/${profile.id}/connections?tab=following`}
                         className="rounded-lg px-1 py-1 transition hover:bg-gray-50 hover:text-brand"
                       >
                         <b className="text-gray-950">
@@ -556,11 +564,15 @@ export default async function ProfilePage({
 
                   {isOwn ? (
 
+                    /* =================================================
+                       OWN PROFILE
+                    ================================================= */
+
                     <div className="flex w-full flex-row gap-2">
 
                       <Link
                         href="/onboarding"
-                        className="flex flex-1 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm font-medium text-gray-800 shadow-sm transition hover:bg-gray-50"
+                        className="flex flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-2 py-2 text-center text-xs font-medium leading-tight text-gray-800 shadow-sm transition hover:bg-gray-50 sm:text-sm"
                       >
                         ✏️ Profilni tahrirlash
                       </Link>
@@ -573,9 +585,22 @@ export default async function ProfilePage({
 
                   ) : (
 
-                    <div className="flex w-full flex-row gap-2">
+                    /* =================================================
+                       OTHER PROFILE
+                       
+                       MOBILE BUG FIX:
+                       - grid-cols-3
+                       - gap-2
+                       - w-full
+                       - min-w-0
+                       - bir xil o'lcham
+                    ================================================= */
 
-                      <div className="min-w-0 flex-1">
+                    <div className="grid w-full grid-cols-3 gap-2">
+
+                      {/* FOLLOW */}
+
+                      <div className="min-w-0 [&>button]:!flex [&>button]:!h-full [&>button]:!min-h-[42px] [&>button]:!w-full [&>button]:!items-center [&>button]:!justify-center [&>button]:!rounded-xl [&>button]:!px-2 [&>button]:!py-2 [&>button]:!text-center [&>button]:!text-xs [&>button]:!font-medium [&>button]:!leading-tight">
 
                         <FollowButton
                           profileId={
@@ -591,7 +616,9 @@ export default async function ProfilePage({
 
                       </div>
 
-                      <div className="min-w-0 flex-1">
+                      {/* REVIEW */}
+
+                      <div className="min-w-0 [&>button]:!flex [&>button]:!h-full [&>button]:!min-h-[42px] [&>button]:!w-full [&>button]:!items-center [&>button]:!justify-center [&>button]:!rounded-xl [&>button]:!px-2 [&>button]:!py-2 [&>button]:!text-center [&>button]:!text-xs [&>button]:!font-medium [&>button]:!leading-tight">
 
                         <ReviewButton
                           ratedId={
@@ -604,11 +631,15 @@ export default async function ProfilePage({
 
                       </div>
 
+                      {/* CONTACT */}
+
                       <Link
                         href={`/chat?with=${profile.id}`}
-                        className="flex min-w-0 flex-1 items-center justify-center rounded-lg bg-brand px-3 py-2 text-center text-sm font-medium text-white transition hover:bg-brand-700"
+                        className="flex min-h-[42px] min-w-0 w-full items-center justify-center rounded-xl bg-brand px-2 py-2 text-center text-xs font-medium leading-tight text-white transition hover:bg-brand-700"
                       >
-                        💬 Bog&apos;lanish
+                        <span className="truncate">
+                          💬 Bog&apos;lanish
+                        </span>
                       </Link>
 
                     </div>
