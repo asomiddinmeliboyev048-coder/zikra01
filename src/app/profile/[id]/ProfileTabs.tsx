@@ -1,15 +1,15 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import type { ReactNode } from "react";
+import { useState } from "react";
 
-type Tab = "reels" | "videos" | "certificates" | "reviews";
+type TabId = "reels" | "videos" | "certificates" | "reviews";
 
 interface ProfileTabsProps {
   reelsCount: number;
   videosCount: number;
   certificatesCount: number;
   reviewsCount: number;
-
   reels: ReactNode;
   videos: ReactNode;
   certificates: ReactNode;
@@ -26,29 +26,34 @@ export default function ProfileTabs({
   certificates,
   reviews,
 }: ProfileTabsProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("reels");
+  const [activeTab, setActiveTab] = useState<TabId>("reels");
 
-  const tabs = [
+  const tabs: {
+    id: TabId;
+    icon: string;
+    label: string;
+    count: number;
+  }[] = [
     {
-      id: "reels" as Tab,
+      id: "reels",
       icon: "🎬",
       label: "Reels",
       count: reelsCount,
     },
     {
-      id: "videos" as Tab,
+      id: "videos",
       icon: "📚",
       label: "Video darslar",
       count: videosCount,
     },
     {
-      id: "certificates" as Tab,
+      id: "certificates",
       icon: "📜",
       label: "Sertifikatlar",
       count: certificatesCount,
     },
     {
-      id: "reviews" as Tab,
+      id: "reviews",
       icon: "⭐",
       label: "Izohlar",
       count: reviewsCount,
@@ -57,58 +62,50 @@ export default function ProfileTabs({
 
   return (
     <div className="mt-6">
-      {/* Instagram-style tabs */}
-      <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur-xl">
-        <div className="flex overflow-x-auto scrollbar-hide">
-          {tabs.map((tab) => {
-            const active = activeTab === tab.id;
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <div className="flex min-w-max sm:min-w-0">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
 
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  relative flex min-w-[150px] flex-1 items-center justify-center
-                  gap-2 px-4 py-4 text-sm font-semibold transition-all
-                  sm:min-w-0
-                  ${
-                    active
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={[
+                    "relative flex min-w-[150px] flex-1 items-center justify-center gap-2 px-4 py-4 text-sm font-semibold transition-all sm:min-w-0",
+                    isActive
                       ? "text-gray-950"
-                      : "text-gray-400 hover:text-gray-700"
-                  }
-                `}
-              >
-                <span className="text-base">{tab.icon}</span>
-
-                <span className="whitespace-nowrap">
-                  {tab.label}
-                </span>
-
-                <span
-                  className={`
-                    rounded-full px-2 py-0.5 text-[11px] font-bold
-                    ${
-                      active
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-100 text-gray-500"
-                    }
-                  `}
+                      : "text-gray-400 hover:bg-gray-50 hover:text-gray-700",
+                  ].join(" ")}
                 >
-                  {tab.count}
-                </span>
+                  <span className="text-base">{tab.icon}</span>
 
-                {active && (
-                  <span className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full bg-gray-900" />
-                )}
-              </button>
-            );
-          })}
+                  <span>{tab.label}</span>
+
+                  <span
+                    className={[
+                      "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                      isActive
+                        ? "bg-gray-900 text-white"
+                        : "bg-gray-100 text-gray-500",
+                    ].join(" ")}
+                  >
+                    {tab.count}
+                  </span>
+
+                  {isActive && (
+                    <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-gray-900" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Tab content */}
-      <div className="pt-6">
+      <div className="mt-5">
         {activeTab === "reels" && reels}
 
         {activeTab === "videos" && videos}
