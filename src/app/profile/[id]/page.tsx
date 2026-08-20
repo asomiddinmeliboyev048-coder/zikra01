@@ -11,6 +11,7 @@ import VideoCard from "@/components/VideoCard";
 import VideoUpload from "@/app/videos/VideoUpload";
 import ReelUpload from "@/app/videos/ReelUpload";
 import ReelGrid from "@/components/ReelGrid";
+import ProfileStories from "@/components/ProfileStories";
 import SupportButton from "@/components/SupportButton";
 import ReviewButton from "./ReviewButton";
 import FollowButton from "@/components/FollowButton";
@@ -19,7 +20,6 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 import CertificateViewer from "@/components/CertificateViewer";
 import CertificateUpload from "@/components/CertificateUpload";
 import ProfileTabs from "@/components/ProfileTabs";
-import ProfileStories from "@/components/ProfileStories";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -55,7 +55,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
 
-  const profile = await getProfileWithSkills(id);
+  const profile =
+    await getProfileWithSkills(id);
 
   return {
     title: profile
@@ -79,17 +80,21 @@ export default async function ProfilePage({
      PROFILE
   ========================================================== */
 
-  const profile = await getProfileWithSkills(id);
+  const profile =
+    await getProfileWithSkills(id);
 
   if (!profile) {
     notFound();
   }
 
-  const supabase = await createClient();
+  const supabase =
+    await createClient();
 
-  const me = await getCurrentUser();
+  const me =
+    await getCurrentUser();
 
-  const isOwn = me?.id === profile.id;
+  const isOwn =
+    me?.id === profile.id;
 
   /* ==========================================================
      PARALLEL QUERIES
@@ -270,7 +275,8 @@ export default async function ProfilePage({
     likes: number;
   };
 
-  let myStories: MyStory[] = [];
+  let myStories: MyStory[] =
+    [];
 
   if (isOwn) {
     const { data: st } =
@@ -429,7 +435,7 @@ export default async function ProfilePage({
 
           <div className="h-20 bg-gradient-to-r from-brand via-brand-700 to-purple-600 sm:h-28" />
 
-          <div className="px-3 pb-6 sm:px-8 sm:pb-8">
+          <div className="px-4 pb-6 sm:px-8 sm:pb-8">
 
             <div className="-mt-10 sm:-mt-14">
 
@@ -437,11 +443,11 @@ export default async function ProfilePage({
                  PROFILE TOP
               ================================================= */}
 
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 
                 {/* PROFILE LEFT */}
 
-                <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-6">
+                <div className="flex min-w-0 flex-1 items-start gap-4 sm:gap-6">
 
                   {/* AVATAR */}
 
@@ -463,7 +469,7 @@ export default async function ProfilePage({
                           }
                           width={128}
                           height={128}
-                          className="h-20 w-20 rounded-full object-cover sm:h-32 sm:w-32"
+                          className="h-24 w-24 rounded-full object-cover sm:h-32 sm:w-32"
                           unoptimized
                         />
 
@@ -477,9 +483,9 @@ export default async function ProfilePage({
 
                   <div className="min-w-0 flex-1 pt-1 sm:pt-3">
 
-                    <h1 className="flex flex-wrap items-center gap-2 text-lg font-bold text-gray-950 sm:text-2xl">
+                    <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold text-gray-950 sm:text-2xl">
 
-                      <span>
+                      <span className="break-words">
                         {
                           profile.full_name
                         }
@@ -489,18 +495,18 @@ export default async function ProfilePage({
                         verified={
                           !!profile.is_verified
                         }
-                        size={20}
+                        size={22}
                       />
 
                     </h1>
 
                     {profile.username && (
-                      <p className="mt-1 text-xs font-medium text-brand sm:text-sm">
+                      <p className="mt-1 truncate text-sm font-medium text-brand">
                         @{profile.username}
                       </p>
                     )}
 
-                    <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+                    <p className="mt-1 truncate text-sm text-gray-500">
                       📍{" "}
                       {profile.city ||
                         "Shahar ko'rsatilmagan"}
@@ -510,10 +516,10 @@ export default async function ProfilePage({
                        FOLLOWERS / FOLLOWING
 
                        MUHIM:
-                       LINKLAR ASLO O'ZGARTIRILMADI
+                       LINKLARGA TEGILMADI
                     ================================================= */}
 
-                    <div className="mt-3 flex items-center gap-3 text-xs sm:mt-4 sm:gap-5 sm:text-sm">
+                    <div className="mt-4 flex items-center gap-3 text-sm sm:gap-5">
 
                       <Link
                         href={`/profile/${profile.id}/connections?tab=followers`}
@@ -524,6 +530,7 @@ export default async function ProfilePage({
                             follow.followers
                           }
                         </b>{" "}
+
                         <span className="text-gray-500">
                           obunachi
                         </span>
@@ -538,6 +545,7 @@ export default async function ProfilePage({
                             follow.following
                           }
                         </b>{" "}
+
                         <span className="text-gray-500">
                           obuna
                         </span>
@@ -557,16 +565,37 @@ export default async function ProfilePage({
 
                   {isOwn ? (
 
+                    /* OWN PROFILE */
+
                     <div className="flex w-full flex-row gap-2">
 
                       <Link
                         href="/onboarding"
-                        className="flex h-11 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-2 text-center text-xs font-medium leading-tight text-gray-800 shadow-sm transition hover:bg-gray-50 sm:text-sm"
+                        className="
+                          flex
+                          h-11
+                          flex-1
+                          items-center
+                          justify-center
+                          rounded-xl
+                          border
+                          border-gray-200
+                          bg-white
+                          px-2
+                          text-center
+                          text-xs
+                          font-semibold
+                          leading-tight
+                          text-gray-800
+                          shadow-sm
+                          transition
+                          hover:bg-gray-50
+                        "
                       >
                         ✏️ Profilni tahrirlash
                       </Link>
 
-                      <div className="flex h-11 flex-1 items-center">
+                      <div className="h-11 flex-1">
                         <SupportButton />
                       </div>
 
@@ -576,16 +605,32 @@ export default async function ProfilePage({
 
                     /* =================================================
                        OTHER PROFILE
-
-                       MOBILE UI FIX
+                       MOBILE FIX
                     ================================================= */
 
                     <div className="mt-4 grid w-full grid-cols-3 gap-2 lg:mt-0">
 
                       {/* FOLLOW */}
 
-                      <div className="min-w-0">
-
+                      <div
+                        className="
+                          min-w-0
+                          [&>button]:!flex
+                          [&>button]:!h-11
+                          [&>button]:!w-full
+                          [&>button]:!min-w-0
+                          [&>button]:!items-center
+                          [&>button]:!justify-center
+                          [&>button]:!rounded-xl
+                          [&>button]:!px-1
+                          [&>button]:!py-2
+                          [&>button]:!text-center
+                          [&>button]:!text-xs
+                          [&>button]:!font-semibold
+                          [&>button]:!leading-tight
+                          [&>button]:!shadow-sm
+                        "
+                      >
                         <FollowButton
                           profileId={
                             profile.id
@@ -597,13 +642,29 @@ export default async function ProfilePage({
                             follow.followers
                           }
                         />
-
                       </div>
 
                       {/* REVIEW */}
 
-                      <div className="min-w-0">
-
+                      <div
+                        className="
+                          min-w-0
+                          [&>button]:!flex
+                          [&>button]:!h-11
+                          [&>button]:!w-full
+                          [&>button]:!min-w-0
+                          [&>button]:!items-center
+                          [&>button]:!justify-center
+                          [&>button]:!rounded-xl
+                          [&>button]:!px-1
+                          [&>button]:!py-2
+                          [&>button]:!text-center
+                          [&>button]:!text-xs
+                          [&>button]:!font-semibold
+                          [&>button]:!leading-tight
+                          [&>button]:!shadow-sm
+                        "
+                      >
                         <ReviewButton
                           ratedId={
                             profile.id
@@ -612,14 +673,32 @@ export default async function ProfilePage({
                             profile.full_name
                           }
                         />
-
                       </div>
 
                       {/* CONTACT */}
 
                       <Link
                         href={`/chat?with=${profile.id}`}
-                        className="flex h-11 w-full min-w-0 items-center justify-center rounded-xl bg-brand px-1 text-center text-xs font-semibold leading-tight text-white shadow-sm transition hover:bg-brand-700"
+                        className="
+                          flex
+                          h-11
+                          min-w-0
+                          w-full
+                          items-center
+                          justify-center
+                          rounded-xl
+                          bg-brand
+                          px-1
+                          py-2
+                          text-center
+                          text-xs
+                          font-semibold
+                          leading-tight
+                          text-white
+                          shadow-sm
+                          transition
+                          hover:bg-brand-700
+                        "
                       >
                         <span className="truncate">
                           💬 Bog&apos;lanish
@@ -762,32 +841,11 @@ export default async function ProfilePage({
               {isOwn &&
                 myStories.length >
                   0 && (
-
-                  <section className="mt-7 border-t border-gray-100 pt-6">
-
-                    <div className="mb-4 flex items-center justify-between">
-
-                      <h2 className="text-sm font-bold text-gray-900">
-                        Hikoyalarim
-                      </h2>
-
-                      <span className="text-xs text-gray-400">
-                        {
-                          myStories.length
-                        }{" "}
-                        faol
-                      </span>
-
-                    </div>
-
-                    <ProfileStories
-                      stories={
-                        myStories
-                      }
-                    />
-
-                  </section>
-
+                  <ProfileStories
+                    stories={
+                      myStories
+                    }
+                  />
                 )}
 
             </div>
@@ -800,7 +858,7 @@ export default async function ProfilePage({
            PROFILE TABS
         ====================================================== */}
 
-        <div className="mt-4 sm:mt-6">
+        <div className="mt-5">
 
           <ProfileTabs
             reelsCount={
@@ -816,6 +874,10 @@ export default async function ProfilePage({
               ratings.length
             }
 
+            /* ==================================================
+               REELS
+            ================================================== */
+
             reels={
 
               isOwn ||
@@ -823,7 +885,7 @@ export default async function ProfilePage({
 
                 <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
 
-                  <div className="mb-5 flex items-center justify-between">
+                  <div className="mb-5 flex items-center justify-between gap-3">
 
                     <div className="min-w-0">
 
@@ -841,13 +903,9 @@ export default async function ProfilePage({
                     </div>
 
                     {isOwn && (
-
                       <div className="shrink-0">
-
                         <ReelUpload />
-
                       </div>
-
                     )}
 
                   </div>
@@ -872,11 +930,15 @@ export default async function ProfilePage({
 
             }
 
+            /* ==================================================
+               VIDEOS
+            ================================================== */
+
             videos={
 
               <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
 
-                <div className="mb-5 flex items-center justify-between">
+                <div className="mb-5 flex items-center justify-between gap-3">
 
                   <div className="min-w-0">
 
@@ -894,17 +956,13 @@ export default async function ProfilePage({
                   </div>
 
                   {isOwn && (
-
                     <div className="shrink-0">
-
                       <VideoUpload
                         skills={
                           skills
                         }
                       />
-
                     </div>
-
                   )}
 
                 </div>
@@ -950,6 +1008,10 @@ export default async function ProfilePage({
 
             }
 
+            /* ==================================================
+               CERTIFICATES
+            ================================================== */
+
             certificates={
 
               <div className="space-y-5">
@@ -971,6 +1033,8 @@ export default async function ProfilePage({
                   </div>
 
                   <div className="grid gap-6 md:grid-cols-2">
+
+                    {/* TEACH */}
 
                     <div>
 
@@ -1009,6 +1073,8 @@ export default async function ProfilePage({
                       </div>
 
                     </div>
+
+                    {/* LEARN */}
 
                     <div>
 
@@ -1132,11 +1198,15 @@ export default async function ProfilePage({
 
             }
 
+            /* ==================================================
+               REVIEWS
+            ================================================== */
+
             reviews={
 
               <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
 
-                <div className="mb-5 flex items-center justify-between">
+                <div className="mb-5 flex items-center justify-between gap-3">
 
                   <div>
 
@@ -1156,7 +1226,7 @@ export default async function ProfilePage({
                   {profile.trust_score >
                     0 && (
 
-                    <div className="rounded-2xl bg-yellow-50 px-4 py-2 text-center">
+                    <div className="shrink-0 rounded-2xl bg-yellow-50 px-4 py-2 text-center">
 
                       <p className="text-lg font-bold text-yellow-600">
                         {profile.trust_score.toFixed(
@@ -1211,9 +1281,9 @@ export default async function ProfilePage({
 
                             <div className="flex items-start justify-between gap-3">
 
-                              <div>
+                              <div className="min-w-0">
 
-                                <span className="text-sm font-bold text-gray-900">
+                                <span className="break-words text-sm font-bold text-gray-900">
                                   {
                                     r.rater?.full_name ??
                                     "Foydalanuvchi"
@@ -1273,7 +1343,6 @@ export default async function ProfilePage({
               </section>
 
             }
-
           />
 
         </div>
