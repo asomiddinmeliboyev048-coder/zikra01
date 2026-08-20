@@ -54,7 +54,9 @@ export async function generateMetadata({
   const profile = await getProfileWithSkills(id);
 
   return {
-    title: profile ? profile.full_name : "Profil",
+    title: profile
+      ? profile.full_name
+      : "Profil",
   };
 }
 
@@ -73,17 +75,21 @@ export default async function ProfilePage({
      PROFILE
   ========================================================== */
 
-  const profile = await getProfileWithSkills(id);
+  const profile =
+    await getProfileWithSkills(id);
 
   if (!profile) {
     notFound();
   }
 
-  const supabase = await createClient();
+  const supabase =
+    await createClient();
 
-  const me = await getCurrentUser();
+  const me =
+    await getCurrentUser();
 
-  const isOwn = me?.id === profile.id;
+  const isOwn =
+    me?.id === profile.id;
 
   /* ==========================================================
      PARALLEL QUERIES
@@ -101,56 +107,94 @@ export default async function ProfilePage({
         count: "exact",
         head: true,
       })
-      .eq("teacher_id", profile.id)
-      .eq("status", "completed"),
+      .eq(
+        "teacher_id",
+        profile.id
+      )
+      .eq(
+        "status",
+        "completed"
+      ),
 
     supabase
       .from("ratings")
       .select(
         "*, rater:profiles!ratings_rater_id_fkey(id, full_name, avatar_url)"
       )
-      .eq("rated_id", profile.id)
-      .eq("is_visible", true)
-      .order("created_at", {
-        ascending: false,
-      })
+      .eq(
+        "rated_id",
+        profile.id
+      )
+      .eq(
+        "is_visible",
+        true
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      )
       .limit(20),
 
     supabase
       .from("user_badges")
-      .select("*, badge:badges(*)")
-      .eq("user_id", profile.id),
+      .select(
+        "*, badge:badges(*)"
+      )
+      .eq(
+        "user_id",
+        profile.id
+      ),
 
     supabase
       .from("videos")
-      .select("*, skill:skills(*)")
-      .eq("uploader_id", profile.id)
-      .eq("status", "published")
-      .order("created_at", {
-        ascending: false,
-      }),
+      .select(
+        "*, skill:skills(*)"
+      )
+      .eq(
+        "uploader_id",
+        profile.id
+      )
+      .eq(
+        "status",
+        "published"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      ),
   ]);
 
   /* ==========================================================
      DATA
   ========================================================== */
 
-  const lessonsCount = lessonsRes.count ?? 0;
+  const lessonsCount =
+    lessonsRes.count ?? 0;
 
   const ratings =
-    (ratingsRes.data as unknown as Rating[]) ?? [];
+    (ratingsRes.data as unknown as Rating[]) ??
+    [];
 
   const badges =
-    (badgesRes.data as unknown as UserBadge[]) ?? [];
+    (badgesRes.data as unknown as UserBadge[]) ??
+    [];
 
   const videos =
-    (videosRes.data as unknown as Video[]) ?? [];
+    (videosRes.data as unknown as Video[]) ??
+    [];
 
   /* ==========================================================
      REELS
   ========================================================== */
 
-  const reels = await getUserReels(profile.id);
+  const reels =
+    await getUserReels(
+      profile.id
+    );
 
   /* ==========================================================
      FOLLOW + VIDEO + REEL STATS
@@ -167,12 +211,16 @@ export default async function ProfilePage({
     ),
 
     getVideoStats(
-      videos.map((v) => v.id),
+      videos.map(
+        (v) => v.id
+      ),
       me?.id
     ),
 
     getReelStats(
-      reels.map((r) => r.id),
+      reels.map(
+        (r) => r.id
+      ),
       me?.id
     ),
   ]);
@@ -182,7 +230,8 @@ export default async function ProfilePage({
   ========================================================== */
 
   for (const v of videos) {
-    const s = vstats.get(v.id);
+    const s =
+      vstats.get(v.id);
 
     if (s) {
       v.likes = s.likes;
@@ -196,13 +245,15 @@ export default async function ProfilePage({
   ========================================================== */
 
   for (const r of reels) {
-    const s = rstats.get(r.id);
+    const s =
+      rstats.get(r.id);
 
     if (s) {
       r.likes = s.likes;
       r.liked = s.liked;
       r.views = s.views;
-      r.comments = s.comments;
+      r.comments =
+        s.comments;
     }
   }
 
@@ -219,22 +270,30 @@ export default async function ProfilePage({
     likes: number;
   };
 
-  let myStories: MyStory[] = [];
+  let myStories: MyStory[] =
+    [];
 
   if (isOwn) {
-    const { data: st } = await supabase
-      .from("stories")
-      .select(
-        "id, media_url, media_type, created_at"
-      )
-      .eq("user_id", profile.id)
-      .gt(
-        "expires_at",
-        new Date().toISOString()
-      )
-      .order("created_at", {
-        ascending: false,
-      });
+    const { data: st } =
+      await supabase
+        .from("stories")
+        .select(
+          "id, media_url, media_type, created_at"
+        )
+        .eq(
+          "user_id",
+          profile.id
+        )
+        .gt(
+          "expires_at",
+          new Date().toISOString()
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          }
+        );
 
     const sList =
       (st as {
@@ -245,9 +304,10 @@ export default async function ProfilePage({
       }[]) ?? [];
 
     if (sList.length > 0) {
-      const sIds = sList.map(
-        (s) => s.id
-      );
+      const sIds =
+        sList.map(
+          (s) => s.id
+        );
 
       const [
         { data: vw },
@@ -255,20 +315,36 @@ export default async function ProfilePage({
       ] = await Promise.all([
         supabase
           .from("story_views")
-          .select("story_id")
-          .in("story_id", sIds),
+          .select(
+            "story_id"
+          )
+          .in(
+            "story_id",
+            sIds
+          ),
 
         supabase
           .from("story_likes")
-          .select("story_id")
-          .in("story_id", sIds),
+          .select(
+            "story_id"
+          )
+          .in(
+            "story_id",
+            sIds
+          ),
       ]);
 
       const vc =
-        new Map<string, number>();
+        new Map<
+          string,
+          number
+        >();
 
       const lc =
-        new Map<string, number>();
+        new Map<
+          string,
+          number
+        >();
 
       for (
         const r of
@@ -278,7 +354,9 @@ export default async function ProfilePage({
       ) {
         vc.set(
           r.story_id,
-          (vc.get(r.story_id) ?? 0) + 1
+          (vc.get(
+            r.story_id
+          ) ?? 0) + 1
         );
       }
 
@@ -290,15 +368,26 @@ export default async function ProfilePage({
       ) {
         lc.set(
           r.story_id,
-          (lc.get(r.story_id) ?? 0) + 1
+          (lc.get(
+            r.story_id
+          ) ?? 0) + 1
         );
       }
 
-      myStories = sList.map((s) => ({
-        ...s,
-        views: vc.get(s.id) ?? 0,
-        likes: lc.get(s.id) ?? 0,
-      }));
+      myStories =
+        sList.map(
+          (s) => ({
+            ...s,
+            views:
+              vc.get(
+                s.id
+              ) ?? 0,
+            likes:
+              lc.get(
+                s.id
+              ) ?? 0,
+          })
+        );
     }
   }
 
@@ -326,7 +415,6 @@ export default async function ProfilePage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       <Navbar />
 
       <main className="container-app py-6 sm:py-8">
@@ -392,7 +480,9 @@ export default async function ProfilePage({
                     <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold text-gray-950 sm:text-2xl">
 
                       <span>
-                        {profile.full_name}
+                        {
+                          profile.full_name
+                        }
                       </span>
 
                       <VerifiedBadge
@@ -418,19 +508,18 @@ export default async function ProfilePage({
 
                     {/* =================================================
                        FOLLOWERS / FOLLOWING
-                       
-                       MUHIM:
-                       BU LINKLAR O'ZGARTIRILMADI
                     ================================================= */}
 
-                    <div className="mt-4 flex flex-wrap gap-5 text-sm">
+                    <div className="mt-4 flex items-center gap-5 text-sm">
 
                       <Link
-                        href={`/profile/${profile.id}/connections?tab=followers`}
-                        className="transition hover:text-brand"
+                        href={`/profile/${profile.id}/followers`}
+                        className="rounded-lg px-1 py-1 transition hover:bg-gray-50 hover:text-brand"
                       >
                         <b className="text-gray-950">
-                          {follow.followers}
+                          {
+                            follow.followers
+                          }
                         </b>{" "}
 
                         <span className="text-gray-500">
@@ -439,11 +528,13 @@ export default async function ProfilePage({
                       </Link>
 
                       <Link
-                        href={`/profile/${profile.id}/connections?tab=following`}
-                        className="transition hover:text-brand"
+                        href={`/profile/${profile.id}/following`}
+                        className="rounded-lg px-1 py-1 transition hover:bg-gray-50 hover:text-brand"
                       >
                         <b className="text-gray-950">
-                          {follow.following}
+                          {
+                            follow.following
+                          }
                         </b>{" "}
 
                         <span className="text-gray-500">
@@ -461,53 +552,67 @@ export default async function ProfilePage({
                    ACTION BUTTONS
                 ================================================= */}
 
-                <div className="flex flex-wrap gap-2 lg:pt-4">
+                <div className="w-full lg:w-auto lg:min-w-[430px] lg:pt-4">
 
                   {isOwn ? (
-                    <>
+
+                    <div className="flex w-full flex-row gap-2">
 
                       <Link
                         href="/onboarding"
-                        className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50"
+                        className="flex flex-1 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-sm font-medium text-gray-800 shadow-sm transition hover:bg-gray-50"
                       >
                         ✏️ Profilni tahrirlash
                       </Link>
 
-                      <SupportButton />
+                      <div className="flex-1">
+                        <SupportButton />
+                      </div>
 
-                    </>
+                    </div>
+
                   ) : (
-                    <>
 
-                      <FollowButton
-                        profileId={
-                          profile.id
-                        }
-                        initialFollowing={
-                          follow.isFollowing
-                        }
-                        initialFollowers={
-                          follow.followers
-                        }
-                      />
+                    <div className="flex w-full flex-row gap-2">
 
-                      <ReviewButton
-                        ratedId={
-                          profile.id
-                        }
-                        ratedName={
-                          profile.full_name
-                        }
-                      />
+                      <div className="min-w-0 flex-1">
+
+                        <FollowButton
+                          profileId={
+                            profile.id
+                          }
+                          initialFollowing={
+                            follow.isFollowing
+                          }
+                          initialFollowers={
+                            follow.followers
+                          }
+                        />
+
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+
+                        <ReviewButton
+                          ratedId={
+                            profile.id
+                          }
+                          ratedName={
+                            profile.full_name
+                          }
+                        />
+
+                      </div>
 
                       <Link
                         href={`/chat?with=${profile.id}`}
-                        className="btn-primary"
+                        className="flex min-w-0 flex-1 items-center justify-center rounded-lg bg-brand px-3 py-2 text-center text-sm font-medium text-white transition hover:bg-brand-700"
                       >
                         💬 Bog&apos;lanish
                       </Link>
 
-                    </>
+                    </div>
+
                   )}
 
                 </div>
@@ -524,7 +629,9 @@ export default async function ProfilePage({
                   <p className="whitespace-pre-wrap text-sm leading-6 text-gray-600">
 
                     <Linkify
-                      text={profile.bio}
+                      text={
+                        profile.bio
+                      }
                     />
 
                   </p>
@@ -533,20 +640,115 @@ export default async function ProfilePage({
               )}
 
               {/* =================================================
-                 STORIES
-                 
-                 Eslatma:
-                 Eski Darslar/Reyting/Nishonlar,
-                 Daraja/XP/Streak va Badge bloklari
-                 BU YERDAN OLIB TASHLANDI.
+                 MAIN STATS
               ================================================= */}
+
+              <div className="mt-6 grid grid-cols-3 gap-2 sm:max-w-xl sm:gap-3">
+
+                <MiniStat
+                  icon="📚"
+                  label="Darslar"
+                  value={
+                    lessonsCount
+                  }
+                />
+
+                <MiniStat
+                  icon="⭐"
+                  label="Reyting"
+                  value={
+                    profile.trust_score >
+                    0
+                      ? profile.trust_score.toFixed(
+                          1
+                        )
+                      : "—"
+                  }
+                />
+
+                <MiniStat
+                  icon="🏆"
+                  label="Nishonlar"
+                  value={
+                    badges.length
+                  }
+                />
+
+              </div>
+
+              {/* =================================================
+                 LEVEL + BADGES
+              ================================================= */}
+
+              <div className="mt-6 grid gap-4 lg:grid-cols-2">
+
+                {/* LEVEL */}
+
+                <section className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+
+                  <div className="mb-3 flex items-center justify-between">
+
+                    <h2 className="text-sm font-bold text-gray-900">
+                      🎯 Daraja
+                    </h2>
+
+                    {profile.streak_days >
+                      0 && (
+                      <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
+                        🔥{" "}
+                        {
+                          profile.streak_days
+                        }{" "}
+                        kunlik streak
+                      </span>
+                    )}
+
+                  </div>
+
+                  <LevelProgress
+                    xp={
+                      profile.xp
+                    }
+                  />
+
+                </section>
+
+                {/* BADGES */}
+
+                <section className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+
+                  <div className="mb-3 flex items-center justify-between">
+
+                    <h2 className="text-sm font-bold text-gray-900">
+                      🏆 Nishonlar
+                    </h2>
+
+                    <span className="text-xs text-gray-400">
+                      {
+                        badges.length
+                      }{" "}
+                      ta
+                    </span>
+
+                  </div>
+
+                  <BadgeGrid
+                    badges={
+                      badges
+                    }
+                  />
+
+                </section>
+
+              </div>
 
               {/* =================================================
                  STORIES
               ================================================= */}
 
               {isOwn &&
-                myStories.length > 0 && (
+                myStories.length >
+                  0 && (
                   <section className="mt-7 border-t border-gray-100 pt-6">
 
                     <div className="mb-4 flex items-center justify-between">
@@ -556,7 +758,10 @@ export default async function ProfilePage({
                       </h2>
 
                       <span className="text-xs text-gray-400">
-                        {myStories.length} faol
+                        {
+                          myStories.length
+                        }{" "}
+                        faol
                       </span>
 
                     </div>
@@ -566,7 +771,9 @@ export default async function ProfilePage({
                       {myStories.map(
                         (s) => (
                           <div
-                            key={s.id}
+                            key={
+                              s.id
+                            }
                             className="flex w-20 shrink-0 flex-col items-center"
                           >
 
@@ -601,6 +808,24 @@ export default async function ProfilePage({
 
                             </div>
 
+                            <div className="mt-2 flex gap-1 text-[10px] text-gray-400">
+
+                              <span>
+                                👁{" "}
+                                {
+                                  s.views
+                                }
+                              </span>
+
+                              <span>
+                                ❤️{" "}
+                                {
+                                  s.likes
+                                }
+                              </span>
+
+                            </div>
+
                           </div>
                         )
                       )}
@@ -624,27 +849,20 @@ export default async function ProfilePage({
           reelsCount={
             reels.length
           }
-
           videosCount={
             videos.length
           }
-
           certificatesCount={
             certificatesCount
           }
-
           reviewsCount={
             ratings.length
           }
 
-          {/* ====================================================
-             REELS
-          ==================================================== */}
-
           reels={
 
-            (isOwn ||
-              reels.length > 0) ? (
+            isOwn ||
+            reels.length > 0 ? (
 
               <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
 
@@ -657,7 +875,10 @@ export default async function ProfilePage({
                     </h2>
 
                     <p className="mt-1 text-xs text-gray-400">
-                      {reels.length} ta reels
+                      {
+                        reels.length
+                      }{" "}
+                      ta reels
                     </p>
 
                   </div>
@@ -669,7 +890,9 @@ export default async function ProfilePage({
                 </div>
 
                 <ReelGrid
-                  reels={reels}
+                  reels={
+                    reels
+                  }
                 />
 
               </section>
@@ -686,10 +909,6 @@ export default async function ProfilePage({
 
           }
 
-          {/* ====================================================
-             VIDEOS
-          ==================================================== */}
-
           videos={
 
             <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
@@ -703,29 +922,41 @@ export default async function ProfilePage({
                   </h2>
 
                   <p className="mt-1 text-xs text-gray-400">
-                    {videos.length} ta video dars
+                    {
+                      videos.length
+                    }{" "}
+                    ta video dars
                   </p>
 
                 </div>
 
                 {isOwn && (
                   <VideoUpload
-                    skills={skills}
+                    skills={
+                      skills
+                    }
                   />
                 )}
 
               </div>
 
-              {videos.length > 0 ? (
+              {videos.length >
+              0 ? (
 
                 <div className="grid gap-4 sm:grid-cols-2">
 
                   {videos.map(
                     (v) => (
                       <VideoCard
-                        key={v.id}
-                        video={v}
-                        showUploader={false}
+                        key={
+                          v.id
+                        }
+                        video={
+                          v
+                        }
+                        showUploader={
+                          false
+                        }
                       />
                     )
                   )}
@@ -750,10 +981,6 @@ export default async function ProfilePage({
 
           }
 
-          {/* ====================================================
-             CERTIFICATES
-          ==================================================== */}
-
           certificates={
 
             <div className="space-y-5">
@@ -776,8 +1003,6 @@ export default async function ProfilePage({
 
                 <div className="grid gap-6 md:grid-cols-2">
 
-                  {/* TEACH SKILLS */}
-
                   <div>
 
                     <p className="mb-3 text-sm font-bold text-success-700">
@@ -792,10 +1017,14 @@ export default async function ProfilePage({
                         profile.teach_skills.map(
                           (s) => (
                             <span
-                              key={s.id}
+                              key={
+                                s.id
+                              }
                               className="tag-teach"
                             >
-                              {s.name}
+                              {
+                                s.name
+                              }
                             </span>
                           )
                         )
@@ -812,8 +1041,6 @@ export default async function ProfilePage({
 
                   </div>
 
-                  {/* LEARN SKILLS */}
-
                   <div>
 
                     <p className="mb-3 text-sm font-bold text-brand-700">
@@ -828,10 +1055,14 @@ export default async function ProfilePage({
                         profile.learn_skills.map(
                           (s) => (
                             <span
-                              key={s.id}
+                              key={
+                                s.id
+                              }
                               className="tag-learn"
                             >
-                              {s.name}
+                              {
+                                s.name
+                              }
                             </span>
                           )
                         )
@@ -917,8 +1148,7 @@ export default async function ProfilePage({
                       />
 
                       <p className="text-xs text-gray-500">
-                        Bu sertifikat admin tomonidan
-                        tekshirilib tasdiqlangan.
+                        Bu sertifikat admin tomonidan tekshirilib tasdiqlangan.
                       </p>
 
                     </div>
@@ -933,267 +1163,150 @@ export default async function ProfilePage({
 
           }
 
-          {/* ====================================================
-             REVIEWS
-             
-             MUHIM:
-             Yuqoridan olib tashlangan barcha statistikalar
-             aynan shu TAB ichiga ko'chirildi.
-          ==================================================== */}
-
           reviews={
 
-            <div className="space-y-5">
+            <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
 
-              {/* =================================================
-                 PROFILE STATISTICS
-                 
-                 Oldingi:
-                 - Darslar
-                 - Reyting
-                 - Nishonlar
-                 
-                 Endi faqat Izohlar tabida ko'rinadi.
-              ================================================= */}
+              <div className="mb-5 flex items-center justify-between">
 
-              <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-
-                <div className="mb-4">
+                <div>
 
                   <h2 className="text-lg font-bold text-gray-950">
-                    📊 Profil statistikasi
+                    ⭐ Izohlar & Baholar
                   </h2>
 
                   <p className="mt-1 text-xs text-gray-400">
-                    Foydalanuvchining umumiy natijalari
+                    {
+                      ratings.length
+                    }{" "}
+                    ta baho
                   </p>
 
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {profile.trust_score >
+                  0 && (
 
-                  <MiniStat
-                    icon="📚"
-                    label="Darslar"
-                    value={lessonsCount}
-                  />
+                  <div className="rounded-2xl bg-yellow-50 px-4 py-2 text-center">
 
-                  <MiniStat
-                    icon="⭐"
-                    label="Reyting"
-                    value={
-                      profile.trust_score > 0
-                        ? profile.trust_score.toFixed(1)
-                        : "—"
-                    }
-                  />
+                    <p className="text-lg font-bold text-yellow-600">
+                      {profile.trust_score.toFixed(
+                        1
+                      )}
+                    </p>
 
-                  <MiniStat
-                    icon="🏆"
-                    label="Nishonlar"
-                    value={badges.length}
-                  />
-
-                </div>
-
-              </section>
-
-              {/* =================================================
-                 LEVEL
-              ================================================= */}
-
-              <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-
-                <div className="mb-4 flex items-center justify-between">
-
-                  <h2 className="text-lg font-bold text-gray-950">
-                    🎯 Daraja
-                  </h2>
-
-                  {profile.streak_days > 0 && (
-                    <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
-                      🔥 {profile.streak_days} kunlik streak
-                    </span>
-                  )}
-
-                </div>
-
-                <LevelProgress
-                  xp={profile.xp}
-                />
-
-              </section>
-
-              {/* =================================================
-                 BADGES
-              ================================================= */}
-
-              <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-
-                <div className="mb-4 flex items-center justify-between">
-
-                  <div>
-
-                    <h2 className="text-lg font-bold text-gray-950">
-                      🏆 Nishonlar
-                    </h2>
-
-                    <p className="mt-1 text-xs text-gray-400">
-                      Foydalanuvchi qo&apos;lga kiritgan
-                      nishonlar
+                    <p className="text-[10px] text-yellow-600">
+                      umumiy reyting
                     </p>
 
                   </div>
-
-                  <span className="text-xs text-gray-400">
-                    {badges.length} ta
-                  </span>
-
-                </div>
-
-                <BadgeGrid
-                  badges={badges}
-                />
-
-              </section>
-
-              {/* =================================================
-                 REVIEWS / RATINGS
-              ================================================= */}
-
-              <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-
-                <div className="mb-5 flex items-center justify-between">
-
-                  <div>
-
-                    <h2 className="text-lg font-bold text-gray-950">
-                      ⭐ Izohlar & Baholar
-                    </h2>
-
-                    <p className="mt-1 text-xs text-gray-400">
-                      {ratings.length} ta baho
-                    </p>
-
-                  </div>
-
-                  {profile.trust_score > 0 && (
-
-                    <div className="rounded-2xl bg-yellow-50 px-4 py-2 text-center">
-
-                      <p className="text-lg font-bold text-yellow-600">
-                        {profile.trust_score.toFixed(
-                          1
-                        )}
-                      </p>
-
-                      <p className="text-[10px] text-yellow-600">
-                        umumiy reyting
-                      </p>
-
-                    </div>
-
-                  )}
-
-                </div>
-
-                {ratings.length > 0 ? (
-
-                  <ul className="space-y-0">
-
-                    {ratings.map(
-                      (r) => (
-
-                        <li
-                          key={r.id}
-                          className="flex gap-3 border-b border-gray-100 py-5 first:pt-0 last:border-0"
-                        >
-
-                          <Image
-                            src={
-                              r.rater?.avatar_url ||
-                              avatarFallback(
-                                r.rater?.full_name ??
-                                "Z"
-                              )
-                            }
-                            alt={
-                              r.rater?.full_name ??
-                              ""
-                            }
-                            width={42}
-                            height={42}
-                            className="h-10 w-10 shrink-0 rounded-full object-cover"
-                            unoptimized
-                          />
-
-                          <div className="min-w-0 flex-1">
-
-                            <div className="flex items-start justify-between gap-3">
-
-                              <div>
-
-                                <span className="text-sm font-bold text-gray-900">
-                                  {r.rater?.full_name ??
-                                    "Foydalanuvchi"}
-                                </span>
-
-                                <div className="mt-1">
-
-                                  <StarRating
-                                    value={
-                                      r.score
-                                    }
-                                    size={14}
-                                  />
-
-                                </div>
-
-                              </div>
-
-                              <span className="shrink-0 text-xs text-gray-400">
-                                {timeAgo(
-                                  r.created_at
-                                )}
-                              </span>
-
-                            </div>
-
-                            {r.comment && (
-                              <p className="mt-2 text-sm leading-6 text-gray-600">
-                                {r.comment}
-                              </p>
-                            )}
-
-                          </div>
-
-                        </li>
-
-                      )
-                    )}
-
-                  </ul>
-
-                ) : (
-
-                  <EmptyState
-                    icon="⭐"
-                    title="Hali izohlar yo'q"
-                    description="Bu foydalanuvchi haqida hali hech qanday izoh qoldirilmagan."
-                  />
 
                 )}
 
-              </section>
+              </div>
 
-            </div>
+              {ratings.length >
+              0 ? (
+
+                <ul className="space-y-0">
+
+                  {ratings.map(
+                    (r) => (
+
+                      <li
+                        key={
+                          r.id
+                        }
+                        className="flex gap-3 border-b border-gray-100 py-5 first:pt-0 last:border-0"
+                      >
+
+                        <Image
+                          src={
+                            r.rater?.avatar_url ||
+                            avatarFallback(
+                              r.rater?.full_name ??
+                              "Z"
+                            )
+                          }
+                          alt={
+                            r.rater?.full_name ??
+                            ""
+                          }
+                          width={42}
+                          height={42}
+                          className="h-10 w-10 shrink-0 rounded-full object-cover"
+                          unoptimized
+                        />
+
+                        <div className="min-w-0 flex-1">
+
+                          <div className="flex items-start justify-between gap-3">
+
+                            <div>
+
+                              <span className="text-sm font-bold text-gray-900">
+                                {
+                                  r.rater?.full_name ??
+                                  "Foydalanuvchi"
+                                }
+                              </span>
+
+                              <div className="mt-1">
+
+                                <StarRating
+                                  value={
+                                    r.score
+                                  }
+                                  size={
+                                    14
+                                  }
+                                />
+
+                              </div>
+
+                            </div>
+
+                            <span className="shrink-0 text-xs text-gray-400">
+                              {timeAgo(
+                                r.created_at
+                              )}
+                            </span>
+
+                          </div>
+
+                          {r.comment && (
+                            <p className="mt-2 text-sm leading-6 text-gray-600">
+                              {
+                                r.comment
+                              }
+                            </p>
+                          )}
+
+                        </div>
+
+                      </li>
+
+                    )
+                  )}
+
+                </ul>
+
+              ) : (
+
+                <EmptyState
+                  icon="⭐"
+                  title="Hali izohlar yo'q"
+                  description="Bu foydalanuvchi haqida hali hech qanday izoh qoldirilmagan."
+                />
+
+              )}
+
+            </section>
 
           }
-
         />
 
       </main>
-
     </div>
   );
 }
