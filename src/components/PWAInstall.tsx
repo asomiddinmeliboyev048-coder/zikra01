@@ -2,175 +2,93 @@
 
 import { useEffect, useState } from "react";
 
-/* ============================================================
-   TYPES
-============================================================ */
-
-type BeforeInstallPromptEvent = Event & {
+interface BIPEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{
-    outcome: "accepted" | "dismissed";
-  }>;
-};
+  userChoice: Promise<{ outcome: string }>;
+}
 
-/* ============================================================
-   INSTALL PWA BUTTON
-============================================================ */
-
-export default function InstallPWAButton({
-  variant = "primary",
-}: {
-  variant?: "primary" | "outline";
-}) {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
-
+export default function PWAInstall() {
+  const [deferred, setDeferred] = useState<BIPEvent | null>(null);
+  const [show, setShow] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [showIOSHint, setShowIOSHint] = useState(false);
 
   useEffect(() => {
-    const ua = window.navigator.userAgent;
+    // Service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
 
-    const iOSDevice =
-      /iPad|iPhone|iPod/.test(ua) &&
-      !("MSStream" in window);
+    if (localStorage.getItem("zikra-pwa-dismissed") === "1") return;
 
-    setIsIOS(iOSDevice);
-
+    // Allaqachon o'rnatilgan bo'lsa ko'rsatmaymiz
     const standalone =
-      window.matchMedia(
-        "(display-mode: standalone)"
-      ).matches ||
-      // @ts-expect-error - iOS Safari specific
+      window.matchMedia("(display-mode: standalone)").matches ||
+      // @ts-expect-error iOS
       window.navigator.standalone === true;
+    if (standalone) return;
 
-    setIsInstalled(standalone);
+    const ios = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    setIsIOS(ios);
 
-    const handleBeforeInstallPrompt = (
-      e: Event
-    ) => {
+    const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(
-        e as BeforeInstallPromptEvent
-      );
+      setDeferred(e as BIPEvent);
+      // Global saqlash — /download sahifasidagi tugmalar ham foydalanishi uchun
+      (window as unknown as { __zikraBIP?: BIPEvent }).__zikraBIP = e as BIPEvent;
+      setShow(true);
     };
+    window.addEventListener("beforeinstallprompt", handler);
 
-    const handleAppInstalled = () => {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-    };
+    // iOS uchun beforeinstallprompt yo'q — qo'llanma bannerini ko'rsatamiz
+    if (ios) setShow(true);
 
-    window.addEventListener(
-      "beforeinstallprompt",
-      handleBeforeInstallPrompt
-    );
-
-    window.addEventListener(
-      "appinstalled",
-      handleAppInstalled
-    );
-
-    return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt
-      );
-
-      window.removeEventListener(
-        "appinstalled",
-        handleAppInstalled
-      );
-    };
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  const handleClick = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-      return;
-    }
-
-    if (isIOS) {
-      setShowIOSHint((prev) => !prev);
-      return;
-    }
-
-    // Boshqa hollarda (allaqachon o'rnatilgan yoki
-    // brauzer qo'llab-quvvatlamaydi)
-    setShowIOSHint((prev) => !prev);
-  };
-
-  const buttonClass =
-    variant === "primary" ? "btn-primary" : "btn-outline";
-
-  if (isInstalled) {
-    return (
-      <span className="tag border-success/10 bg-success-50/80 px-5 py-3 text-sm font-semibold text-success-700">
-        ✅ Ilova allaqachon o&apos;rnatilgan
-      </span>
-    );
+  function dismiss() {
+    setShow(false);
+    localStorage.setItem("zikra-pwa-dismissed", "1");
   }
 
+  async function install() {
+    if (!deferred) return;
+    await deferred.prompt();
+    await deferred.userChoice;
+    dismiss();
+  }
+
+  if (!show) return null;
+
+  const isMobile = /android|iphone|ipad|ipod/i.test(
+    typeof navigator !== "undefined" ? navigator.userAgent : ""
+  );
+
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={handleClick}
-        className={buttonClass}
-      >
-        📲 Ilovani yuklab olish
-      </button>
-
-      {showIOSHint && (
-        <div
-          className="
-            absolute left-0 top-full z-20 mt-3
-            w-72 max-w-[85vw]
-            rounded-2xl border border-gray-100
-            bg-white p-4
-            text-left shadow-lg
-          "
-        >
-          <p className="text-sm font-bold text-gray-900">
-            {isIOS
-              ? "iPhone / iPad uchun:"
-              : "Ilovani o'rnatish"}
+    <div className="fixed inset-x-3 bottom-24 z-[58] mx-auto max-w-md rounded-2xl border border-brand-100 bg-white p-4 shadow-card-hover dark:border-gray-800 dark:bg-gray-900 sm:bottom-6">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
+          Z
+        </span>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Zikra ilovasini yuklab oling
           </p>
-
           {isIOS ? (
-            <ol className="mt-2 space-y-1.5 text-xs leading-5 text-gray-600">
-              <li>
-                1. Safari&apos;dagi{" "}
-                <strong>Ulashish</strong> (⬆️)
-                tugmasini bosing
-              </li>
-              <li>
-                2. <strong>
-                  &quot;Bosh ekranga qo&apos;shish&quot;
-                </strong>{" "}
-                ni tanlang
-              </li>
-              <li>3. &quot;Qo&apos;shish&quot;ni tasdiqlang</li>
-            </ol>
+            <p className="mt-0.5 text-xs text-gray-500">
+              Safari&apos;da <b>Ulashish</b> → <b>Bosh ekranga qo&apos;shish</b> ni bosing.
+            </p>
           ) : (
-            <p className="mt-2 text-xs leading-5 text-gray-600">
-              O&apos;rnatish uchun Chrome yoki Edge
-              brauzerida oching, so&apos;ng manzil
-              satridagi o&apos;rnatish belgisini
-              bosing.
+            <p className="mt-0.5 text-xs text-gray-500">
+              {isMobile ? "📱 Telefoningizga o'rnating" : "💻 Kompyuteringizga o'rnating"}
             </p>
           )}
-
-          <button
-            type="button"
-            onClick={() => setShowIOSHint(false)}
-            className="mt-3 text-xs font-semibold text-gray-400 hover:text-gray-700"
-          >
-            Yopish
-          </button>
         </div>
+        <button onClick={dismiss} className="text-gray-400 hover:text-gray-600">✕</button>
+      </div>
+      {!isIOS && deferred && (
+        <button onClick={install} className="btn-primary mt-3 w-full">
+          {isMobile ? "📱 O'rnatish" : "💻 O'rnatish"}
+        </button>
       )}
     </div>
   );
