@@ -19,6 +19,7 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 import CertificateViewer from "@/components/CertificateViewer";
 import CertificateUpload from "@/components/CertificateUpload";
 import ProfileTabs from "@/components/ProfileTabs";
+import ProfileStories from "@/components/ProfileStories";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -57,7 +58,9 @@ export async function generateMetadata({
   const profile = await getProfileWithSkills(id);
 
   return {
-    title: profile ? profile.full_name : "Profil",
+    title: profile
+      ? profile.full_name
+      : "Profil",
   };
 }
 
@@ -104,56 +107,94 @@ export default async function ProfilePage({
         count: "exact",
         head: true,
       })
-      .eq("teacher_id", profile.id)
-      .eq("status", "completed"),
+      .eq(
+        "teacher_id",
+        profile.id
+      )
+      .eq(
+        "status",
+        "completed"
+      ),
 
     supabase
       .from("ratings")
       .select(
         "*, rater:profiles!ratings_rater_id_fkey(id, full_name, avatar_url)"
       )
-      .eq("rated_id", profile.id)
-      .eq("is_visible", true)
-      .order("created_at", {
-        ascending: false,
-      })
+      .eq(
+        "rated_id",
+        profile.id
+      )
+      .eq(
+        "is_visible",
+        true
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      )
       .limit(20),
 
     supabase
       .from("user_badges")
-      .select("*, badge:badges(*)")
-      .eq("user_id", profile.id),
+      .select(
+        "*, badge:badges(*)"
+      )
+      .eq(
+        "user_id",
+        profile.id
+      ),
 
     supabase
       .from("videos")
-      .select("*, skill:skills(*)")
-      .eq("uploader_id", profile.id)
-      .eq("status", "published")
-      .order("created_at", {
-        ascending: false,
-      }),
+      .select(
+        "*, skill:skills(*)"
+      )
+      .eq(
+        "uploader_id",
+        profile.id
+      )
+      .eq(
+        "status",
+        "published"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        }
+      ),
   ]);
 
   /* ==========================================================
      DATA
   ========================================================== */
 
-  const lessonsCount = lessonsRes.count ?? 0;
+  const lessonsCount =
+    lessonsRes.count ?? 0;
 
   const ratings =
-    (ratingsRes.data as unknown as Rating[]) ?? [];
+    (ratingsRes.data as unknown as Rating[]) ??
+    [];
 
   const badges =
-    (badgesRes.data as unknown as UserBadge[]) ?? [];
+    (badgesRes.data as unknown as UserBadge[]) ??
+    [];
 
   const videos =
-    (videosRes.data as unknown as Video[]) ?? [];
+    (videosRes.data as unknown as Video[]) ??
+    [];
 
   /* ==========================================================
      REELS
   ========================================================== */
 
-  const reels = await getUserReels(profile.id);
+  const reels =
+    await getUserReels(
+      profile.id
+    );
 
   /* ==========================================================
      FOLLOW + VIDEO + REEL STATS
@@ -164,15 +205,22 @@ export default async function ProfilePage({
     vstats,
     rstats,
   ] = await Promise.all([
-    getFollowInfo(profile.id, me?.id),
+    getFollowInfo(
+      profile.id,
+      me?.id
+    ),
 
     getVideoStats(
-      videos.map((v) => v.id),
+      videos.map(
+        (v) => v.id
+      ),
       me?.id
     ),
 
     getReelStats(
-      reels.map((r) => r.id),
+      reels.map(
+        (r) => r.id
+      ),
       me?.id
     ),
   ]);
@@ -182,7 +230,8 @@ export default async function ProfilePage({
   ========================================================== */
 
   for (const v of videos) {
-    const s = vstats.get(v.id);
+    const s =
+      vstats.get(v.id);
 
     if (s) {
       v.likes = s.likes;
@@ -196,13 +245,15 @@ export default async function ProfilePage({
   ========================================================== */
 
   for (const r of reels) {
-    const s = rstats.get(r.id);
+    const s =
+      rstats.get(r.id);
 
     if (s) {
       r.likes = s.likes;
       r.liked = s.liked;
       r.views = s.views;
-      r.comments = s.comments;
+      r.comments =
+        s.comments;
     }
   }
 
@@ -228,14 +279,20 @@ export default async function ProfilePage({
         .select(
           "id, media_url, media_type, created_at"
         )
-        .eq("user_id", profile.id)
+        .eq(
+          "user_id",
+          profile.id
+        )
         .gt(
           "expires_at",
           new Date().toISOString()
         )
-        .order("created_at", {
-          ascending: false,
-        });
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          }
+        );
 
     const sList =
       (st as {
@@ -246,7 +303,10 @@ export default async function ProfilePage({
       }[]) ?? [];
 
     if (sList.length > 0) {
-      const sIds = sList.map((s) => s.id);
+      const sIds =
+        sList.map(
+          (s) => s.id
+        );
 
       const [
         { data: vw },
@@ -254,17 +314,36 @@ export default async function ProfilePage({
       ] = await Promise.all([
         supabase
           .from("story_views")
-          .select("story_id")
-          .in("story_id", sIds),
+          .select(
+            "story_id"
+          )
+          .in(
+            "story_id",
+            sIds
+          ),
 
         supabase
           .from("story_likes")
-          .select("story_id")
-          .in("story_id", sIds),
+          .select(
+            "story_id"
+          )
+          .in(
+            "story_id",
+            sIds
+          ),
       ]);
 
-      const vc = new Map<string, number>();
-      const lc = new Map<string, number>();
+      const vc =
+        new Map<
+          string,
+          number
+        >();
+
+      const lc =
+        new Map<
+          string,
+          number
+        >();
 
       for (
         const r of
@@ -274,7 +353,9 @@ export default async function ProfilePage({
       ) {
         vc.set(
           r.story_id,
-          (vc.get(r.story_id) ?? 0) + 1
+          (vc.get(
+            r.story_id
+          ) ?? 0) + 1
         );
       }
 
@@ -286,15 +367,26 @@ export default async function ProfilePage({
       ) {
         lc.set(
           r.story_id,
-          (lc.get(r.story_id) ?? 0) + 1
+          (lc.get(
+            r.story_id
+          ) ?? 0) + 1
         );
       }
 
-      myStories = sList.map((s) => ({
-        ...s,
-        views: vc.get(s.id) ?? 0,
-        likes: lc.get(s.id) ?? 0,
-      }));
+      myStories =
+        sList.map(
+          (s) => ({
+            ...s,
+            views:
+              vc.get(
+                s.id
+              ) ?? 0,
+            likes:
+              lc.get(
+                s.id
+              ) ?? 0,
+          })
+        );
     }
   }
 
@@ -302,16 +394,19 @@ export default async function ProfilePage({
      SKILLS
   ========================================================== */
 
-  const skills = isOwn
-    ? await getSkills()
-    : [];
+  const skills =
+    isOwn
+      ? await getSkills()
+      : [];
 
   /* ==========================================================
      CERTIFICATE COUNT
   ========================================================== */
 
   const certificatesCount =
-    profile.certificate_url ? 1 : 0;
+    profile.certificate_url
+      ? 1
+      : 0;
 
   /* ==========================================================
      PAGE
@@ -322,7 +417,7 @@ export default async function ProfilePage({
 
       <Navbar />
 
-      <main className="container-app py-6 sm:py-8">
+      <main className="container-app py-4 sm:py-8">
 
         {/* ======================================================
            PROFILE HEADER
@@ -334,7 +429,7 @@ export default async function ProfilePage({
 
           <div className="h-20 bg-gradient-to-r from-brand via-brand-700 to-purple-600 sm:h-28" />
 
-          <div className="px-4 pb-6 sm:px-8 sm:pb-8">
+          <div className="px-3 pb-6 sm:px-8 sm:pb-8">
 
             <div className="-mt-10 sm:-mt-14">
 
@@ -342,11 +437,11 @@ export default async function ProfilePage({
                  PROFILE TOP
               ================================================= */}
 
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 
                 {/* PROFILE LEFT */}
 
-                <div className="flex min-w-0 flex-1 items-start gap-4 sm:gap-6">
+                <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-6">
 
                   {/* AVATAR */}
 
@@ -363,10 +458,12 @@ export default async function ProfilePage({
                               profile.full_name
                             )
                           }
-                          alt={profile.full_name}
+                          alt={
+                            profile.full_name
+                          }
                           width={128}
                           height={128}
-                          className="h-24 w-24 rounded-full object-cover sm:h-32 sm:w-32"
+                          className="h-20 w-20 rounded-full object-cover sm:h-32 sm:w-32"
                           unoptimized
                         />
 
@@ -380,28 +477,30 @@ export default async function ProfilePage({
 
                   <div className="min-w-0 flex-1 pt-1 sm:pt-3">
 
-                    <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold text-gray-950 sm:text-2xl">
+                    <h1 className="flex flex-wrap items-center gap-2 text-lg font-bold text-gray-950 sm:text-2xl">
 
                       <span>
-                        {profile.full_name}
+                        {
+                          profile.full_name
+                        }
                       </span>
 
                       <VerifiedBadge
                         verified={
                           !!profile.is_verified
                         }
-                        size={22}
+                        size={20}
                       />
 
                     </h1>
 
                     {profile.username && (
-                      <p className="mt-1 text-sm font-medium text-brand">
+                      <p className="mt-1 text-xs font-medium text-brand sm:text-sm">
                         @{profile.username}
                       </p>
                     )}
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-xs text-gray-500 sm:text-sm">
                       📍{" "}
                       {profile.city ||
                         "Shahar ko'rsatilmagan"}
@@ -409,21 +508,22 @@ export default async function ProfilePage({
 
                     {/* =================================================
                        FOLLOWERS / FOLLOWING
-                       
+
                        MUHIM:
-                       LINKLAR O'ZGARTIRILMADI
+                       LINKLAR ASLO O'ZGARTIRILMADI
                     ================================================= */}
 
-                    <div className="mt-4 flex flex-wrap items-center gap-5 text-sm">
+                    <div className="mt-3 flex items-center gap-3 text-xs sm:mt-4 sm:gap-5 sm:text-sm">
 
                       <Link
                         href={`/profile/${profile.id}/connections?tab=followers`}
                         className="rounded-lg px-1 py-1 transition hover:bg-gray-50 hover:text-brand"
                       >
                         <b className="text-gray-950">
-                          {follow.followers}
+                          {
+                            follow.followers
+                          }
                         </b>{" "}
-
                         <span className="text-gray-500">
                           obunachi
                         </span>
@@ -434,9 +534,10 @@ export default async function ProfilePage({
                         className="rounded-lg px-1 py-1 transition hover:bg-gray-50 hover:text-brand"
                       >
                         <b className="text-gray-950">
-                          {follow.following}
+                          {
+                            follow.following
+                          }
                         </b>{" "}
-
                         <span className="text-gray-500">
                           obuna
                         </span>
@@ -460,32 +561,12 @@ export default async function ProfilePage({
 
                       <Link
                         href="/onboarding"
-                        className="
-                          flex
-                          flex-1
-                          items-center
-                          justify-center
-                          rounded-xl
-                          border
-                          border-gray-200
-                          bg-white
-                          px-2
-                          py-2
-                          text-center
-                          text-xs
-                          font-medium
-                          leading-tight
-                          text-gray-800
-                          shadow-sm
-                          transition
-                          hover:bg-gray-50
-                          sm:text-sm
-                        "
+                        className="flex h-11 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-2 text-center text-xs font-medium leading-tight text-gray-800 shadow-sm transition hover:bg-gray-50 sm:text-sm"
                       >
                         ✏️ Profilni tahrirlash
                       </Link>
 
-                      <div className="flex-1">
+                      <div className="flex h-11 flex-1 items-center">
                         <SupportButton />
                       </div>
 
@@ -495,10 +576,11 @@ export default async function ProfilePage({
 
                     /* =================================================
                        OTHER PROFILE
+
                        MOBILE UI FIX
                     ================================================= */
 
-                    <div className="grid w-full grid-cols-3 gap-2">
+                    <div className="mt-4 grid w-full grid-cols-3 gap-2 lg:mt-0">
 
                       {/* FOLLOW */}
 
@@ -537,25 +619,7 @@ export default async function ProfilePage({
 
                       <Link
                         href={`/chat?with=${profile.id}`}
-                        className="
-                          flex
-                          h-11
-                          min-w-0
-                          w-full
-                          items-center
-                          justify-center
-                          rounded-xl
-                          bg-brand
-                          px-1
-                          py-2
-                          text-center
-                          text-xs
-                          font-medium
-                          leading-tight
-                          text-white
-                          transition
-                          hover:bg-brand-700
-                        "
+                        className="flex h-11 w-full min-w-0 items-center justify-center rounded-xl bg-brand px-1 text-center text-xs font-semibold leading-tight text-white shadow-sm transition hover:bg-brand-700"
                       >
                         <span className="truncate">
                           💬 Bog&apos;lanish
@@ -579,7 +643,9 @@ export default async function ProfilePage({
 
                   <p className="whitespace-pre-wrap text-sm leading-6 text-gray-600">
                     <Linkify
-                      text={profile.bio}
+                      text={
+                        profile.bio
+                      }
                     />
                   </p>
 
@@ -595,15 +661,20 @@ export default async function ProfilePage({
                 <MiniStat
                   icon="📚"
                   label="Darslar"
-                  value={lessonsCount}
+                  value={
+                    lessonsCount
+                  }
                 />
 
                 <MiniStat
                   icon="⭐"
                   label="Reyting"
                   value={
-                    profile.trust_score > 0
-                      ? profile.trust_score.toFixed(1)
+                    profile.trust_score >
+                    0
+                      ? profile.trust_score.toFixed(
+                          1
+                        )
                       : "—"
                   }
                 />
@@ -611,7 +682,9 @@ export default async function ProfilePage({
                 <MiniStat
                   icon="🏆"
                   label="Nishonlar"
-                  value={badges.length}
+                  value={
+                    badges.length
+                  }
                 />
 
               </div>
@@ -632,10 +705,13 @@ export default async function ProfilePage({
                       🎯 Daraja
                     </h2>
 
-                    {profile.streak_days > 0 && (
+                    {profile.streak_days >
+                      0 && (
                       <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
                         🔥{" "}
-                        {profile.streak_days}{" "}
+                        {
+                          profile.streak_days
+                        }{" "}
                         kunlik streak
                       </span>
                     )}
@@ -643,7 +719,9 @@ export default async function ProfilePage({
                   </div>
 
                   <LevelProgress
-                    xp={profile.xp}
+                    xp={
+                      profile.xp
+                    }
                   />
 
                 </section>
@@ -659,13 +737,18 @@ export default async function ProfilePage({
                     </h2>
 
                     <span className="text-xs text-gray-400">
-                      {badges.length} ta
+                      {
+                        badges.length
+                      }{" "}
+                      ta
                     </span>
 
                   </div>
 
                   <BadgeGrid
-                    badges={badges}
+                    badges={
+                      badges
+                    }
                   />
 
                 </section>
@@ -677,7 +760,9 @@ export default async function ProfilePage({
               ================================================= */}
 
               {isOwn &&
-                myStories.length > 0 && (
+                myStories.length >
+                  0 && (
+
                   <section className="mt-7 border-t border-gray-100 pt-6">
 
                     <div className="mb-4 flex items-center justify-between">
@@ -687,68 +772,22 @@ export default async function ProfilePage({
                       </h2>
 
                       <span className="text-xs text-gray-400">
-                        {myStories.length} faol
+                        {
+                          myStories.length
+                        }{" "}
+                        faol
                       </span>
 
                     </div>
 
-                    <div className="flex gap-4 overflow-x-auto pb-2">
-
-                      {myStories.map((s) => (
-                        <div
-                          key={s.id}
-                          className="flex w-20 shrink-0 flex-col items-center"
-                        >
-
-                          <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[3px]">
-
-                            <div className="rounded-full bg-white p-[2px]">
-
-                              <div className="relative h-16 w-16 overflow-hidden rounded-full bg-gray-900">
-
-                                {s.media_type ===
-                                "video" ? (
-                                  <video
-                                    src={
-                                      s.media_url
-                                    }
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img
-                                    src={
-                                      s.media_url
-                                    }
-                                    alt=""
-                                    className="h-full w-full object-cover"
-                                  />
-                                )}
-
-                              </div>
-
-                            </div>
-
-                          </div>
-
-                          <div className="mt-2 flex gap-1 text-[10px] text-gray-400">
-
-                            <span>
-                              👁 {s.views}
-                            </span>
-
-                            <span>
-                              ❤️ {s.likes}
-                            </span>
-
-                          </div>
-
-                        </div>
-                      ))}
-
-                    </div>
+                    <ProfileStories
+                      stories={
+                        myStories
+                      }
+                    />
 
                   </section>
+
                 )}
 
             </div>
@@ -761,403 +800,483 @@ export default async function ProfilePage({
            PROFILE TABS
         ====================================================== */}
 
-        <ProfileTabs
-          reelsCount={reels.length}
-          videosCount={videos.length}
-          certificatesCount={certificatesCount}
-          reviewsCount={ratings.length}
+        <div className="mt-4 sm:mt-6">
 
-          reels={
-            isOwn || reels.length > 0 ? (
+          <ProfileTabs
+            reelsCount={
+              reels.length
+            }
+            videosCount={
+              videos.length
+            }
+            certificatesCount={
+              certificatesCount
+            }
+            reviewsCount={
+              ratings.length
+            }
+
+            reels={
+
+              isOwn ||
+              reels.length > 0 ? (
+
+                <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+
+                  <div className="mb-5 flex items-center justify-between">
+
+                    <div className="min-w-0">
+
+                      <h2 className="text-lg font-bold text-gray-950">
+                        🎬 Reels
+                      </h2>
+
+                      <p className="mt-1 text-xs text-gray-400">
+                        {
+                          reels.length
+                        }{" "}
+                        ta reels
+                      </p>
+
+                    </div>
+
+                    {isOwn && (
+
+                      <div className="shrink-0">
+
+                        <ReelUpload />
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+                  <ReelGrid
+                    reels={
+                      reels
+                    }
+                  />
+
+                </section>
+
+              ) : (
+
+                <EmptyState
+                  icon="🎬"
+                  title="Reels yo'q"
+                  description="Hali reels yuklanmagan."
+                />
+
+              )
+
+            }
+
+            videos={
 
               <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+
+                <div className="mb-5 flex items-center justify-between">
+
+                  <div className="min-w-0">
+
+                    <h2 className="text-lg font-bold text-gray-950">
+                      📚 Video darslar
+                    </h2>
+
+                    <p className="mt-1 text-xs text-gray-400">
+                      {
+                        videos.length
+                      }{" "}
+                      ta video dars
+                    </p>
+
+                  </div>
+
+                  {isOwn && (
+
+                    <div className="shrink-0">
+
+                      <VideoUpload
+                        skills={
+                          skills
+                        }
+                      />
+
+                    </div>
+
+                  )}
+
+                </div>
+
+                {videos.length >
+                0 ? (
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+
+                    {videos.map(
+                      (v) => (
+                        <VideoCard
+                          key={
+                            v.id
+                          }
+                          video={
+                            v
+                          }
+                          showUploader={
+                            false
+                          }
+                        />
+                      )
+                    )}
+
+                  </div>
+
+                ) : (
+
+                  <EmptyState
+                    icon="📚"
+                    title="Video darslar yo'q"
+                    description={
+                      isOwn
+                        ? "Hali video dars yuklamadingiz. Yuqoridagi tugma orqali birinchi darsingizni qo'shing."
+                        : "Hali video dars yuklanmagan."
+                    }
+                  />
+
+                )}
+
+              </section>
+
+            }
+
+            certificates={
+
+              <div className="space-y-5">
+
+                {/* SKILLS */}
+
+                <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+
+                  <div className="mb-5">
+
+                    <h2 className="text-lg font-bold text-gray-950">
+                      🧠 Ko&apos;nikmalar
+                    </h2>
+
+                    <p className="mt-1 text-xs text-gray-400">
+                      O&apos;rgata oladigan va o&apos;rganmoqchi bo&apos;lgan ko&apos;nikmalar
+                    </p>
+
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+
+                    <div>
+
+                      <p className="mb-3 text-sm font-bold text-success-700">
+                        🎓 O&apos;rgata oladi
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+
+                        {profile.teach_skills.length >
+                        0 ? (
+
+                          profile.teach_skills.map(
+                            (s) => (
+                              <span
+                                key={
+                                  s.id
+                                }
+                                className="tag-teach"
+                              >
+                                {
+                                  s.name
+                                }
+                              </span>
+                            )
+                          )
+
+                        ) : (
+
+                          <span className="text-sm text-gray-400">
+                            —
+                          </span>
+
+                        )}
+
+                      </div>
+
+                    </div>
+
+                    <div>
+
+                      <p className="mb-3 text-sm font-bold text-brand-700">
+                        📚 O&apos;rganmoqchi
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+
+                        {profile.learn_skills.length >
+                        0 ? (
+
+                          profile.learn_skills.map(
+                            (s) => (
+                              <span
+                                key={
+                                  s.id
+                                }
+                                className="tag-learn"
+                              >
+                                {
+                                  s.name
+                                }
+                              </span>
+                            )
+                          )
+
+                        ) : (
+
+                          <span className="text-sm text-gray-400">
+                            —
+                          </span>
+
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </section>
+
+                {/* CERTIFICATE */}
+
+                {(isOwn ||
+                  profile.is_verified) && (
+
+                  <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+
+                    <div className="mb-5 flex items-center gap-2">
+
+                      <div>
+
+                        <h2 className="text-lg font-bold text-gray-950">
+                          📜 Hujjatlar / Sertifikatlar
+                        </h2>
+
+                        <p className="mt-1 text-xs text-gray-400">
+                          Tasdiqlangan hujjat va sertifikat
+                        </p>
+
+                      </div>
+
+                      <VerifiedBadge
+                        verified={
+                          !!profile.is_verified
+                        }
+                        size={18}
+                      />
+
+                    </div>
+
+                    {isOwn ? (
+
+                      <CertificateUpload
+                        certificateUrl={
+                          profile.certificate_url ??
+                          null
+                        }
+                        verified={
+                          !!profile.is_verified
+                        }
+                        status={
+                          profile.verification_status ??
+                          "none"
+                        }
+                        ownerName={
+                          profile.full_name
+                        }
+                      />
+
+                    ) : profile.is_verified &&
+                      profile.certificate_url ? (
+
+                      <div className="space-y-3">
+
+                        <CertificateViewer
+                          url={
+                            profile.certificate_url
+                          }
+                          verified
+                          ownerName={
+                            profile.full_name
+                          }
+                        />
+
+                        <p className="text-xs text-gray-500">
+                          Bu sertifikat admin tomonidan tekshirilib tasdiqlangan.
+                        </p>
+
+                      </div>
+
+                    ) : null}
+
+                  </section>
+
+                )}
+
+              </div>
+
+            }
+
+            reviews={
+
+              <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
 
                 <div className="mb-5 flex items-center justify-between">
 
                   <div>
 
                     <h2 className="text-lg font-bold text-gray-950">
-                      🎬 Reels
+                      ⭐ Izohlar & Baholar
                     </h2>
 
                     <p className="mt-1 text-xs text-gray-400">
-                      {reels.length} ta reels
+                      {
+                        ratings.length
+                      }{" "}
+                      ta baho
                     </p>
 
                   </div>
 
-                  {isOwn && <ReelUpload />}
+                  {profile.trust_score >
+                    0 && (
 
-                </div>
+                    <div className="rounded-2xl bg-yellow-50 px-4 py-2 text-center">
 
-                <ReelGrid reels={reels} />
+                      <p className="text-lg font-bold text-yellow-600">
+                        {profile.trust_score.toFixed(
+                          1
+                        )}
+                      </p>
 
-              </section>
-
-            ) : (
-
-              <EmptyState
-                icon="🎬"
-                title="Reels yo'q"
-                description="Hali reels yuklanmagan."
-              />
-
-            )
-          }
-
-          videos={
-
-            <section className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-
-              <div className="mb-5 flex items-center justify-between">
-
-                <div>
-
-                  <h2 className="text-lg font-bold text-gray-950">
-                    📚 Video darslar
-                  </h2>
-
-                  <p className="mt-1 text-xs text-gray-400">
-                    {videos.length} ta video dars
-                  </p>
-
-                </div>
-
-                {isOwn && (
-                  <VideoUpload
-                    skills={skills}
-                  />
-                )}
-
-              </div>
-
-              {videos.length > 0 ? (
-
-                <div className="grid gap-4 sm:grid-cols-2">
-
-                  {videos.map((v) => (
-                    <VideoCard
-                      key={v.id}
-                      video={v}
-                      showUploader={false}
-                    />
-                  ))}
-
-                </div>
-
-              ) : (
-
-                <EmptyState
-                  icon="📚"
-                  title="Video darslar yo'q"
-                  description={
-                    isOwn
-                      ? "Hali video dars yuklamadingiz. Yuqoridagi tugma orqali birinchi darsingizni qo'shing."
-                      : "Hali video dars yuklanmagan."
-                  }
-                />
-
-              )}
-
-            </section>
-
-          }
-
-          certificates={
-
-            <div className="space-y-5">
-
-              {/* SKILLS */}
-
-              <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-
-                <div className="mb-5">
-
-                  <h2 className="text-lg font-bold text-gray-950">
-                    🧠 Ko&apos;nikmalar
-                  </h2>
-
-                  <p className="mt-1 text-xs text-gray-400">
-                    O&apos;rgata oladigan va o&apos;rganmoqchi bo&apos;lgan ko&apos;nikmalar
-                  </p>
-
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-
-                  <div>
-
-                    <p className="mb-3 text-sm font-bold text-success-700">
-                      🎓 O&apos;rgata oladi
-                    </p>
-
-                    <div className="flex flex-wrap gap-2">
-
-                      {profile.teach_skills.length > 0 ? (
-
-                        profile.teach_skills.map(
-                          (s) => (
-                            <span
-                              key={s.id}
-                              className="tag-teach"
-                            >
-                              {s.name}
-                            </span>
-                          )
-                        )
-
-                      ) : (
-
-                        <span className="text-sm text-gray-400">
-                          —
-                        </span>
-
-                      )}
-
-                    </div>
-
-                  </div>
-
-                  <div>
-
-                    <p className="mb-3 text-sm font-bold text-brand-700">
-                      📚 O&apos;rganmoqchi
-                    </p>
-
-                    <div className="flex flex-wrap gap-2">
-
-                      {profile.learn_skills.length > 0 ? (
-
-                        profile.learn_skills.map(
-                          (s) => (
-                            <span
-                              key={s.id}
-                              className="tag-learn"
-                            >
-                              {s.name}
-                            </span>
-                          )
-                        )
-
-                      ) : (
-
-                        <span className="text-sm text-gray-400">
-                          —
-                        </span>
-
-                      )}
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </section>
-
-              {/* CERTIFICATE */}
-
-              {(isOwn || profile.is_verified) && (
-
-                <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-
-                  <div className="mb-5 flex items-center gap-2">
-
-                    <div>
-
-                      <h2 className="text-lg font-bold text-gray-950">
-                        📜 Hujjatlar / Sertifikatlar
-                      </h2>
-
-                      <p className="mt-1 text-xs text-gray-400">
-                        Tasdiqlangan hujjat va sertifikat
+                      <p className="text-[10px] text-yellow-600">
+                        umumiy reyting
                       </p>
 
                     </div>
 
-                    <VerifiedBadge
-                      verified={
-                        !!profile.is_verified
-                      }
-                      size={18}
-                    />
-
-                  </div>
-
-                  {isOwn ? (
-
-                    <CertificateUpload
-                      certificateUrl={
-                        profile.certificate_url ??
-                        null
-                      }
-                      verified={
-                        !!profile.is_verified
-                      }
-                      status={
-                        profile.verification_status ??
-                        "none"
-                      }
-                      ownerName={
-                        profile.full_name
-                      }
-                    />
-
-                  ) : profile.is_verified &&
-                    profile.certificate_url ? (
-
-                    <div className="space-y-3">
-
-                      <CertificateViewer
-                        url={
-                          profile.certificate_url
-                        }
-                        verified
-                        ownerName={
-                          profile.full_name
-                        }
-                      />
-
-                      <p className="text-xs text-gray-500">
-                        Bu sertifikat admin tomonidan tekshirilib tasdiqlangan.
-                      </p>
-
-                    </div>
-
-                  ) : null}
-
-                </section>
-
-              )}
-
-            </div>
-
-          }
-
-          reviews={
-
-            <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-
-              <div className="mb-5 flex items-center justify-between">
-
-                <div>
-
-                  <h2 className="text-lg font-bold text-gray-950">
-                    ⭐ Izohlar & Baholar
-                  </h2>
-
-                  <p className="mt-1 text-xs text-gray-400">
-                    {ratings.length} ta baho
-                  </p>
+                  )}
 
                 </div>
 
-                {profile.trust_score > 0 && (
+                {ratings.length >
+                0 ? (
 
-                  <div className="rounded-2xl bg-yellow-50 px-4 py-2 text-center">
+                  <ul className="space-y-0">
 
-                    <p className="text-lg font-bold text-yellow-600">
-                      {profile.trust_score.toFixed(1)}
-                    </p>
+                    {ratings.map(
+                      (r) => (
 
-                    <p className="text-[10px] text-yellow-600">
-                      umumiy reyting
-                    </p>
+                        <li
+                          key={
+                            r.id
+                          }
+                          className="flex gap-3 border-b border-gray-100 py-5 first:pt-0 last:border-0"
+                        >
 
-                  </div>
+                          <Image
+                            src={
+                              r.rater?.avatar_url ||
+                              avatarFallback(
+                                r.rater?.full_name ??
+                                "Z"
+                              )
+                            }
+                            alt={
+                              r.rater?.full_name ??
+                              ""
+                            }
+                            width={42}
+                            height={42}
+                            className="h-10 w-10 shrink-0 rounded-full object-cover"
+                            unoptimized
+                          />
 
-                )}
+                          <div className="min-w-0 flex-1">
 
-              </div>
+                            <div className="flex items-start justify-between gap-3">
 
-              {ratings.length > 0 ? (
+                              <div>
 
-                <ul className="space-y-0">
+                                <span className="text-sm font-bold text-gray-900">
+                                  {
+                                    r.rater?.full_name ??
+                                    "Foydalanuvchi"
+                                  }
+                                </span>
 
-                  {ratings.map((r) => (
+                                <div className="mt-1">
 
-                    <li
-                      key={r.id}
-                      className="flex gap-3 border-b border-gray-100 py-5 first:pt-0 last:border-0"
-                    >
+                                  <StarRating
+                                    value={
+                                      r.score
+                                    }
+                                    size={
+                                      14
+                                    }
+                                  />
 
-                      <Image
-                        src={
-                          r.rater?.avatar_url ||
-                          avatarFallback(
-                            r.rater?.full_name ??
-                            "Z"
-                          )
-                        }
-                        alt={
-                          r.rater?.full_name ??
-                          ""
-                        }
-                        width={42}
-                        height={42}
-                        className="h-10 w-10 shrink-0 rounded-full object-cover"
-                        unoptimized
-                      />
+                                </div>
 
-                      <div className="min-w-0 flex-1">
+                              </div>
 
-                        <div className="flex items-start justify-between gap-3">
-
-                          <div>
-
-                            <span className="text-sm font-bold text-gray-900">
-                              {r.rater?.full_name ??
-                                "Foydalanuvchi"}
-                            </span>
-
-                            <div className="mt-1">
-
-                              <StarRating
-                                value={r.score}
-                                size={14}
-                              />
+                              <span className="shrink-0 text-xs text-gray-400">
+                                {timeAgo(
+                                  r.created_at
+                                )}
+                              </span>
 
                             </div>
 
+                            {r.comment && (
+                              <p className="mt-2 text-sm leading-6 text-gray-600">
+                                {
+                                  r.comment
+                                }
+                              </p>
+                            )}
+
                           </div>
 
-                          <span className="shrink-0 text-xs text-gray-400">
-                            {timeAgo(
-                              r.created_at
-                            )}
-                          </span>
+                        </li>
 
-                        </div>
+                      )
+                    )}
 
-                        {r.comment && (
-                          <p className="mt-2 text-sm leading-6 text-gray-600">
-                            {r.comment}
-                          </p>
-                        )}
+                  </ul>
 
-                      </div>
+                ) : (
 
-                    </li>
+                  <EmptyState
+                    icon="⭐"
+                    title="Hali izohlar yo'q"
+                    description="Bu foydalanuvchi haqida hali hech qanday izoh qoldirilmagan."
+                  />
 
-                  ))}
+                )}
 
-                </ul>
+              </section>
 
-              ) : (
+            }
 
-                <EmptyState
-                  icon="⭐"
-                  title="Hali izohlar yo'q"
-                  description="Bu foydalanuvchi haqida hali hech qanday izoh qoldirilmagan."
-                />
+          />
 
-              )}
-
-            </section>
-
-          }
-
-        />
+        </div>
 
       </main>
     </div>
