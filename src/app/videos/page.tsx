@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import Navbar from "@/components/Navbar";
 import VideoBrowser from "./VideoBrowser";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile, getVideoStats } from "@/lib/queries";
+import {
+  getCurrentProfile,
+  getVideoStats,
+  getReels,
+  getReelStats,
+} from "@/lib/queries";
 import type { Video } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Video darslar" };
@@ -16,19 +19,24 @@ export default async function VideosPage() {
 
   const supabase = await createClient();
 
-  const { data: videosData } = await supabase
-    .from("videos")
-    .select("*, uploader:profiles!videos_uploader_id_fkey(id, full_name, avatar_url)")
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  const [{ data: videosData }, reels] = await Promise.all([
+    supabase
+      .from("videos")
+      .select("*, uploader:profiles!videos_uploader_id_fkey(id, full_name, avatar_url)")
+      .eq("status", "published")
+      .order("created_at", { ascending: false }),
+    getReels(),
+  ]);
 
   const videos = (videosData as unknown as Video[]) ?? [];
   const ids = videos.map((v) => v.id);
 
-  // Like/ko'rish statistikasi
-  const stats = await getVideoStats(ids, me.id);
+  const [stats, reelStats] = await Promise.all([
+    getVideoStats(ids, me.id),
+    getReelStats(reels.map((r) => r.id), me.id),
+  ]);
 
-  // "Sifatli ko'rish" (70%+) sonini hisoblash — algoritm uchun
+  // Sifatli ko'rishlar — mavjud tavsiya algoritmi saqlanadi.
   const qualityViews = new Map<string, number>();
   if (ids.length > 0) {
     const { data: vw } = await supabase
@@ -41,45 +49,43 @@ export default async function VideosPage() {
     }
   }
 
-  const now = Date.now();
-  for (const v of videos) {
-    const s = stats.get(v.id);
-    if (s) {
-      v.likes = s.likes;
-      v.views = s.views;
-      v.liked = s.liked;
+  for (const video of videos) {
+    const stat = stats.get(video.id);
+    if (stat) {
+      video.likes = stat.likes;
+      video.views = stat.views;
+      video.liked = stat.liked;
     }
   }
 
-  // YouTube uslubidagi tartiblash:
-  //   1) eng ko'p oxirigacha ko'rilgan (sifatli ko'rishlar)
-  //   2) eng ko'p like
-  //   3) eng yangi
-  const score = (v: Video) => {
-    const quality = qualityViews.get(v.id) ?? 0;
-    const ageDays = (now - new Date(v.created_at).getTime()) / 86400000;
-    const recencyBoost = Math.max(0, 7 - ageDays); // 1 haftagacha yangi bonus
-    return quality * 5 + (v.likes ?? 0) * 3 + (v.views ?? 0) * 1 + recencyBoost;
+  for (const reel of reels) {
+    const stat = reelStats.get(reel.id);
+    if (stat) {
+      reel.likes = stat.likes;
+      reel.liked = stat.liked;
+      reel.views = stat.views;
+      reel.comments = stat.comments;
+    }
+  }
+
+  const now = Date.now();
+  const score = (video: Video) => {
+    const quality = qualityViews.get(video.id) ?? 0;
+    const ageDays = (now - new Date(video.created_at).getTime()) / 86400000;
+    const recencyBoost = Math.max(0, 7 - ageDays);
+    return quality * 5 + (video.likes ?? 0) * 3 + (video.views ?? 0) + recencyBoost;
   };
   videos.sort((a, b) => score(b) - score(a));
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="container-app py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Video darslar</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Boshqalardan o&apos;rganing. O&apos;z darsingizni ulashish uchun{" "}
-            <Link href={`/profile/${me.id}`} className="font-medium text-brand hover:underline">
-              profilingizga
-            </Link>{" "}
-            o&apos;ting.
-          </p>
-        </div>
-
-        <VideoBrowser videos={videos} />
-      </main>
-    </div>
+    <VideoBrowser
+      videos={videos}
+      reels={reels}
+      profile={{
+        id: me.id,
+        full_name: me.full_name,
+        avatar_url: me.avatar_url,
+      }}
+    />
   );
 }
