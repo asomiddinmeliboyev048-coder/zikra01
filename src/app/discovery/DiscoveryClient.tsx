@@ -124,6 +124,7 @@ export default function DiscoveryClient({
             <button disabled={page === pageCount} onClick={() => setPage((v) => Math.min(pageCount, v + 1))} className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold disabled:opacity-40 dark:border-white/10">Keyingi →</button>
           </nav>}
         </>
+      )}
     </div>
   );
 }
