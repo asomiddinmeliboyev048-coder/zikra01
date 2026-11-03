@@ -7,7 +7,8 @@ import VideoCard from "@/components/VideoCard";
 import VideoThumb from "@/components/VideoThumb";
 import VideoStats from "@/components/VideoStats";
 import type { Reel, Video } from "@/lib/types";
-import { avatarFallback, timeAgo } from "@/lib/utils";
+import { avatarFallback } from "@/lib/utils";
+import RelativeTime from "@/components/RelativeTime";
 
 interface Props {
   videos: Video[];
@@ -139,7 +140,7 @@ export default function VideoBrowser({ videos, reels, profile }: Props) {
                 <div className="min-w-0 flex-1">
                   <Link href={`/videos/${featured.id}`} className="line-clamp-2 text-base font-bold leading-snug text-gray-900 hover:text-brand dark:text-white sm:text-lg">{featured.title}</Link>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {featured.uploader?.full_name || "Zikra hamjamiyati"} · {featured.views ?? 0} ko'rish · {timeAgo(featured.created_at)}
+                    {featured.uploader?.full_name || "Zikra hamjamiyati"} · {featured.views ?? 0} ko'rish · <RelativeTime date={featured.created_at}/>
                   </p>
                   <div className="mt-2">
                     <VideoStats videoId={featured.id} initialLikes={featured.likes ?? 0} initialLiked={featured.liked ?? false} initialViews={featured.views ?? 0} />
