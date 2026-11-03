@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -52,7 +53,7 @@ export default function NavbarClient({ profile, unread }: Props) {
         <Image src={profile.avatar_url || avatarFallback(profile.full_name)} alt={profile.full_name} width={36} height={36} className="h-9 w-9 rounded-full object-cover ring-1 ring-black/5 dark:ring-white/15" unoptimized />
       </button>
     </div>
-    {menuOpen && <>
+    {menuOpen && typeof document !== "undefined" && createPortal(<>
       <button aria-label="Yopish" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-[70] cursor-default bg-slate-950/35 backdrop-blur-[2px]" />
       <aside role="dialog" aria-modal="true" aria-label="Profil menyusi" className="fixed inset-y-0 right-0 z-[71] flex w-[min(88vw,380px)] flex-col border-l border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0d1b1a]">
         <div className="flex items-center justify-between border-b border-gray-100 p-5 dark:border-white/10">
@@ -74,7 +75,7 @@ export default function NavbarClient({ profile, unread }: Props) {
         </div>
         <div className="border-t border-gray-100 p-4 dark:border-white/10"><form action={signOutAction}><button type="submit" className="w-full rounded-xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300">Chiqish</button></form></div>
       </aside>
-    </>}
+    </>, document.body)}
   </>;
 }
 function BellIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
