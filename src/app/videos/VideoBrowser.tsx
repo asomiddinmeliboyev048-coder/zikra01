@@ -42,7 +42,7 @@ export default function VideoBrowser({ navbar, videos, reels, profile }: Props) 
       {navbar}
       {/* Yagona global navigatsiya ostidagi video qidiruv va filtrlar */}
       <div className="sticky top-16 z-30 border-b border-black/[0.04] bg-white/95 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#0b100f]/95">
-        <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.06]">
             <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Video darslarni qidiring..." aria-label="Video darslarni qidiring" className="min-w-0 flex-1 bg-transparent px-4 text-sm outline-none placeholder:text-gray-400" />
             <span className="px-3 text-gray-500" aria-hidden="true"><SearchIcon /></span>
