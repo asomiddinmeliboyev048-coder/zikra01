@@ -113,8 +113,8 @@ export default function VideoBrowser({ videos, reels, profile }: Props) {
         {featured ? (
           <section className="mb-8">
             <div className="overflow-hidden bg-white dark:bg-[#101715] md:mx-6 md:mt-6 md:rounded-2xl md:border md:border-black/[0.05] md:shadow-sm lg:mx-8">
-              <Link href={`/videos/${featured.id}`} className="group relative block">
-                <div className="relative aspect-video w-full overflow-hidden bg-black">
+              <div className="group relative">
+                <div className="relative w-full overflow-hidden bg-black">
                   <VideoThumb
                     id={featured.id}
                     title={featured.title}
@@ -122,9 +122,9 @@ export default function VideoBrowser({ videos, reels, profile }: Props) {
                     videoUrl={featured.cloudinary_url}
                     duration={featured.duration}
                   />
-                  <span className="absolute bottom-3 right-3 rounded-md bg-black/80 px-2 py-1 text-xs font-semibold text-white">Tavsiya etiladi</span>
+                  <span className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-black/80 px-2 py-1 text-xs font-semibold text-white">Tavsiya etiladi</span>
                 </div>
-              </Link>
+              </div>
               <div className="flex gap-3 px-4 py-4 sm:px-5">
                 <Link href={`/profile/${featured.uploader?.id || profile.id}`} className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gray-100">
                   <Image
@@ -239,7 +239,7 @@ function BellIcon() {
   return <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 8.5-3 8.5h18S18 15 18 8M10 21h4"/></svg>;
 }
 function ShortsIcon() {
-  return <svg viewBox="0 0 24 24" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18.8 3.1a4.1 4.1 0 0 0-5.6-1.5L5 6a4 4 0 0 0 .2 7.1l1.2.6-1.2.7a4 4 0 0 0 4 7l8.2-4.7a4 4 0 0 0-.2-7.1l-1.2-.6 1.2-.7a4 4 0 0 0 1.6-5.2ZM9.2 15.3v-6l5.2 3-5.2 3Z"/></svg>;
+  return <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor"><path d="M18.8 3.1a4.1 4.1 0 0 0-5.6-1.5L5 6a4 4 0 0 0 .2 7.1l1.2.6-1.2.7a4 4 0 0 0 4 7l8.2-4.7a4 4 0 0 0-.2-7.1l-1.2-.6 1.2-.7a4 4 0 0 0 1.6-5.2ZM9.2 15.3v-6l5.2 3-5.2 3Z"/></svg>;
 }
 function HomeIcon() {
   return <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/></svg>;
