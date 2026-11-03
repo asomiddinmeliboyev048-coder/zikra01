@@ -20,7 +20,6 @@ const NAV = [
   { href: "/reels", label: "Reels" },
   { href: "/chat", label: "Suhbatlar" },
 ];
-const localeLabels: Record<string, string> = { uz: "O‘zbekcha", en: "English", ru: "Русский" };
 
 export default function NavbarClient({ profile, unread }: Props) {
   const pathname = usePathname();
