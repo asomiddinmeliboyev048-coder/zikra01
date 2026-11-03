@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * Mobil qurilmalar uchun pastki navigatsiya paneli (faqat md dan kichik ekranlarda).
  *
- * 5 ta bo'lim: Kashf etish, Video darslar, Reels, Suhbatlar, Profil.
+ * 5 ta bo'lim: Kashf etish, Video darslar, Reels, Suhbatlar, Rivojlanish.
  * Ixcham ikonkalar + kichik matn; aktiv bo'lim brend rangi va yuqoridagi
  * indikator bilan ajralib turadi.
  */
@@ -19,7 +19,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
     { href: "/videos", label: "Video", icon: VideoIcon },
     { href: "/reels", label: "Reels", icon: ReelsIcon },
     { href: "/chat", label: "Suhbat", icon: ChatIcon },
-    { href: `/profile/${profileId}`, label: "Profil", icon: UserIcon },
+    { href: "/lessons", label: "Rivojlanish", icon: LearnIcon },
   ];
 
   return (
@@ -94,11 +94,10 @@ function ChatIcon({ active }: { active: boolean }) {
     </svg>
   );
 }
-function UserIcon({ active }: { active: boolean }) {
+function LearnIcon({ active }: { active: boolean }) {
   return (
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+      <path d="M3 5.5 12 2l9 3.5-9 3.5z"/><path d="M6 7.5v6c3.5 2.5 8.5 2.5 12 0v-6M21 6v7" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
