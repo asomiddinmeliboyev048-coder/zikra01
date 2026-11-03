@@ -118,8 +118,12 @@ export default function DiscoveryClient({
               <UserCard key={p.id} profile={p} />
             ))}
           </div>
+          {pageCount > 1 && <nav aria-label="Natijalar sahifalari" className="mt-8 flex flex-wrap items-center justify-center gap-2">
+            <button disabled={page === 1} onClick={() => setPage((v) => Math.max(1, v - 1))} className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold disabled:opacity-40 dark:border-white/10">← Oldingi</button>
+            {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => <button key={n} aria-current={n === page ? "page" : undefined} onClick={() => setPage(n)} className={`h-10 min-w-10 rounded-xl px-3 text-sm font-bold ${n === page ? "bg-brand text-white" : "border border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-gray-200"}`}>{n}</button>)}
+            <button disabled={page === pageCount} onClick={() => setPage((v) => Math.min(pageCount, v + 1))} className="rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-semibold disabled:opacity-40 dark:border-white/10">Keyingi →</button>
+          </nav>}
         </>
-      )}
     </div>
   );
 }
