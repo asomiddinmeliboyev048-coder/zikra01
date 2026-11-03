@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { translations, getCanonicalText, type Locale } from "@/lib/i18n";
+import { translations, canonicalizeText, type Locale } from "@/lib/i18n";
 
 const LOCALES: Locale[] = ["uz", "en", "ru"];
 const ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
@@ -30,7 +30,7 @@ function translateTree(root: ParentNode, locale: Locale) {
   for (const node of textNodes) {
     const raw = node.nodeValue ?? "";
     const trimmed = raw.trim();
-    const canonical = getCanonicalText(trimmed, currentLocaleFromText(trimmed, locale));
+    const canonical = canonicalizeText(trimmed);
     const target = locale === "uz" ? canonical : translations[canonical]?.[locale] ?? canonical;
     if (target !== trimmed) node.nodeValue = raw.replace(trimmed, target);
   }
@@ -41,18 +41,11 @@ function translateTree(root: ParentNode, locale: Locale) {
     for (const attr of ATTRS) {
       const value = element.getAttribute(attr);
       if (!value) continue;
-      const canonical = getCanonicalText(value, currentLocaleFromText(value, locale));
+      const canonical = canonicalizeText(value);
       const target = locale === "uz" ? canonical : translations[canonical]?.[locale] ?? canonical;
       if (target !== value) element.setAttribute(attr, target);
     }
   }
-}
-
-// If the visible text is currently in another supported language, reverse it
-// to the canonical Uzbek phrase before applying the selected locale.
-function currentLocaleFromText(text: string, selected: Locale): Locale {
-  if (selected === "uz") return "en"; // reverse lookup accepts either translated value below
-  return selected === "en" ? "ru" : "en";
 }
 
 export default function LanguageRuntime() {
