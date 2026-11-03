@@ -14,6 +14,21 @@ function readLocale(): Locale {
   return "uz";
 }
 
+function localizedText(text: string, locale: Locale): string {
+  const canonical = canonicalizeText(text);
+  const exact = locale === "uz" ? canonical : translations[canonical]?.[locale];
+  if (exact) return exact;
+  const match = text.match(/^(\\d+) ta mos profil · (\\d+)\\/(\\d+)-sahifa$/);
+  if (match) {
+    const [, total, page, pages] = match;
+    if (locale === "en") return `${total} matching profiles · Page ${page} of ${pages}`;
+    if (locale === "ru") return `${total} подходящих профилей · Страница ${page} из ${pages}`;
+  }
+  const found = text.match(/^(\\d+) ta foydalanuvchi topildi$/);
+  if (found) return locale === "en" ? `${found[1]} users found` : locale === "ru" ? `Найдено пользователей: ${found[1]}` : text;
+  return text;
+}
+
 function translateTree(root: ParentNode, locale: Locale) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
@@ -30,8 +45,7 @@ function translateTree(root: ParentNode, locale: Locale) {
   for (const node of textNodes) {
     const raw = node.nodeValue ?? "";
     const trimmed = raw.trim();
-    const canonical = canonicalizeText(trimmed);
-    const target = locale === "uz" ? canonical : translations[canonical]?.[locale] ?? canonical;
+    const target = localizedText(trimmed, locale);
     if (target !== trimmed) node.nodeValue = raw.replace(trimmed, target);
   }
 
@@ -41,8 +55,7 @@ function translateTree(root: ParentNode, locale: Locale) {
     for (const attr of ATTRS) {
       const value = element.getAttribute(attr);
       if (!value) continue;
-      const canonical = canonicalizeText(value);
-      const target = locale === "uz" ? canonical : translations[canonical]?.[locale] ?? canonical;
+      const target = localizedText(value, locale);
       if (target !== value) element.setAttribute(attr, target);
     }
   }
