@@ -9,8 +9,9 @@ import RelativeTime from "@/components/RelativeTime";
 import SaveVideoButton from "@/components/SaveVideoButton";
 import VideoComments, { type CommentView } from "@/components/VideoComments";
 import VideoShareActions from "@/components/VideoShareActions";
+import FollowButton from "@/components/FollowButton";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile, getVideoStats } from "@/lib/queries";
+import { getCurrentProfile, getVideoStats, getFollowInfo } from "@/lib/queries";
 import { avatarFallback, formatDuration } from "@/lib/utils";
 import type { Video } from "@/lib/types";
 
@@ -34,7 +35,13 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
   if (!videoData) notFound();
   const video = videoData as unknown as Video;
   const related = (relatedData ?? []) as unknown as Video[];
-  const stats = (await getVideoStats([id], me.id)).get(id) ?? { likes:0, views:0, liked:false };
+  const [statsMap, followInfo] = await Promise.all([
+    getVideoStats([id], me.id),
+    videoData.uploader?.id && videoData.uploader.id !== me.id
+      ? getFollowInfo(videoData.uploader.id, me.id)
+      : Promise.resolve({ followers: 0, following: 0, isFollowing: false }),
+  ]);
+  const stats = statsMap.get(id) ?? { likes:0, views:0, liked:false };
 
   const { data: rawComments } = await supabase.from("video_comments")
     .select("id,parent_id,content,created_at,author:profiles!video_comments_user_id_fkey(id,full_name,avatar_url)")
@@ -58,21 +65,24 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
     <Navbar/>
     <main className="mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-5 lg:px-8 lg:py-6">
       <Link href="/videos" className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand">← Video darslarga qaytish</Link>
-      <div className="grid grid-cols-1 items-start gap-5 lg:gap-6 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid grid-cols-1 items-start gap-5 lg:gap-6 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="min-w-0">
           <div className="group/player relative aspect-video w-full overflow-hidden rounded-xl bg-black sm:rounded-2xl">
             <VideoPlayer videoId={video.id} url={video.cloudinary_url}/>
           </div>
           <h1 className="mt-4 text-xl font-bold leading-snug sm:text-2xl">{video.title}</h1>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            {video.uploader && <Link href={`/profile/${video.uploader.id}`} className="flex min-w-0 items-center gap-3">
-              <Image src={video.uploader.avatar_url||avatarFallback(video.uploader.full_name)} alt={video.uploader.full_name} width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" unoptimized/>
-              <span className="min-w-0"><span className="block truncate text-sm font-bold">{video.uploader.full_name}</span><span className="text-xs text-gray-500">Muallif · <RelativeTime date={video.created_at}/></span></span>
-            </Link>}
+          <div className="mt-4 flex flex-col gap-4">
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              {video.uploader && <Link href={`/profile/${video.uploader.id}`} className="flex min-w-0 items-center gap-3">
+                <Image src={video.uploader.avatar_url||avatarFallback(video.uploader.full_name)} alt={video.uploader.full_name} width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover" unoptimized/>
+                <span className="min-w-0"><span className="block truncate text-sm font-bold">{video.uploader.full_name}</span><span className="text-xs text-gray-500">Muallif · <RelativeTime date={video.created_at}/> · {followInfo.followers.toLocaleString("uz-UZ")} obunachi</span></span>
+              </Link>}
+              {video.uploader && video.uploader.id !== me.id && <FollowButton profileId={video.uploader.id} initialFollowing={followInfo.isFollowing} initialFollowers={followInfo.followers} compact/>}
+            </div>
             <div className="hide-scrollbar -mx-3 flex items-center gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
-              <div className="shrink-0 rounded-full bg-gray-100 px-3 py-2 dark:bg-white/10"><VideoStats variant="actions" videoId={video.id} initialLikes={stats.likes} initialLiked={stats.liked} initialViews={stats.views}/></div>
+              <div className="shrink-0 rounded-full bg-gray-100 px-4 py-2.5 dark:bg-white/10"><VideoStats variant="actions" videoId={video.id} initialLikes={stats.likes} initialLiked={stats.liked} initialViews={stats.views}/></div>
               <VideoShareActions title={video.title} compact/>
-              <div className="shrink-0 rounded-full bg-gray-100 px-3 py-2 dark:bg-white/10"><SaveVideoButton url={video.cloudinary_url}/></div>
+              <div className="shrink-0 rounded-full bg-gray-100 px-4 py-2.5 dark:bg-white/10"><SaveVideoButton url={video.cloudinary_url}/></div>
               <a href="#comments" className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-gray-100 px-4 text-sm font-semibold text-gray-800 dark:bg-white/10 dark:text-white">💬 Izohlar</a>
             </div>
           </div>
@@ -84,7 +94,7 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
             <VideoComments videoId={video.id} uploaderId={video.uploader_id} currentUser={{id:me.id,full_name:me.full_name,avatar_url:me.avatar_url}} initial={topLevel}/>
           </section>
         </div>
-        <aside className="min-w-0 xl:sticky xl:top-24">
+        <aside className="min-w-0 border-t border-gray-200 pt-5 dark:border-white/10 lg:sticky lg:top-24 lg:border-0 lg:pt-0">
           <h2 className="mb-3 text-lg font-bold">Tavsiya etilgan videolar</h2>
           <div className="space-y-3">
             {related.map((v)=> <Link href={`/videos/${v.id}`} key={v.id} className="group flex gap-3 rounded-xl p-1 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]">
