@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import VideoCard from "@/components/VideoCard";
+import Navbar from "@/components/Navbar";
 import VideoThumb from "@/components/VideoThumb";
 import VideoStats from "@/components/VideoStats";
 import type { Reel, Video } from "@/lib/types";
@@ -39,75 +40,21 @@ export default function VideoBrowser({ videos, reels, profile }: Props) {
 
   return (
     <div className="zikra-video-home min-h-screen bg-[#f9faf9] pb-24 text-gray-900 md:pb-10 dark:bg-[#0f0f0f] dark:text-white">
-      {/* YouTube uslubidagi yuqori panel */}
-      <header className="sticky top-0 z-40 border-b border-black/[0.04] bg-white/95 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#080d0c]/95">
-        <div className="flex h-[68px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <Link href="/videos" className="flex shrink-0 items-center gap-2.5" aria-label="Zikra video bosh sahifasi">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#12b89f] to-[#087d70] text-white shadow-lg shadow-emerald-900/15">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true"><path d="M8 5.8c0-.8.9-1.3 1.6-.9l9.1 5.2a1 1 0 0 1 0 1.8l-9.1 5.2a1.05 1.05 0 0 1-1.6-.9V5.8Z"/></svg>
-            </span>
-            <span className="text-[22px] font-extrabold tracking-[-0.06em] text-[#102321] dark:text-white">zikra</span>
-            <span className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400 sm:block">Video</span>
-          </Link>
-
-          <div className="hidden max-w-2xl flex-1 items-center px-8 md:flex">
-            <div className="flex h-11 w-full overflow-hidden rounded-full border border-gray-200 bg-gray-50 focus-within:border-brand/50 dark:border-white/10 dark:bg-white/[0.06]">
-              <input
-                value={q}
-                onChange={(event) => setQ(event.target.value)}
-                placeholder="Video darslarni qidiring..."
-                className="min-w-0 flex-1 bg-transparent px-5 text-sm outline-none placeholder:text-gray-400"
-              />
-              <button type="button" aria-label="Qidirish" className="flex w-14 items-center justify-center border-l border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:border-white/10 dark:bg-white/[0.07] dark:text-gray-200 dark:hover:bg-white/[0.12]">
-                <SearchIcon />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setSearchOpen((open) => !open)}
-              aria-label="Qidiruvni ochish"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/10 md:hidden"
-            ><SearchIcon /></button>
-            <Link href="/notifications" aria-label="Bildirishnomalar" className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/10">
-              <BellIcon />
-            </Link>
-            <Link href={`/profile/${profile.id}`} className="ml-1 block h-9 w-9 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-brand/30">
-              <Image src={profile.avatar_url || avatarFallback(profile.full_name)} alt={profile.full_name} width={36} height={36} className="h-full w-full object-cover" unoptimized />
-            </Link>
+      <Navbar />
+      {/* Yagona global navigatsiya ostidagi video qidiruv va filtrlar */}
+      <div className="sticky top-16 z-30 border-b border-black/[0.04] bg-white/95 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#0b100f]/95">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/[0.06]">
+            <input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Video darslarni qidiring..." aria-label="Video darslarni qidiring" className="min-w-0 flex-1 bg-transparent px-4 text-sm outline-none placeholder:text-gray-400" />
+            <span className="px-3 text-gray-500" aria-hidden="true"><SearchIcon /></span>
           </div>
         </div>
-
-        {searchOpen && (
-          <div className="px-4 pb-3 md:hidden">
-            <input
-              autoFocus
-              value={q}
-              onChange={(event) => setQ(event.target.value)}
-              placeholder="Video darslarni qidiring..."
-              className="h-11 w-full rounded-full border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-brand dark:border-white/10 dark:bg-white/[0.06]"
-            />
-          </div>
-        )}
-
-        {/* Kategoriyalar — gorizontal scroll */}
-        <div className="hide-scrollbar flex gap-2 overflow-x-auto px-4 pb-3 sm:px-6 lg:px-8">
+        <div className="hide-scrollbar mx-auto flex max-w-[1600px] gap-2 overflow-x-auto px-4 pb-3 sm:px-6 lg:px-8">
           {CATEGORIES.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setCategory(item)}
-              className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                category === item
-                  ? "bg-[#14201e] text-white dark:bg-white dark:text-[#101816]"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white/[0.09] dark:text-gray-200 dark:hover:bg-white/[0.15]"
-              }`}
-            >{item}</button>
+            <button key={item} type="button" onClick={() => setCategory(item)} className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${category === item ? "bg-[#14201e] text-white dark:bg-white dark:text-[#101816]" : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white/[0.09] dark:text-gray-200 dark:hover:bg-white/[0.15]"}`}>{item}</button>
           ))}
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto w-full max-w-[1600px]">
         {/* Asosiy tavsiya etilgan video */}
@@ -201,25 +148,7 @@ export default function VideoBrowser({ videos, reels, profile }: Props) {
         )}
       </main>
 
-      {/* Mobil YouTube uslubidagi pastki navigatsiya */}
-      <nav className="zikra-bottom-nav fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-black/10 bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-2 backdrop-blur-xl dark:border-white/10 dark:bg-[#0b100f]/95 md:hidden">
-        <BottomItem href="/videos" label="Asosiy" active>
-          <HomeIcon />
-        </BottomItem>
-        <BottomItem href="/reels" label="Shorts">
-          <ShortsIcon />
-        </BottomItem>
-        <Link href={`/profile/${profile.id}`} aria-label="Profil" className="flex flex-col items-center justify-center gap-1 py-1 text-gray-500 dark:text-gray-400">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-white"><PlusIcon /></span>
-          <span className="text-[10px] font-medium">Yuklash</span>
-        </Link>
-        <BottomItem href="/discovery" label="Kashf">
-          <ExploreIcon />
-        </BottomItem>
-        <BottomItem href={`/profile/${profile.id}`} label="Siz">
-          <ProfileIcon />
-        </BottomItem>
-      </nav>
+
     </div>
   );
 }
