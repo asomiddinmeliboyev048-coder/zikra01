@@ -104,18 +104,6 @@ export default function VideoBrowser({ navbar, videos, reels, profile }: Props) 
           </section>
         )}
 
-        {/* Barcha uzun videolar */}
-        {remaining.length > 0 && (
-          <section className="px-4 pb-8 sm:px-6 lg:px-8">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-extrabold tracking-tight text-gray-900 dark:text-white">Video darslar</h2>
-              <span className="text-xs text-gray-500">{filtered.length} ta video</span>
-            </div>
-            <div className="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {remaining.map((video) => <VideoCard key={video.id} video={video} />)}
-            </div>
-          </section>
-        )}
       </main>
 
 
