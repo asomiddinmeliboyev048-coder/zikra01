@@ -5,12 +5,13 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import VideoStats from "@/components/VideoStats";
 import VideoPlayer from "@/components/VideoPlayer";
+import RelativeTime from "@/components/RelativeTime";
 import SaveVideoButton from "@/components/SaveVideoButton";
 import VideoComments, { type CommentView } from "@/components/VideoComments";
 import VideoShareActions from "@/components/VideoShareActions";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getVideoStats } from "@/lib/queries";
-import { avatarFallback, timeAgo, formatDuration } from "@/lib/utils";
+import { avatarFallback, formatDuration } from "@/lib/utils";
 import type { Video } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Video dars" };
@@ -67,7 +68,7 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
             <div className="flex min-w-0 items-center gap-3">
               {video.uploader && <Link href={`/profile/${video.uploader.id}`} className="flex min-w-0 items-center gap-3">
                 <Image src={video.uploader.avatar_url||avatarFallback(video.uploader.full_name)} alt={video.uploader.full_name} width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover" unoptimized/>
-                <span className="min-w-0"><span className="block truncate text-sm font-bold">{video.uploader.full_name}</span><span className="text-xs text-gray-500">Muallif · {timeAgo(video.created_at)}</span></span>
+                <span className="min-w-0"><span className="block truncate text-sm font-bold">{video.uploader.full_name}</span><span className="text-xs text-gray-500">Muallif · <RelativeTime date={video.created_at}/></span></span>
               </Link>}
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -77,7 +78,7 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
             </div>
           </div>
           <section className="mt-4 rounded-xl bg-gray-100 p-4 text-sm dark:bg-white/[0.08]">
-            <p className="font-semibold">{stats.views.toLocaleString("uz-UZ")} ko'rish · {timeAgo(video.created_at)}</p>
+            <p className="font-semibold">{stats.views.toLocaleString("uz-UZ")} ko'rish · <RelativeTime date={video.created_at}/></p>
             {video.description && <p className="mt-2 whitespace-pre-wrap leading-relaxed text-gray-700 dark:text-gray-200">{video.description}</p>}
           </section>
           <section className="mt-5 rounded-xl border border-gray-200 p-4 dark:border-white/10 sm:p-5">
@@ -95,7 +96,7 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-2 text-sm font-semibold leading-snug">{v.title}</p>
                 <p className="mt-1 truncate text-xs text-gray-500">{v.uploader?.full_name||"Zikra hamjamiyati"}</p>
-                <p className="mt-1 text-xs text-gray-500">{(v.views??0).toLocaleString("uz-UZ")} ko'rish · {timeAgo(v.created_at)}</p>
+                <p className="mt-1 text-xs text-gray-500">{(v.views??0).toLocaleString("uz-UZ")} ko'rish · <RelativeTime date={v.created_at}/></p>
               </div>
             </Link>)}
           </div>
