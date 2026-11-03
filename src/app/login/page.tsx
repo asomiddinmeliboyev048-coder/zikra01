@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Logo from "@/components/Logo";
+import LanguageSelect from "@/components/LanguageSelect";
 import GoogleButton from "@/components/GoogleButton";
 import LoginForm from "./LoginForm";
 
@@ -9,7 +10,8 @@ export const metadata: Metadata = { title: "Kirish" };
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-white to-success-50 px-4 py-12">
+    <main className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-white to-success-50 px-4 py-12">
+      <div className="fixed right-4 top-4 z-50"><LanguageSelect /></div>
       <div className="w-full max-w-md animate-fade-in">
         <div className="mb-8 flex flex-col items-center text-center">
           <Logo size="lg" />
