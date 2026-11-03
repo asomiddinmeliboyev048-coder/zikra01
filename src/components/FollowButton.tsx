@@ -9,10 +9,12 @@ export default function FollowButton({
   profileId,
   initialFollowing,
   initialFollowers,
+  compact = false,
 }: {
   profileId: string;
   initialFollowing: boolean;
   initialFollowers: number;
+  compact?: boolean;
 }) {
   const [following, setFollowing] = useState(initialFollowing);
   const [followers, setFollowers] = useState(initialFollowers);
@@ -68,10 +70,8 @@ export default function FollowButton({
       onClick={toggle}
       disabled={busy}
       className={cn(
-        "btn",
-        following
-          ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          : "bg-success text-white hover:bg-success-600"
+        compact ? "inline-flex shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition disabled:opacity-60" : "btn",
+        following ? "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-white/15 dark:text-white dark:hover:bg-white/20" : "bg-success text-white hover:bg-success-600"
       )}
     >
       {following ? "Obunani bekor qilish" : "＋ Obuna bo'lish"}
