@@ -37,7 +37,7 @@ export default function VideoBrowser({ videos, reels, profile }: Props) {
   const remaining = filtered.slice(1);
 
   return (
-    <div className="zikra-video-home min-h-screen bg-[#f8faf9] pb-24 text-gray-900 dark:bg-[#080d0c] dark:text-white md:pb-10">
+    <div className="zikra-video-home dark min-h-screen bg-[#080d0c] pb-24 text-white md:pb-10">
       {/* YouTube uslubidagi yuqori panel */}
       <header className="sticky top-0 z-40 border-b border-black/[0.04] bg-white/95 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#080d0c]/95">
         <div className="flex h-[68px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
