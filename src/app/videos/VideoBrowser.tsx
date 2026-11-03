@@ -4,14 +4,15 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import VideoCard from "@/components/VideoCard";
-import Navbar from "@/components/Navbar";
 import VideoThumb from "@/components/VideoThumb";
 import VideoStats from "@/components/VideoStats";
 import type { Reel, Video } from "@/lib/types";
+import type { ReactNode } from "react";
 import { avatarFallback } from "@/lib/utils";
 import RelativeTime from "@/components/RelativeTime";
 
 interface Props {
+  navbar: ReactNode;
   videos: Video[];
   reels: Reel[];
   profile: { id: string; full_name: string; avatar_url: string | null };
@@ -19,7 +20,7 @@ interface Props {
 
 const CATEGORIES = ["Hammasi", "Dasturlash", "Kiberxavfsizlik", "Dizayn", "Ingliz tili", "Biznes"];
 
-export default function VideoBrowser({ videos, reels, profile }: Props) {
+export default function VideoBrowser({ navbar, videos, reels, profile }: Props) {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("Hammasi");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -40,7 +41,7 @@ export default function VideoBrowser({ videos, reels, profile }: Props) {
 
   return (
     <div className="zikra-video-home min-h-screen bg-[#f9faf9] pb-24 text-gray-900 md:pb-10 dark:bg-[#0f0f0f] dark:text-white">
-      <Navbar />
+      {navbar}
       {/* Yagona global navigatsiya ostidagi video qidiruv va filtrlar */}
       <div className="sticky top-16 z-30 border-b border-black/[0.04] bg-white/95 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#0b100f]/95">
         <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
