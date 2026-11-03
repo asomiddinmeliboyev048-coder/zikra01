@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Video } from "@/lib/types";
-import { timeAgo, avatarFallback } from "@/lib/utils";
+import { avatarFallback } from "@/lib/utils";
+import RelativeTime from "@/components/RelativeTime";
 import VideoStats from "@/components/VideoStats";
 import VideoThumb from "@/components/VideoThumb";
 
@@ -61,7 +62,7 @@ export default function VideoCard({
               {video.uploader.full_name}
             </span>
             <span className="ml-auto text-xs text-gray-400">
-              {timeAgo(video.created_at)}
+              <RelativeTime date={video.created_at}/>
             </span>
           </Link>
         )}
