@@ -10,11 +10,13 @@ export default function VideoStats({
   initialLikes,
   initialLiked,
   initialViews,
+  variant = "default",
 }: {
   videoId: string;
   initialLikes: number;
   initialLiked: boolean;
   initialViews: number;
+  variant?: "default" | "actions";
 }) {
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(initialLiked);
@@ -67,7 +69,7 @@ export default function VideoStats({
   }
 
   return (
-    <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
+    <div className={variant === "actions" ? "flex items-center text-sm text-gray-700 dark:text-gray-200" : "mt-3 flex items-center gap-4 text-sm text-gray-500"}>
       <button
         onClick={toggle}
         disabled={busy}
@@ -90,13 +92,13 @@ export default function VideoStats({
         <span className="font-medium">{likes}</span>
       </button>
 
-      <span className="flex items-center gap-1">
+      {variant !== "actions" && <span className="flex items-center gap-1">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
         {initialViews} ko&apos;rish
-      </span>
+      </span>}
     </div>
   );
 }
