@@ -422,3 +422,215 @@ body {
   background: rgba(11, 155, 136, 0.12) !important;
   color: #6ee7ce !important;
 }
+
+
+/* ============================================================
+   ZIKRA LANDING — premium editorial refresh
+   Scoped to the public landing page; app screens remain untouched.
+   ============================================================ */
+
+.zikra-landing {
+  --landing-ink: #102321;
+  --landing-muted: #647572;
+  --landing-line: rgba(13, 74, 67, .09);
+  color: var(--landing-ink);
+  background:
+    radial-gradient(ellipse 48rem 32rem at 82% 0%, rgba(11,155,136,.075), transparent 70%),
+    linear-gradient(180deg, #fbfdfc 0%, #fff 42%, #f8fbfa 100%);
+}
+
+.zikra-landing .zikra-navbar {
+  background: rgba(250, 253, 252, .82);
+  border-color: rgba(13, 74, 67, .08);
+  box-shadow: 0 10px 35px -30px rgba(8, 63, 59, .38);
+}
+
+.zikra-landing main > section:first-child {
+  isolation: isolate;
+  min-height: 680px;
+  background:
+    radial-gradient(circle at 78% 44%, rgba(11,155,136,.105), transparent 31rem),
+    radial-gradient(circle at 10% 8%, rgba(201,147,50,.07), transparent 25rem);
+}
+
+.zikra-landing main > section:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .34;
+  background-image: radial-gradient(rgba(8, 79, 73, .16) .7px, transparent .7px);
+  background-size: 23px 23px;
+  mask-image: linear-gradient(90deg, black, transparent 72%);
+}
+
+.zikra-landing main > section:first-child h1 {
+  font-size: clamp(3.55rem, 7vw, 6.4rem);
+  line-height: .91;
+  letter-spacing: -.075em;
+  text-wrap: balance;
+}
+
+.zikra-landing main > section:first-child h1 span {
+  background-image: linear-gradient(105deg, #087d70 4%, #10a58f 48%, #c99332 105%);
+  filter: drop-shadow(0 12px 24px rgba(11,155,136,.13));
+}
+
+.zikra-landing main > section:first-child p {
+  text-wrap: pretty;
+}
+
+.zikra-landing main > section:first-child a[href="/register"] {
+  background: linear-gradient(135deg, #102c29, #075f56);
+  box-shadow: 0 18px 35px -19px rgba(7,100,91,.8);
+}
+.zikra-landing main > section:first-child a[href="/register"]:hover {
+  background: linear-gradient(135deg, #087d70, #0b9b88);
+  box-shadow: 0 22px 42px -18px rgba(11,155,136,.48);
+}
+
+.zikra-landing main > section:first-child .rounded-\\[2rem\\] {
+  border-color: rgba(13,74,67,.11);
+  box-shadow: 0 35px 90px -48px rgba(6,55,49,.38), 0 8px 28px -18px rgba(6,55,49,.16);
+}
+
+.zikra-landing main > section:nth-of-type(2) {
+  position: relative;
+  background: rgba(244, 249, 247, .82);
+  border-color: var(--landing-line);
+}
+.zikra-landing main > section:nth-of-type(2) .container-app > div > div {
+  transition: transform .25s ease;
+}
+.zikra-landing main > section:nth-of-type(2) .container-app > div > div:hover {
+  transform: translateY(-3px);
+}
+
+.zikra-landing main > section:nth-of-type(3),
+.zikra-landing main > section:nth-of-type(4),
+.zikra-landing main > section:nth-of-type(5),
+.zikra-landing main > section:nth-of-type(6),
+.zikra-landing main > section:nth-of-type(7) {
+  position: relative;
+}
+
+.zikra-landing main > section:nth-of-type(3) h2,
+.zikra-landing main > section:nth-of-type(4) h2,
+.zikra-landing main > section:nth-of-type(5) h2,
+.zikra-landing main > section:nth-of-type(7) h2 {
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+
+.zikra-landing main > section:nth-of-type(3) .relative.rounded-\\[2\\.5rem\\] {
+  border-color: rgba(13,74,67,.08);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(11,155,136,.12), transparent 16rem),
+    linear-gradient(145deg, #f2f8f6, #f8faf9);
+  box-shadow: 0 28px 70px -52px rgba(7,100,91,.35);
+}
+
+.zikra-landing main > section:nth-of-type(3) .relative.rounded-\\[2\\.5rem\\] > .rounded-\\[2rem\\] {
+  border: 1px solid rgba(255,255,255,.9);
+  box-shadow: 0 24px 60px -44px rgba(8,63,59,.28), inset 0 1px 0 white;
+}
+
+.zikra-landing main > section:nth-of-type(4) .group {
+  border-color: rgba(13,74,67,.09);
+  background: linear-gradient(150deg, rgba(255,255,255,.98), rgba(247,251,249,.92));
+  box-shadow: 0 18px 45px -38px rgba(8,63,59,.32);
+}
+.zikra-landing main > section:nth-of-type(4) .group:hover {
+  border-color: rgba(11,155,136,.26);
+  box-shadow: 0 28px 58px -36px rgba(8,95,84,.25);
+}
+.zikra-landing main > section:nth-of-type(4) .group > div:first-child > div {
+  box-shadow: 0 10px 24px -16px rgba(8,63,59,.5);
+}
+
+.zikra-landing main > section:nth-of-type(5) .group {
+  border-color: rgba(13,74,67,.08);
+  background: linear-gradient(145deg, #f8fbfa, #f1f7f5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95);
+}
+.zikra-landing main > section:nth-of-type(5) .group:hover {
+  background: white;
+  border-color: rgba(11,155,136,.28);
+  box-shadow: 0 28px 55px -38px rgba(8,95,84,.32);
+}
+
+.zikra-landing main > section:nth-of-type(6) > div > div {
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at 82% 16%, rgba(11,155,136,.3), transparent 22rem),
+    linear-gradient(120deg, #0b2421 0%, #102c29 58%, #153c35 100%);
+  box-shadow: 0 35px 85px -48px rgba(5,45,40,.58);
+}
+
+.zikra-landing main > section:nth-of-type(7) > div {
+  border-color: rgba(13,74,67,.08);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(11,155,136,.08), transparent 18rem),
+    linear-gradient(145deg, #f5f9f7, #fbfcfb);
+}
+.zikra-landing main > section:nth-of-type(7) > div > div:last-child > div {
+  border-color: rgba(13,74,67,.08);
+  box-shadow: 0 10px 30px -26px rgba(8,63,59,.35);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.zikra-landing main > section:nth-of-type(7) > div > div:last-child > div:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 35px -25px rgba(8,95,84,.28);
+}
+
+.zikra-landing main > section:nth-of-type(8) > div > div {
+  box-shadow: 0 35px 85px -50px rgba(7,100,91,.5);
+}
+.zikra-landing main > section:nth-of-type(8) h2 {
+  text-wrap: balance;
+}
+
+.zikra-landing footer {
+  background: #f3f8f6;
+  border-color: rgba(13,74,67,.09);
+}
+.zikra-landing footer a,
+.zikra-landing footer span {
+  transition: color .2s ease, transform .2s ease;
+}
+
+@media (min-width: 1024px) {
+  .zikra-landing main > section:first-child {
+    min-height: 760px;
+  }
+  .zikra-landing main > section:first-child > div.container-app {
+    padding-top: 6.5rem;
+    padding-bottom: 7rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .zikra-landing main > section:first-child {
+    min-height: auto;
+  }
+  .zikra-landing main > section:first-child h1 {
+    font-size: clamp(3.2rem, 15vw, 4.6rem);
+    line-height: .94;
+  }
+  .zikra-landing main > section:nth-of-type(6) > div > div {
+    border-radius: 1.8rem;
+  }
+  .zikra-landing main > section:nth-of-type(8) > div > div {
+    border-radius: 1.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zikra-landing main > section:nth-of-type(2) .container-app > div > div,
+  .zikra-landing main > section:nth-of-type(4) .group,
+  .zikra-landing main > section:nth-of-type(5) .group,
+  .zikra-landing main > section:nth-of-type(7) > div > div:last-child > div {
+    transition: none;
+  }
+}
