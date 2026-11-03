@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { translations, canonicalizeText, type Locale } from "@/lib/i18n";
 
 const LOCALES: Locale[] = ["uz", "en", "ru"];
-const ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
+const ATTRS = ["placeholder", "title", "aria-label", "alt", "content"] as const;
 
 function readLocale(): Locale {
   try {
@@ -15,6 +15,8 @@ function readLocale(): Locale {
 }
 
 function localizedText(text: string, locale: Locale): string {
+  const titleSuffix = text.match(/^(.*) · Zikra$/);
+  if (titleSuffix) return `${localizedText(titleSuffix[1], locale)} · Zikra`;
   const canonical = canonicalizeText(text);
   const exact = locale === "uz" ? canonical : translations[canonical]?.[locale];
   if (exact) return exact;
@@ -67,14 +69,14 @@ export default function LanguageRuntime() {
   useEffect(() => {
     let locale = readLocale();
     document.documentElement.lang = locale;
-    translateTree(document.body, locale);
+    translateTree(document.documentElement, locale);
 
     const applyLocale = (next: Locale) => {
       if (!LOCALES.includes(next)) return;
       locale = next;
       try { localStorage.setItem("zikra-locale", next); } catch {}
       document.documentElement.lang = next;
-      translateTree(document.body, next);
+      translateTree(document.documentElement, next);
     };
 
     const onLocaleChange = (event: Event) => {
@@ -100,7 +102,7 @@ export default function LanguageRuntime() {
       }
     });
 
-    observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: [...ATTRS] });
+    observer.observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: [...ATTRS] });
     window.addEventListener("zikra-locale-change", onLocaleChange);
     window.addEventListener("storage", onStorage);
     return () => {
