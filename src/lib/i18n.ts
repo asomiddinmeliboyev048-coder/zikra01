@@ -163,7 +163,7 @@ const rows: Array<[string, string, string]> = [
 ["Hamkor toping","Find a partner","Найдите партнёра"],
 ["Darslarni boshqaring va yakunlangach baho bering.","Manage your lessons and rate them after completion.","Управляйте занятиями и оценивайте их после завершения."],
 ["Hali darslar yo'q","No lessons yet","Занятий пока нет"],
-[""Yangi dars" tugmasi orqali birinchi darsingizni rejalashtiring.","Schedule your first lesson using the “New lesson” button.","Запланируйте первое занятие с помощью кнопки «Новый урок»."],
+['"Yangi dars" tugmasi orqali birinchi darsingizni rejalashtiring.',"Schedule your first lesson using the “New lesson” button.","Запланируйте первое занятие с помощью кнопки «Новый урок»."],
 ["Yangi dars","New lesson","Новое занятие"],
 ["Email","Email","Электронная почта"],
 ["Ro'yxatdan o'tish","Sign up","Регистрация"],
