@@ -24,6 +24,8 @@ function localizedText(text: string, locale: Locale): string {
     if (locale === "en") return `${total} matching profiles · Page ${page} of ${pages}`;
     if (locale === "ru") return `${total} подходящих профилей · Страница ${page} из ${pages}`;
   }
+  const progress = text.match(/^(\\d+)\\/(\\d+) bajarildi$/);
+  if (progress) return locale === "en" ? `${progress[1]}/${progress[2]} completed` : locale === "ru" ? `Выполнено: ${progress[1]}/${progress[2]}` : text;
   const found = text.match(/^(\\d+) ta foydalanuvchi topildi$/);
   if (found) return locale === "en" ? `${found[1]} users found` : locale === "ru" ? `Найдено пользователей: ${found[1]}` : text;
   return text;
