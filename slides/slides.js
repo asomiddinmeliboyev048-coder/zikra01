@@ -1,157 +1,329 @@
-/* Zikra — Taqdimot navigatsiyasi
-   ← → Space PageUp/Down Home End F | sichqoncha, g'ildirak, swipe, dots, URL hash */
-(function () {
+/* ============================================================
+   Zikra — Taqdimot navigatsiyasi
+   Klaviatura, touch swipe, dots, progress, fullscreen, URL hash.
+   ============================================================ */
+
+(() => {
     'use strict';
 
-    var deck = document.getElementById('deck');
-    var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
-    var total = slides.length;
+    const deck = document.getElementById('deck');
+    if (!deck) return;
 
-    var prevBtn = document.getElementById('prevBtn');
-    var nextBtn = document.getElementById('nextBtn');
-    var fsBtn = document.getElementById('fsBtn');
-    var curNum = document.getElementById('curNum');
-    var totalNum = document.getElementById('totalNum');
-    var progressBar = document.getElementById('progressBar');
-    var dotsWrap = document.getElementById('dots');
-    var hint = document.getElementById('hint');
-    var current = 0;
+    const slides = [...deck.querySelectorAll('.slide')];
+    const total = slides.length;
+    if (!total) return;
 
-    totalNum.textContent = total;
+    const $ = (id) => document.getElementById(id);
 
-    /* Slayd raqami va kirish animatsiyasi uchun indekslar */
-    var staggerSel = '.slide__inner > *, .grid > *, .steps > *, .feat-grid > *, .tech > *, .roadmap > *, .exchange > *';
-    slides.forEach(function (s, i) {
-        s.dataset.n = String(i + 1).padStart(2, '0');
-        s.setAttribute('aria-label', s.dataset.title || ('Slayd ' + (i + 1)));
-        var k = 0;
-        s.querySelectorAll(staggerSel).forEach(function (el) {
-            el.classList.add('st');
-            el.style.setProperty('--i', k++);
-        });
+    const prevBtn = $('prevBtn');
+    const nextBtn = $('nextBtn');
+    const fsBtn = $('fsBtn');
+    const curNum = $('curNum');
+    const totalNum = $('totalNum');
+    const progress = document.querySelector('.progress');
+    const progressBar = $('progressBar');
+    const dotsWrap = $('dots');
+    const hint = $('hint');
+
+    const reducedMotion = matchMedia(
+        '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    let current = 0;
+    let touchStart = null;
+
+    totalNum.textContent = String(total);
+
+    // Accessible slide index shortcuts
+    slides.forEach((slide, index) => {
+        slide.setAttribute('role', 'group');
+        slide.setAttribute('aria-roledescription', 'slayd');
+
+        slide.setAttribute(
+            'aria-label',
+            `${index + 1} / ${total}: ${slide.dataset.title || 'Slayd'}`
+        );
+
+        const dot = document.createElement('button');
+
+        dot.type = 'button';
+
+        dot.setAttribute(
+            'aria-label',
+            `${index + 1}-slayd: ${slide.dataset.title || 'Slayd'}`
+        );
+
+        dot.title = slide.dataset.title || `Slayd ${index + 1}`;
+
+        dot.addEventListener('click', () => go(index));
+
+        dotsWrap.appendChild(dot);
     });
 
-    /* Dots */
-    slides.forEach(function (s, i) {
-        var b = document.createElement('button');
-        var t = s.dataset.title || ('Slayd ' + (i + 1));
-        b.setAttribute('aria-label', t);
-        b.title = t;
-        b.addEventListener('click', function () { go(i); });
-        dotsWrap.appendChild(b);
-    });
-    var dots = Array.prototype.slice.call(dotsWrap.children);
+    const dots = [...dotsWrap.children];
 
-    function render() {
-        slides.forEach(function (s, i) {
-            s.classList.toggle('is-active', i === current);
-            s.classList.toggle('is-past', i < current);
-            s.setAttribute('aria-hidden', i === current ? 'false' : 'true');
-            s.inert = i !== current;
+    function render(updateHash = true) {
+        slides.forEach((slide, index) => {
+            const active = index === current;
+
+            slide.classList.toggle('is-active', active);
+
+            slide.setAttribute(
+                'aria-hidden',
+                String(!active)
+            );
+
+            if ('inert' in slide) {
+                slide.inert = !active;
+            }
         });
-        dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
-        curNum.textContent = current + 1;
-        progressBar.style.width = ((current + 1) / total * 100) + '%';
+
+        dots.forEach((dot, index) => {
+            const active = index === current;
+
+            dot.classList.toggle('active', active);
+
+            if (active) {
+                dot.setAttribute('aria-current', 'step');
+            } else {
+                dot.removeAttribute('aria-current');
+            }
+        });
+
+        curNum.textContent = String(current + 1);
+
+        const pct = ((current + 1) / total) * 100;
+
+        progressBar.style.width = `${pct}%`;
+
+        progress?.setAttribute(
+            'aria-valuenow',
+            String(current + 1)
+        );
+
+        progress?.setAttribute(
+            'aria-valuemax',
+            String(total)
+        );
+
         prevBtn.disabled = current === 0;
         nextBtn.disabled = current === total - 1;
-        if (history.replaceState) history.replaceState(null, '', '#' + (current + 1));
+
+        prevBtn.setAttribute(
+            'aria-disabled',
+            String(prevBtn.disabled)
+        );
+
+        nextBtn.setAttribute(
+            'aria-disabled',
+            String(nextBtn.disabled)
+        );
+
+        if (updateHash && history.replaceState) {
+            history.replaceState(
+                null,
+                '',
+                `#${current + 1}`
+            );
+        }
     }
 
-    function go(i) {
-        var n = Math.max(0, Math.min(total - 1, i));
-        if (n === current) return;
-        current = n;
+    function go(index) {
+        const target = Math.max(
+            0,
+            Math.min(total - 1, Number(index) || 0)
+        );
+
+        if (target === current) return;
+
+        current = target;
+
         render();
     }
-    function next() { go(current + 1); }
-    function prev() { go(current - 1); }
+
+    const next = () => go(current + 1);
+    const prev = () => go(current - 1);
 
     nextBtn.addEventListener('click', next);
     prevBtn.addEventListener('click', prev);
 
-    function toggleFs() {
-        if (!document.fullscreenElement) {
-            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-        } else if (document.exitFullscreen) {
-            document.exitFullscreen();
+    // Fullscreen
+    async function toggleFullscreen() {
+        try {
+            if (!document.fullscreenElement) {
+                await document.documentElement.requestFullscreen?.();
+            } else {
+                await document.exitFullscreen?.();
+            }
+        } catch (error) {
+            console.warn(
+                'To‘liq ekran rejimi ishga tushmadi:',
+                error
+            );
         }
     }
-    fsBtn.addEventListener('click', toggleFs);
 
-    /* Klaviatura */
-    document.addEventListener('keydown', function (e) {
-        if (e.metaKey || e.ctrlKey || e.altKey) return;
-        switch (e.key) {
-            case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ':
-                e.preventDefault(); next(); break;
-            case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
-                e.preventDefault(); prev(); break;
-            case 'Home': e.preventDefault(); go(0); break;
-            case 'End': e.preventDefault(); go(total - 1); break;
-            case 'f': case 'F': toggleFs(); break;
+    fsBtn.addEventListener('click', toggleFullscreen);
+
+    document.addEventListener('fullscreenchange', () => {
+        const enabled = Boolean(document.fullscreenElement);
+
+        fsBtn.setAttribute(
+            'aria-label',
+            enabled
+                ? 'To‘liq ekrandan chiqish'
+                : 'To‘liq ekran'
+        );
+
+        fsBtn.title = enabled
+            ? 'To‘liq ekrandan chiqish (F)'
+            : 'To‘liq ekran (F)';
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (event) => {
+        if (event.altKey || event.ctrlKey || event.metaKey) {
+            return;
+        }
+
+        const target = event.target;
+
+        if (
+            target instanceof HTMLElement &&
+            (
+                target.isContentEditable ||
+                /INPUT|TEXTAREA|SELECT/.test(target.tagName)
+            )
+        ) {
+            return;
+        }
+
+        switch (event.key) {
+            case 'ArrowRight':
+            case 'PageDown':
+            case ' ':
+                event.preventDefault();
+                next();
+                break;
+
+            case 'ArrowLeft':
+            case 'PageUp':
+                event.preventDefault();
+                prev();
+                break;
+
+            case 'Home':
+                event.preventDefault();
+                go(0);
+                break;
+
+            case 'End':
+                event.preventDefault();
+                go(total - 1);
+                break;
+
+            case 'f':
+            case 'F':
+                event.preventDefault();
+                toggleFullscreen();
+                break;
+
+            case 'Escape':
+                if (document.fullscreenElement) {
+                    document.exitFullscreen?.();
+                }
+                break;
         }
     });
 
-    /* Bosib o'tish (chap 28% — orqaga) */
-    deck.addEventListener('click', function (e) {
-        if (e.target.closest('a, button')) return;
-        if (e.clientX < window.innerWidth * 0.28) prev(); else next();
+    // Tap navigation
+    deck.addEventListener('click', (event) => {
+        if (
+            event.target.closest(
+                'a,button,[role="button"]'
+            )
+        ) {
+            return;
+        }
+
+        if (event.detail === 0) return;
+
+        const x = event.clientX;
+
+        if (x < window.innerWidth * 0.28) {
+            prev();
+        } else {
+            next();
+        }
     });
 
-    /* Sichqoncha g'ildiragi */
-    var wheelLock = false;
-    window.addEventListener('wheel', function (e) {
-        var inner = e.target.closest && e.target.closest('.slide__inner');
-        if (inner && inner.scrollHeight > inner.clientHeight + 4) return;
-        if (wheelLock || Math.abs(e.deltaY) < 30) return;
-        wheelLock = true;
-        if (e.deltaY > 0) next(); else prev();
-        setTimeout(function () { wheelLock = false; }, 700);
-    }, { passive: true });
+    // Touch swipe
+    deck.addEventListener(
+        'touchstart',
+        (event) => {
+            const t = event.changedTouches[0];
 
-    /* Swipe */
-    var sx = 0, sy = 0;
-    deck.addEventListener('touchstart', function (e) {
-        sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-    }, { passive: true });
-    deck.addEventListener('touchend', function (e) {
-        var dx = e.changedTouches[0].clientX - sx;
-        var dy = e.changedTouches[0].clientY - sy;
-        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) next(); else prev(); }
-    }, { passive: true });
+            touchStart = {
+                x: t.clientX,
+                y: t.clientY
+            };
+        },
+        { passive: true }
+    );
 
-    /* Fon parallaksi */
-    window.addEventListener('pointermove', function (e) {
-        var r = document.documentElement.style;
-        r.setProperty('--mx', (e.clientX / window.innerWidth - .5).toFixed(3));
-        r.setProperty('--my', (e.clientY / window.innerHeight - .5).toFixed(3));
-    });
+    deck.addEventListener(
+        'touchend',
+        (event) => {
+            if (!touchStart) return;
 
-    /* Harakatsiz bo'lsa boshqaruv yashirinadi */
-    var idleTimer;
-    function wake() {
-        document.body.classList.remove('idle');
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(function () { document.body.classList.add('idle'); }, 3500);
+            const t = event.changedTouches[0];
+
+            const dx = t.clientX - touchStart.x;
+            const dy = t.clientY - touchStart.y;
+
+            if (
+                Math.abs(dx) > 48 &&
+                Math.abs(dx) > Math.abs(dy) * 1.25
+            ) {
+                dx < 0 ? next() : prev();
+            }
+
+            touchStart = null;
+        },
+        { passive: true }
+    );
+
+    // Restore slide from URL hash
+    function restoreHash() {
+        const value = Number.parseInt(
+            location.hash.slice(1),
+            10
+        );
+
+        if (
+            Number.isInteger(value) &&
+            value >= 1 &&
+            value <= total
+        ) {
+            current = value - 1;
+        }
+
+        render(false);
     }
-    ['pointermove', 'keydown', 'touchstart'].forEach(function (ev) {
-        window.addEventListener(ev, wake, { passive: true });
-    });
-    wake();
 
-    setTimeout(function () { if (hint) hint.style.opacity = '0'; }, 4500);
+    window.addEventListener(
+        'hashchange',
+        restoreHash
+    );
 
-    /* URL hash va tashqi o'zgarishlar */
-    function fromHash() {
-        var h = parseInt((location.hash || '').replace('#', ''), 10);
-        if (h >= 1 && h <= total) { current = h - 1; }
+    restoreHash();
+
+    // Hint animation
+    if (hint && !reducedMotion) {
+        window.setTimeout(() => {
+            hint.style.opacity = '0';
+        }, 4500);
+    } else if (hint) {
+        hint.hidden = true;
     }
-    window.addEventListener('hashchange', function () {
-        var prevIdx = current;
-        fromHash();
-        if (prevIdx !== current) render();
-    });
-
-    fromHash();
-    render();
 })();
