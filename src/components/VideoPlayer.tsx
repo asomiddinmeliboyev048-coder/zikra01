@@ -90,14 +90,14 @@ export default function VideoPlayer({
   if (adChecked && ad && !adDone) {
     const adYt = youtubeId(ad.video_url);
     return (
-      <div className="relative aspect-video bg-black">
+      <div className="relative aspect-video w-full overflow-hidden bg-black">
         {adYt ? (
           <iframe
             src={`https://www.youtube.com/embed/${adYt}?autoplay=1`}
             title={ad.title}
             allow="autoplay; encrypted-media"
             allowFullScreen
-            className="absolute inset-0 h-full w-full"
+            className="absolute inset-0 h-full w-full border-0"
           />
         ) : (
           <video
@@ -106,7 +106,7 @@ export default function VideoPlayer({
             muted
             playsInline
             onEnded={finishAd}
-            className="absolute inset-0 h-full w-full"
+            className="absolute inset-0 h-full w-full object-contain"
           />
         )}
 
@@ -150,7 +150,7 @@ export default function VideoPlayer({
           title="Video"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full border-0"
         />
       ) : isFileVideo(url) ? (
         <video
