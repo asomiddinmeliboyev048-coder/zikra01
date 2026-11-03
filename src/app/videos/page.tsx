@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import VideoBrowser from "./VideoBrowser";
+import Navbar from "@/components/Navbar";
 import { createClient } from "@/lib/supabase/server";
 import {
   getCurrentProfile,
@@ -79,6 +80,7 @@ export default async function VideosPage() {
 
   return (
     <VideoBrowser
+      navbar={<Navbar />}
       videos={videos}
       reels={reels}
       profile={{
