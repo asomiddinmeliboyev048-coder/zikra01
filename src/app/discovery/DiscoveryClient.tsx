@@ -15,6 +15,8 @@ export default function DiscoveryClient({
   const [skillId, setSkillId] = useState("");
   const [city, setCity] = useState("");
   const [onlyMatches, setOnlyMatches] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 9;
 
   const cities = useMemo(() => {
     const set = new Set<string>();
@@ -56,13 +58,13 @@ export default function DiscoveryClient({
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setPage(1); }}
           placeholder="Ism yoki ko'nikma bo'yicha qidiring..."
           className="input flex-1"
         />
         <select
           value={skillId}
-          onChange={(e) => setSkillId(e.target.value)}
+          onChange={(e) => { setSkillId(e.target.value); setPage(1); }}
           className="input sm:w-44"
         >
           <option value="">Barcha ko&apos;nikmalar</option>
@@ -74,7 +76,7 @@ export default function DiscoveryClient({
         </select>
         <select
           value={city}
-          onChange={(e) => setCity(e.target.value)}
+          onChange={(e) => { setCity(e.target.value); setPage(1); }}
           className="input sm:w-40"
         >
           <option value="">Barcha shaharlar</option>
@@ -88,7 +90,7 @@ export default function DiscoveryClient({
           <input
             type="checkbox"
             checked={onlyMatches}
-            onChange={(e) => setOnlyMatches(e.target.checked)}
+            onChange={(e) => { setOnlyMatches(e.target.checked); setPage(1); }}
             className="h-4 w-4 rounded border-gray-300 text-brand shadow-sm focus:ring-brand/30"
           />
           Faqat mosliklar
@@ -107,10 +109,10 @@ export default function DiscoveryClient({
       ) : (
         <>
           <p className="mb-4 text-sm text-gray-500">
-            {filtered.length} ta foydalanuvchi topildi
+            {filtered.length} ta mos profil · {page}/{pageCount}-sahifa
           </p>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
-            {filtered.map((p) => (
+            {pageProfiles.map((p) => (
               <UserCard key={p.id} profile={p} />
             ))}
           </div>
