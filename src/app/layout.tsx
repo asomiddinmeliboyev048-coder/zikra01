@@ -6,6 +6,7 @@ import PinGate from "@/components/auth/PinGate";
 import AuthListener from "@/components/auth/AuthListener";
 import NavProgress from "@/components/NavProgress";
 import RoutePrefetcher from "@/components/RoutePrefetcher";
+import LanguageRuntime from "@/components/LanguageRuntime";
 import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
@@ -65,6 +66,7 @@ export default function RootLayout({
             animatsiyasidan (template.tsx) ta'sirlanmaydi. */}
         <NavProgress />
         <RoutePrefetcher />
+        <LanguageRuntime />
         {children}
         <PWAInstall />
         <AuthListener />
