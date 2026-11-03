@@ -131,3 +131,10 @@ export function getCanonicalText(text: string, locale: Locale): string {
   }
   return text;
 }
+
+export function canonicalizeText(text: string): string {
+  for (const [uz, en, ru] of rows) {
+    if (text === uz || text === en || text === ru) return uz;
+  }
+  return text;
+}
