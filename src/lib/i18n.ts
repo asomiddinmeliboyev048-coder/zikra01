@@ -259,6 +259,19 @@ const rows: Array<[string, string, string]> = [
 ["Hisobingiz","Your account","Ваш аккаунт"],
 ["Parolingizni kiriting","Enter your password","Введите пароль"],
 ["Ro'yxatdan o'tish","Sign up","Зарегистрироваться"],
+
+["Video dars","Video lesson","Видеоурок"],
+["Rivojlanish markazi","Learning hub","Центр развития"],
+["Zikra — Learn. Teach. Be remembered.","Zikra — O‘rgan. O‘rgat. Yodda qol.","Zikra — Учись. Обучай. Оставь след."],
+["Zikra — O'zbekistondagi birinchi bepul P2P ko'nikma almashish platformasi. Sen menga Python o'rgat, men senga Ingliz tili o'rgataman.","Zikra — Uzbekistan's free peer-to-peer skill exchange platform. Teach me Python, and I'll teach you English.","Zikra — бесплатная платформа обмена навыками в Узбекистане. Научите меня Python, а я научу вас английскому."],
+["Zikra — O'zbekistondagi birinchi bepul P2P ko'nikma almashish platformasi.","Zikra — Uzbekistan's free peer-to-peer skill exchange platform.","Zikra — бесплатная платформа обмена навыками в Узбекистане."],
+["Bepul P2P ko'nikma almashish platformasi.","Free peer-to-peer skill exchange platform.","Бесплатная платформа обмена навыками."],
+["Yorug' rejim","Light mode","Светлая тема"],
+["Qorong'i rejim","Dark mode","Тёмная тема"],
+["Rejimni almashtirish","Toggle theme","Переключить тему"],
+["ta video","videos","видео"],
+["ta mos profil","matching profiles","подходящих профилей"],
+["ta foydalanuvchi topildi","users found","пользователей найдено"],
 ];
 
 export const translations: Record<string, Partial<Record<Locale, string>>> = Object.fromEntries(
