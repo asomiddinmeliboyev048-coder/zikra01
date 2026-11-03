@@ -56,11 +56,11 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
 
   return <div className="min-h-screen bg-[#f9f9f9] text-[#0f0f0f] dark:bg-[#0f0f0f] dark:text-white">
     <Navbar/>
-    <main className="mx-auto w-full max-w-[1800px] px-3 py-4 sm:px-5 lg:px-8 lg:py-6">
+    <main className="mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-5 lg:px-8 lg:py-6">
       <Link href="/videos" className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-brand">← Video darslarga qaytish</Link>
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
+      <div className="grid grid-cols-1 items-start gap-5 lg:gap-6 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-w-0">
-          <div className="overflow-hidden rounded-xl bg-black sm:rounded-2xl">
+          <div className="group/player relative aspect-video w-full overflow-hidden rounded-xl bg-black sm:rounded-2xl">
             <VideoPlayer videoId={video.id} url={video.cloudinary_url}/>
           </div>
           <h1 className="mt-4 text-xl font-bold leading-snug sm:text-2xl">{video.title}</h1>
@@ -85,7 +85,7 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
             <VideoComments videoId={video.id} uploaderId={video.uploader_id} currentUser={{id:me.id,full_name:me.full_name,avatar_url:me.avatar_url}} initial={topLevel}/>
           </section>
         </div>
-        <aside className="min-w-0">
+        <aside className="min-w-0 xl:sticky xl:top-24">
           <h2 className="mb-3 text-lg font-bold">Tavsiya etilgan videolar</h2>
           <div className="space-y-3">
             {related.map((v)=> <Link href={`/videos/${v.id}`} key={v.id} className="group flex gap-3 rounded-xl p-1 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]">
