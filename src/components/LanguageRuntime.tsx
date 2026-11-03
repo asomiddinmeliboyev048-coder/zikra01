@@ -18,15 +18,15 @@ function localizedText(text: string, locale: Locale): string {
   const canonical = canonicalizeText(text);
   const exact = locale === "uz" ? canonical : translations[canonical]?.[locale];
   if (exact) return exact;
-  const match = text.match(/^(\\d+) ta mos profil · (\\d+)\\/(\\d+)-sahifa$/);
+  const match = text.match(/^([0-9]+) ta mos profil · ([0-9]+)[/]([0-9]+)-sahifa$/);
   if (match) {
     const [, total, page, pages] = match;
     if (locale === "en") return `${total} matching profiles · Page ${page} of ${pages}`;
     if (locale === "ru") return `${total} подходящих профилей · Страница ${page} из ${pages}`;
   }
-  const progress = text.match(/^(\\d+)\\/(\\d+) bajarildi$/);
+  const progress = text.match(/^([0-9]+)[/]([0-9]+) bajarildi$/);
   if (progress) return locale === "en" ? `${progress[1]}/${progress[2]} completed` : locale === "ru" ? `Выполнено: ${progress[1]}/${progress[2]}` : text;
-  const found = text.match(/^(\\d+) ta foydalanuvchi topildi$/);
+  const found = text.match(/^([0-9]+) ta foydalanuvchi topildi$/);
   if (found) return locale === "en" ? `${found[1]} users found` : locale === "ru" ? `Найдено пользователей: ${found[1]}` : text;
   return text;
 }
