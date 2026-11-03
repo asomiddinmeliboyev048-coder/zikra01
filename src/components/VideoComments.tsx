@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { avatarFallback, timeAgo, cn } from "@/lib/utils";
+import { avatarFallback, cn } from "@/lib/utils";
+import RelativeTime from "@/components/RelativeTime";
 import {
   addCommentAction,
   deleteCommentAction,
@@ -195,7 +196,7 @@ function CommentItem({
               Muallif
             </span>
           )}
-          <span className="text-xs text-gray-400">{timeAgo(comment.created_at)}</span>
+          <span className="text-xs text-gray-400"><RelativeTime date={comment.created_at}/></span>
         </div>
         <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-gray-700">
           {comment.content}
@@ -261,7 +262,7 @@ function CommentItem({
                         Muallif
                       </span>
                     )}
-                    <span className="text-xs text-gray-400">{timeAgo(r.created_at)}</span>
+                    <span className="text-xs text-gray-400"><RelativeTime date={r.created_at}/></span>
                   </div>
                   <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-gray-700">
                     {r.content}
