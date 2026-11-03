@@ -50,6 +50,8 @@ export default function DiscoveryClient({
       return true;
     });
   }, [profiles, query, skillId, city, onlyMatches]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const pageProfiles = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
