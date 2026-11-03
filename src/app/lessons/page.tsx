@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import LessonCard, { type LessonView } from "./LessonCard";
+import SkillMissionsHub from "./SkillMissionsHub";
 import NewLessonModal, { type PartnerOption } from "./NewLessonModal";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, getSkills } from "@/lib/queries";
@@ -105,17 +106,23 @@ export default async function LessonsPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="container-app py-8">
+      <main className="container-app space-y-10 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Darslarim</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Rivojlanish markazi</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Darslarni boshqaring va yakunlangach baho bering.
+              Ko‘nikmalarni rivojlantiring, missiyalarni bajaring va bilim bellashuvlariga tayyorlaning.
             </p>
           </div>
           <NewLessonModal partners={partners} skills={skills} />
         </div>
 
+        <SkillMissionsHub />
+
+        <section className="border-t border-gray-200 pt-8 dark:border-white/10">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div><h2 className="text-xl font-bold text-gray-900 dark:text-white">Dars uchrashuvlarim</h2><p className="mt-1 text-sm text-gray-500">Rejalashtirilgan darslar va avvalgi uchrashuvlar.</p></div>
+          </div>
         {lessons.length === 0 ? (
           <div className="card flex flex-col items-center gap-2 py-16 text-center">
             <span className="text-4xl">📚</span>
@@ -153,6 +160,7 @@ export default async function LessonsPage() {
             )}
           </div>
         )}
+        </section>
       </main>
     </div>
   );
