@@ -36,8 +36,6 @@ export default function VideoBrowser({ navbar, videos, reels, profile }: Props) 
     });
   }, [videos, q, category]);
 
-  const featured = filtered[0];
-  const remaining = filtered.slice(1);
 
   return (
     <div className="zikra-video-home min-h-screen bg-[#f9faf9] pb-24 text-gray-900 md:pb-10 dark:bg-[#0f0f0f] dark:text-white">
@@ -58,44 +56,15 @@ export default function VideoBrowser({ navbar, videos, reels, profile }: Props) 
       </div>
 
       <main className="mx-auto w-full max-w-[1600px]">
-        {/* Asosiy tavsiya etilgan video */}
-        {featured ? (
-          <section className="mb-8">
-            <div className="overflow-hidden bg-white dark:bg-[#101715] md:mx-6 md:mt-6 md:rounded-2xl md:border md:border-black/[0.05] md:shadow-sm lg:mx-8">
-              <div className="group relative">
-                <div className="relative w-full overflow-hidden bg-black">
-                  <VideoThumb
-                    id={featured.id}
-                    title={featured.title}
-                    thumbnailUrl={featured.thumbnail_url}
-                    videoUrl={featured.cloudinary_url}
-                    duration={featured.duration}
-                  />
-                  <span className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-black/80 px-2 py-1 text-xs font-semibold text-white">Tavsiya etiladi</span>
-                </div>
-              </div>
-              <div className="flex gap-3 px-4 py-4 sm:px-5">
-                <Link href={`/profile/${featured.uploader?.id || profile.id}`} className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gray-100">
-                  <Image
-                    src={featured.uploader?.avatar_url || avatarFallback(featured.uploader?.full_name || "Zikra")}
-                    alt={featured.uploader?.full_name || "Muallif"}
-                    width={40}
-                    height={40}
-                    className="h-full w-full object-cover"
-                    unoptimized
-                  />
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <Link href={`/videos/${featured.id}`} className="line-clamp-2 text-base font-bold leading-snug text-gray-900 hover:text-brand dark:text-white sm:text-lg">{featured.title}</Link>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {featured.uploader?.full_name || "Zikra hamjamiyati"} · {featured.views ?? 0} ko'rish · <RelativeTime date={featured.created_at}/>
-                  </p>
-                  <div className="mt-2">
-                    <VideoStats videoId={featured.id} initialLikes={featured.likes ?? 0} initialLiked={featured.liked ?? false} initialViews={featured.views ?? 0} />
-                  </div>
-                </div>
-                <button type="button" aria-label="Video menyusi" className="h-9 w-9 shrink-0 rounded-full text-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10">⋮</button>
-              </div>
+        {/* Barcha video darslar — responsive kartalar */}
+        {filtered.length > 0 ? (
+          <section className="px-4 py-5 sm:px-6 lg:px-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-extrabold tracking-tight text-gray-900 dark:text-white">Video darslar</h2>
+              <span className="text-xs text-gray-500">{filtered.length} ta video</span>
+            </div>
+            <div className="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filtered.map((video) => <VideoCard key={video.id} video={video} />)}
             </div>
           </section>
         ) : (
