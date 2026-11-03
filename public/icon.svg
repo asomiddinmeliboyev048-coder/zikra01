@@ -1,20 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Zikra">
   <defs>
-    <linearGradient id="zk-z" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="zk-bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0E7A6E"/>
-      <stop offset="0.4" stop-color="#14A594"/>
-      <stop offset="0.7" stop-color="#43C4A6"/>
-      <stop offset="1" stop-color="#E7C56B"/>
+      <stop offset="1" stop-color="#14A594"/>
     </linearGradient>
-    <linearGradient id="zk-facet" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0B5F57"/>
-      <stop offset="1" stop-color="#1FA890"/>
+    <linearGradient id="grad-top" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#129B8C"/>
+      <stop offset="0.5" stop-color="#46C9AA"/>
+      <stop offset="1" stop-color="#F2DE9B"/>
+    </linearGradient>
+    <linearGradient id="grad-right" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2DE9B"/>
+      <stop offset="0.6" stop-color="#65D2B3"/>
+      <stop offset="1" stop-color="#128C7D"/>
+    </linearGradient>
+    <linearGradient id="grad-diagonal" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#0A5B53"/>
+      <stop offset="0.5" stop-color="#199C88"/>
+      <stop offset="1" stop-color="#55C9AC"/>
     </linearGradient>
   </defs>
+
   <!-- Oq yumaloq-kvadrat fon (iOS uslubi) -->
   <rect x="0" y="0" width="512" height="512" rx="115" fill="#ffffff"/>
-  <!-- Stilizatsiya qilingan "Z" harfi (teal -> oltin gradient) -->
-  <path d="M128 120 L384 120 L384 188 L238 324 L384 324 L384 392 L128 392 L128 324 L274 188 L128 188 Z" fill="url(#zk-z)"/>
-  <!-- Diagonal qirra (3D taassurot) -->
-  <path d="M274 188 L128 324 L128 296 L246 188 Z" fill="url(#zk-facet)" opacity="0.55"/>
+
+  <!-- "Z" harfining 3D qirrali ko'pburchak qismlari -->
+  <polygon points="94,152 418,152 384,216 160,216" fill="url(#grad-top)"/>
+  <polygon points="418,152 418,216 384,216" fill="#F7E6B2"/>
+  <polygon points="160,216 384,216 220,360 94,360" fill="url(#grad-diagonal)"/>
+  <polygon points="94,360 418,360 352,296 160,296" fill="#12897C"/>
+  <polygon points="418,360 418,296 352,296" fill="#42BEA2"/>
+  <polygon points="94,360 160,296 160,360" fill="#0A524A"/>
+  <polygon points="220,360 384,216 310,280" fill="url(#grad-right)" opacity="0.85"/>
+  <polygon points="160,216 220,360 160,296" fill="#149A88" opacity="0.9"/>
 </svg>
