@@ -64,24 +64,23 @@ export default async function VideoDetailPage({ params }: { params: Promise<{ id
             <VideoPlayer videoId={video.id} url={video.cloudinary_url}/>
           </div>
           <h1 className="mt-4 text-xl font-bold leading-snug sm:text-2xl">{video.title}</h1>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              {video.uploader && <Link href={`/profile/${video.uploader.id}`} className="flex min-w-0 items-center gap-3">
-                <Image src={video.uploader.avatar_url||avatarFallback(video.uploader.full_name)} alt={video.uploader.full_name} width={44} height={44} className="h-11 w-11 shrink-0 rounded-full object-cover" unoptimized/>
-                <span className="min-w-0"><span className="block truncate text-sm font-bold">{video.uploader.full_name}</span><span className="text-xs text-gray-500">Muallif · <RelativeTime date={video.created_at}/></span></span>
-              </Link>}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="rounded-full bg-gray-100 px-3 py-2 dark:bg-white/10"><VideoStats videoId={video.id} initialLikes={stats.likes} initialLiked={stats.liked} initialViews={stats.views}/></div>
-              <VideoShareActions title={video.title}/>
-              <div className="rounded-full bg-gray-100 px-3 py-2 dark:bg-white/10"><SaveVideoButton url={video.cloudinary_url}/></div>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {video.uploader && <Link href={`/profile/${video.uploader.id}`} className="flex min-w-0 items-center gap-3">
+              <Image src={video.uploader.avatar_url||avatarFallback(video.uploader.full_name)} alt={video.uploader.full_name} width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" unoptimized/>
+              <span className="min-w-0"><span className="block truncate text-sm font-bold">{video.uploader.full_name}</span><span className="text-xs text-gray-500">Muallif · <RelativeTime date={video.created_at}/></span></span>
+            </Link>}
+            <div className="hide-scrollbar -mx-3 flex items-center gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+              <div className="shrink-0 rounded-full bg-gray-100 px-3 py-2 dark:bg-white/10"><VideoStats variant="actions" videoId={video.id} initialLikes={stats.likes} initialLiked={stats.liked} initialViews={stats.views}/></div>
+              <VideoShareActions title={video.title} compact/>
+              <div className="shrink-0 rounded-full bg-gray-100 px-3 py-2 dark:bg-white/10"><SaveVideoButton url={video.cloudinary_url}/></div>
+              <a href="#comments" className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-gray-100 px-4 text-sm font-semibold text-gray-800 dark:bg-white/10 dark:text-white">💬 Izohlar</a>
             </div>
           </div>
           <section className="mt-4 rounded-xl bg-gray-100 p-4 text-sm dark:bg-white/[0.08]">
             <p className="font-semibold">{stats.views.toLocaleString("uz-UZ")} ko'rish · <RelativeTime date={video.created_at}/></p>
             {video.description && <p className="mt-2 whitespace-pre-wrap leading-relaxed text-gray-700 dark:text-gray-200">{video.description}</p>}
           </section>
-          <section className="mt-5 rounded-xl border border-gray-200 p-4 dark:border-white/10 sm:p-5">
+          <section id="comments" className="mt-5 scroll-mt-24 rounded-xl border border-gray-200 p-4 dark:border-white/10 sm:p-5">
             <VideoComments videoId={video.id} uploaderId={video.uploader_id} currentUser={{id:me.id,full_name:me.full_name,avatar_url:me.avatar_url}} initial={topLevel}/>
           </section>
         </div>
