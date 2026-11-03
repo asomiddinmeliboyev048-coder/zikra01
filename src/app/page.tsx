@@ -131,7 +131,7 @@ const benefits = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white text-gray-950">
+    <div className="zikra-landing min-h-screen overflow-x-hidden bg-white text-gray-950">
       <Navbar />
 
       <main>
