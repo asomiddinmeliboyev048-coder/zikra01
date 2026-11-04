@@ -24,7 +24,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const [turn, setTurn] = useState<string>("");
   const [words, setWords] = useState<ChatLine[]>([]);
   const [chat, setChat] = useState<ChatLine[]>([]);
-  const [entry, setEntry] = useState("");
+  const [entry, setEntry] = useState("");\n  const [chatEntry, setChatEntry] = useState("");
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
   const [online, setOnline] = useState(false);
@@ -133,7 +133,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     if (stage !== "play" || !turn) return;
     const interval = window.setInterval(() => {
       setTotal(t => { if (t <= 1) { window.clearInterval(interval); finish(false); return 0; } return t - 1; });
-      setRemaining(t => { if (t <= 1) { window.clearInterval(interval); if (opponent) { void roomRef.current?.send({type:"broadcast",event:"game",payload:{type:"timeout",from:me?.id,winner:turn==="you"?opponent.id:me?.id}}); } finish(turn !== "you"); return 0; } return t - 1; });
+      setRemaining(t => { if (t <= 1) { window.clearInterval(interval); if (opponent) { void roomRef.current?.send({type:"broadcast",event:"game",payload:{type:"timeout",from:me?.id,winner:(turn==="you"||turn===me?.id)?opponent.id:me?.id}}); } finish(turn !== "you"); return 0; } return t - 1; });
     }, 1000);
     return () => window.clearInterval(interval);
   }, [stage, turn, opponent, finish, me]);
@@ -165,7 +165,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     if(opponent&&me) await roomRef.current?.send({type:"broadcast",event:"game",payload:{type:"word",from:me.id,line}});
   };
   const sendChat = async (e: React.FormEvent) => {
-    e.preventDefault(); const text=entry.trim(); if(!text||!me)return;
+    e.preventDefault(); const text=chatEntry.trim(); if(!text||!me)return;
     const line:ChatLine={id:shortId(),userId:me.id,name:me.name,text:text.slice(0,300),kind:"chat",at:Date.now()};
     setChat(prev=>[...prev,line]);setEntry("");
     if(opponent) await roomRef.current?.send({type:"broadcast",event:"game",payload:{type:"chat",from:me.id,line}});
@@ -185,7 +185,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
         <div className="shrink-0 border-t p-2">
           <div className="mb-2 flex items-center justify-between text-xs"><b className={turn==="you"||turn===me?.id?"text-emerald-700":"text-slate-500"}>{turn==="you"||turn===me?.id?"Navbat sizda":"Raqib navbati"}</b><span className="flex items-center gap-1 font-black"><Clock3 size={14}/>{remaining}s</span></div>
           <form onSubmit={submitWord} className="flex gap-2"><input disabled={!!opponent&&(turn!==me?.id)} value={entry} onChange={e=>sendTyping(e.target.value)} placeholder={words.length?"So‘z: "+norm(words[words.length-1].text).slice(-1).toUpperCase()+" harfidan":"Birinchi so‘z"} className="min-w-0 flex-1 rounded-xl border px-3 py-3 text-base disabled:opacity-50"/><button type="submit" disabled={!!opponent&&(turn!==me?.id)} className="rounded-xl bg-emerald-700 px-4 font-black text-white disabled:opacity-40"><Send size={18}/></button></form>
-          <form onSubmit={sendChat} className="mt-2 flex gap-2"><input value={entry} onChange={e=>setEntry(e.target.value)} placeholder="Raqibga xabar yozish…" className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm"/><button type="submit" className="rounded-xl border px-3" aria-label="Chat xabarini yuborish"><Send size={16}/></button></form><p role="status" className="mt-1 truncate text-xs text-slate-500">{message}</p>
+          <form onSubmit={sendChat} className="mt-2 flex gap-2"><input value={chatEntry} onChange={e=>setChatEntry(e.target.value)} placeholder="Raqibga xabar yozish…" className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm"/><button type="submit" className="rounded-xl border px-3" aria-label="Chat xabarini yuborish"><Send size={16}/></button></form><p role="status" className="mt-1 truncate text-xs text-slate-500">{message}</p>
         </div>
       </section>}
       {stage==="result"&&<section className={card+" text-center"}><Trophy size={44} className="mx-auto text-amber-500"/><h1 className="mt-5 text-3xl font-black">{won?"G‘alaba!":"Bu safar raqib yutdi"}</h1><p className="mt-2 text-slate-500">{opponent?opponent.name:"Bot"} bilan duel yakunlandi.</p><p className="mt-4 text-4xl font-black text-emerald-700">{words.length} <small className="text-sm">so‘z</small></p><div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><button onClick={()=>void start()} className="rounded-xl bg-emerald-700 px-6 py-3 font-black text-white">Qayta o‘ynash</button><button onClick={()=>{void stopChannels();onClose();}} className="rounded-xl border px-6 py-3 font-bold">O‘quv markaziga</button></div></section>}
