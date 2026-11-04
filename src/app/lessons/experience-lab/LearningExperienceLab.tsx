@@ -6,7 +6,7 @@ import SkillDuel from "./SkillDuel";
 import DailyPath from "./DailyPath";
 import { getDailyTasksState } from "@/app/actions/daily";
 
-import { bank, type TrackId, type Lesson } from "./question-bank";
+import { bank, tracks, type TrackId, type Lesson } from "./question-bank";
 type Saved = {xp:number;streak:number;hearts:number;completed:Record<string,number[]>};
 const blank:Saved={xp:0,streak:0,hearts:5,completed:{}};
 export default function LearningExperienceLab(){
