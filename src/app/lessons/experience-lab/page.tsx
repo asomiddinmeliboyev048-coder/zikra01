@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-import LearningExperienceLab from "./LearningExperienceLab";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Learning Experience Lab",
-  description: "Zikra o‘rganish tajribasining mustaqil UX prototipi.",
-};
-
-export default function LearningExperienceLabPage() {
-  return <LearningExperienceLab />;
+export default function LearningExperienceRoute() {
+  redirect("/lessons");
 }
