@@ -1,175 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import LessonCard, { type LessonView } from "./LessonCard";
-import SkillMissionsHub from "./SkillMissionsHub";
-import NewLessonModal, { type PartnerOption } from "./NewLessonModal";
-import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile, getSkills } from "@/lib/queries";
-import type { Profile } from "@/lib/types";
+import { getCurrentProfile } from "@/lib/queries";
+import LearningExperienceLab from "./experience-lab/LearningExperienceLab";
 
-export const metadata: Metadata = { title: "Darslarim" };
+export const metadata: Metadata = { title: "Rivojlanish | Zikra" };
 export const dynamic = "force-dynamic";
-
-interface LessonRow {
-  id: string;
-  status: "scheduled" | "completed" | "cancelled";
-  scheduled_at: string | null;
-  teacher_id: string;
-  learner_id: string;
-  skill: { name: string } | null;
-}
 
 export default async function LessonsPage() {
   const me = await getCurrentProfile();
   if (!me) redirect("/login");
 
-  const supabase = await createClient();
-
-  // Mening darslarim
-  const { data: lessonsData } = await supabase
-    .from("lessons")
-    .select("id, status, scheduled_at, teacher_id, learner_id, skill:skills(name)")
-    .or(`teacher_id.eq.${me.id},learner_id.eq.${me.id}`)
-    .order("created_at", { ascending: false });
-
-  const rows = (lessonsData as unknown as LessonRow[]) ?? [];
-
-  // Hamkor profillari
-  const partnerIds = Array.from(
-    new Set(
-      rows.map((r) => (r.teacher_id === me.id ? r.learner_id : r.teacher_id))
-    )
-  );
-
-  const profById = new Map<string, Profile>();
-  if (partnerIds.length > 0) {
-    const { data: profs } = await supabase
-      .from("profiles")
-      .select("id, full_name, avatar_url")
-      .in("id", partnerIds);
-    for (const p of (profs as Profile[]) ?? []) profById.set(p.id, p);
-  }
-
-  // Men allaqachon baholagan darslar
-  const { data: myRatings } = await supabase
-    .from("ratings")
-    .select("lesson_id")
-    .eq("rater_id", me.id);
-  const ratedSet = new Set((myRatings ?? []).map((r) => r.lesson_id));
-
-  const lessons: LessonView[] = rows.map((r) => {
-    const iAmTeacher = r.teacher_id === me.id;
-    const partnerId = iAmTeacher ? r.learner_id : r.teacher_id;
-    const partner = profById.get(partnerId);
-    return {
-      id: r.id,
-      status: r.status,
-      skillName: r.skill?.name ?? null,
-      scheduledAt: r.scheduled_at,
-      iAmTeacher,
-      partner: {
-        id: partnerId,
-        full_name: partner?.full_name ?? "Foydalanuvchi",
-        avatar_url: partner?.avatar_url ?? null,
-      },
-      alreadyRated: ratedSet.has(r.id),
-    };
-  });
-
-  // Yangi dars uchun hamkorlar — suhbatdosh bo'lganlar
-  const { data: msgs } = await supabase
-    .from("messages")
-    .select("sender_id, receiver_id")
-    .or(`sender_id.eq.${me.id},receiver_id.eq.${me.id}`);
-
-  const convPartnerIds = new Set<string>();
-  for (const m of msgs ?? []) {
-    const other = m.sender_id === me.id ? m.receiver_id : m.sender_id;
-    if (other) convPartnerIds.add(other);
-  }
-
-  let partners: PartnerOption[] = [];
-  if (convPartnerIds.size > 0) {
-    const { data: cp } = await supabase
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", Array.from(convPartnerIds));
-    partners = (cp as PartnerOption[]) ?? [];
-  }
-
-  const skills = await getSkills();
-
-  const active = lessons.filter((l) => l.status === "scheduled");
-  const done = lessons.filter((l) => l.status !== "scheduled");
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#f7f9fc] dark:bg-[#0b1220]">
       <Navbar />
-      <main className="container-app space-y-10 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Rivojlanish markazi</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Ko‘nikmalarni rivojlantiring, missiyalarni bajaring va bilim bellashuvlariga tayyorlaning.
-            </p>
-          </div>
-          <NewLessonModal partners={partners} skills={skills} />
-        </div>
-
-        <Link href="/lessons/experience-lab" className="group relative block overflow-hidden rounded-3xl border border-violet-200 bg-gradient-to-r from-[#19153b] via-[#292064] to-[#5b2ab4] p-5 text-white shadow-lg shadow-violet-950/10 transition hover:-translate-y-0.5 hover:shadow-xl sm:p-7">
-          <div className="pointer-events-none absolute -right-10 -top-16 h-52 w-52 rounded-full bg-fuchsia-400/20 blur-3xl" />
-          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-2xl"><span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold tracking-wider text-violet-100">ZIKRA PRACTICE · INTERAKTIV</span><h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">Oddiy savoldan ko‘ra ko‘proq. <span className="text-violet-200">Sinab ko‘r.</span></h2><p className="mt-2 text-sm leading-relaxed text-violet-100/80">Ingliz tili, dasturlash va kiberxavfsizlik bo‘yicha mini-mashqlarni oching.</p></div>
-            <span className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-violet-950 transition group-hover:bg-violet-100">Mashqlarni boshlash <span aria-hidden>↗</span></span>
-          </div>
-        </Link>
-
-        <SkillMissionsHub />
-
-        <section className="border-t border-gray-200 pt-8 dark:border-white/10">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <div><h2 className="text-xl font-bold text-gray-900 dark:text-white">Dars uchrashuvlarim</h2><p className="mt-1 text-sm text-gray-500">Rejalashtirilgan darslar va avvalgi uchrashuvlar.</p></div>
-          </div>
-        {lessons.length === 0 ? (
-          <div className="card flex flex-col items-center gap-2 py-16 text-center">
-            <span className="text-4xl">📚</span>
-            <p className="font-medium text-gray-700">Hali darslar yo&apos;q</p>
-            <p className="text-sm text-gray-500">
-              &quot;Yangi dars&quot; tugmasi orqali birinchi darsingizni
-              rejalashtiring.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {active.length > 0 && (
-              <section>
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Faol darslar
-                </h2>
-                <div className="space-y-3">
-                  {active.map((l) => (
-                    <LessonCard key={l.id} lesson={l} />
-                  ))}
-                </div>
-              </section>
-            )}
-            {done.length > 0 && (
-              <section>
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  Tarix
-                </h2>
-                <div className="space-y-3">
-                  {done.map((l) => (
-                    <LessonCard key={l.id} lesson={l} />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-        )}
-        </section>
+      <main className="container-app py-5 sm:py-8">
+        <LearningExperienceLab />
       </main>
     </div>
   );
