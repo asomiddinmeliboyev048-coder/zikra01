@@ -102,7 +102,10 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
           window.setTimeout(async () => {
             if (!roomRef.current || gameStarted.current) return;
             gameStarted.current = true; setStage("play"); setTurn(pair[0].id); setRemaining(15); setTotal(60); setMessage("Jonli raqib bilan duel boshlandi.");
-            await room.send({ type: "broadcast", event: "game", payload: { type: "start", from: user.id, first: pair[0].id, at: Date.now() } });\n            // Leave the skill queue after pairing so later arrivals can form new pairs.\n            await supabase.removeChannel(channel);\n            if (queueRef.current === channel) queueRef.current = null;
+            await room.send({ type: "broadcast", event: "game", payload: { type: "start", from: user.id, first: pair[0].id, at: Date.now() } });
+            // Leave the skill queue after pairing so later arrivals can form new pairs.
+            await supabase.removeChannel(channel);
+            if (queueRef.current === channel) queueRef.current = null;
           }, 650);
         });
         void status;
