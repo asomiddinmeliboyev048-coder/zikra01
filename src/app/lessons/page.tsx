@@ -14,7 +14,7 @@ export default async function LessonsPage() {
   return (
     <div className="min-h-screen bg-[#f7f9fc] dark:bg-[#0b1220]">
       <Navbar />
-      <main className="container-app py-5 sm:py-8">
+      <main className="w-full px-2 py-3 sm:px-4 sm:py-5 xl:px-6">
         <LearningExperienceLab />
       </main>
     </div>
