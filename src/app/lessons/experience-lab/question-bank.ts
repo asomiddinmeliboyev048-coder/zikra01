@@ -1,7 +1,9 @@
+import { BookOpen, Gamepad2, ShieldCheck } from "lucide-react";
+
 export type TrackId = "english" | "coding" | "cyber";
 export type Question = { prompt:string; choices:string[]; answer:number; explanation:string };
 export type Lesson = { id:number; title:string; subtitle:string; questions:Question[] };
-const tracks:{id:TrackId;name:string;icon:typeof BookOpen;summary:string;color:string}[]=[
+export const tracks:{id:TrackId;name:string;icon:typeof BookOpen;summary:string;color:string}[]=[
  {id:"english",name:"Ingliz tili",icon:BookOpen,summary:"Lug‘at va grammatika",color:"bg-sky-500"},
  {id:"coding",name:"Dasturlash",icon:Gamepad2,summary:"JavaScript va mantiq",color:"bg-violet-600"},
  {id:"cyber",name:"Kiberxavfsizlik",icon:ShieldCheck,summary:"Xavfsiz fikrlash",color:"bg-emerald-600"},
