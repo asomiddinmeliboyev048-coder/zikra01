@@ -52,6 +52,28 @@ const questionSets: Record<string, Question[]> = {
   ],
 };
 
+
+const extraQuestions: Record<string, Question[]> = {
+ english:[
+ {prompt:"Choose the correct past form: “I ___ my homework yesterday.”",choices:["finish","finished","finishing","finishes"],answer:1,explanation:"Yesterday o‘tgan vaqtni bildiradi; finish fe’lining Past Simple shakli finished."},
+ {prompt:"“Although” gapda qanday vazifa bajaradi?",choices:["Qarama-qarshilikni bog‘laydi","Sababni bildiradi","Joyni bildiradi","Buyruq beradi"],answer:0,explanation:"Although — garchi ma’nosida zid fikrlarni bog‘laydi."},
+ {prompt:"Choose the natural phrase.",choices:["Make a decision","Do a decision","Take a decisioning","Made decisioning"],answer:0,explanation:"Ingliz tilida odatiy birikma — make a decision."},
+ {prompt:"“I have lived here ___ 2022.”",choices:["for","since","during","from"],answer:1,explanation:"Since aniq boshlanish nuqtasi bilan ishlatiladi; 2022 — boshlanish nuqtasi."}
+ ],
+ coding:[
+ {prompt:"JavaScript’da yangi o‘zgartirilgan massiv qaytaradigan metod?",choices:["map()","push()","pop()","alert()"],answer:0,explanation:"map() har bir elementga callback qo‘llab, yangi massiv qaytaradi."},
+ {prompt:"JavaScript’da Boolean(0) natijasi?",choices:["true","false","0","undefined"],answer:1,explanation:"0 falsy qiymat; Boolean(0) false qaytaradi."},
+ {prompt:"Async funksiyada Promise natijasini kutish uchun nima ishlatiladi?",choices:["await","defer","yieldNow","hold"],answer:0,explanation:"await Promise yakunlanishini kutadi va natijasini oladi."},
+ {prompt:"Obyekt xususiyatini nuqta orqali olish usuli?",choices:["user.name","user->name","user::name","user/name"],answer:0,explanation:"Dot notation: user.name."}
+ ],
+ cyber:[
+ {prompt:"Brauzer sayt sertifikati haqida ogohlantirdi. Eng xavfsiz qadam?",choices:["Baribir davom etish","Ogohlantirishni chetlab o‘tmaslik","Parolni sinash","VPN’ni o‘chirib qayta kirish"],answer:1,explanation:"Ogohlantirishni chetlab o‘tmang; manzilni tekshirib, rasmiy kanal orqali xabar bering."},
+ {prompt:"Bir xil parolni ko‘p saytda ishlatish xavfi?",choices:["Bitta sizib chiqish boshqa akkauntlarni ham xavfga qo‘yadi","Hisoblar tezroq ishlaydi","MFA avtomatik yoqiladi","Xavfsizlik oshadi"],answer:0,explanation:"Bir xizmatdagi parol oshkor bo‘lsa, boshqa akkauntlar ham buzilishi mumkin."},
+ {prompt:"Kutilmagan faylni ochishdan oldin nimani tekshirasiz?",choices:["Yuboruvchi va fayl kutilganmi","Faqat fayl rangini","Nomining uzunligini","Kompyuter ovozini"],answer:0,explanation:"Kutilmagan faylni ochmang; yuboruvchini mustaqil kanal orqali tasdiqlang."},
+ {prompt:"Dasturiy ta’minotni qayerdan olish ma’qul?",choices:["Rasmiy sayt yoki ishonchli store","Tasodifiy fayl havolasi","Noma’lum chatdagi APK","Pop-up reklama"],answer:0,explanation:"Dasturlarni ishlab chiquvchining rasmiy manbasi yoki ishonchli do‘kondan oling."}
+ ]
+};
+
 const missions = [
   { title: "Birinchi qadam", detail: "Bitta o‘yinni yakunlang", reward: "+10 XP", icon: Target },
   { title: "Aniqlik ustasi", detail: "Kamida 80% to‘g‘ri javob", reward: "+15 XP", icon: Sparkles },
@@ -64,16 +86,23 @@ export default function LearningExperienceLab() {
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
+  const [roundQuestions, setRoundQuestions] = useState<Question[]>(questionSets.english);
   const [finished, setFinished] = useState(false);
   const [done, setDone] = useState<string[]>([]);
 
   const track = tracks.find((item) => item.id === trackId)!;
-  const questions = questionSets[trackId];
+  const questions = roundQuestions;
   const correctCount = answers.filter((value, i) => value === questions[i]?.answer).length;
   const accuracy = answers.length ? Math.round((correctCount / answers.length) * 100) : 0;
   const current = questions[index];
 
   function startGame() {
+    const pool = [...questionSets[trackId], ...(extraQuestions[trackId] ?? [])];
+    const randomized = [...pool].sort(() => Math.random() - 0.5).slice(0, 8).map((question) => {
+      const options = question.choices.map((choice, i) => ({ choice, originalIndex: i })).sort(() => Math.random() - 0.5);
+      return { ...question, choices: options.map((option) => option.choice), answer: options.findIndex((option) => option.originalIndex === question.answer) };
+    });
+    setRoundQuestions(randomized);
     setIndex(0);
     setPicked(null);
     setAnswers([]);
