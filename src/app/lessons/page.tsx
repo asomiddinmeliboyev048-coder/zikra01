@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import LessonCard, { type LessonView } from "./LessonCard";
@@ -116,6 +117,14 @@ export default async function LessonsPage() {
           </div>
           <NewLessonModal partners={partners} skills={skills} />
         </div>
+
+        <Link href="/lessons/experience-lab" className="group relative block overflow-hidden rounded-3xl border border-violet-200 bg-gradient-to-r from-[#19153b] via-[#292064] to-[#5b2ab4] p-5 text-white shadow-lg shadow-violet-950/10 transition hover:-translate-y-0.5 hover:shadow-xl sm:p-7">
+          <div className="pointer-events-none absolute -right-10 -top-16 h-52 w-52 rounded-full bg-fuchsia-400/20 blur-3xl" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-2xl"><span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold tracking-wider text-violet-100">ZIKRA PRACTICE · INTERAKTIV</span><h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">Oddiy savoldan ko‘ra ko‘proq. <span className="text-violet-200">Sinab ko‘r.</span></h2><p className="mt-2 text-sm leading-relaxed text-violet-100/80">Ingliz tili, dasturlash va kiberxavfsizlik bo‘yicha mini-mashqlarni oching.</p></div>
+            <span className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-violet-950 transition group-hover:bg-violet-100">Mashqlarni boshlash <span aria-hidden>↗</span></span>
+          </div>
+        </Link>
 
         <SkillMissionsHub />
 
