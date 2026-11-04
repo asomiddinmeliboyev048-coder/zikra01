@@ -5,9 +5,10 @@ import { ArrowLeft, Volume2, CheckCircle2, RotateCcw, Ear } from "lucide-react";
 import { bank, tracks, type TrackId } from "../experience-lab/question-bank";
 
 const options = (Object.keys(bank) as TrackId[]).flatMap((trackId)=>bank[trackId].flatMap((lesson)=>lesson.questions.map((q,index)=>({key:`${trackId}-${lesson.id}-${index}`,prompt:q.prompt,choices:q.choices,answer:q.answer,explanation:q.explanation,track:tracks.find(t=>t.id===trackId)?.name??trackId}))));
-function shuffle<T>(list:T[]){const copy=[...list];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
+function stableHash(value:string){let h=2166136261;for(let i=0;i<value.length;i++)h=Math.imul(h^value.charCodeAt(i),16777619);return h>>>0;}
+function shuffleQuestions<T extends {key:string}>(list:T[]){return [...list].sort((a,b)=>stableHash("zikra-audio-v1:"+a.key)-stableHash("zikra-audio-v1:"+b.key));}
 export default function SoundsPractice(){
- const quiz=useMemo(()=>shuffle(options).slice(0,10),[]);
+ const quiz=useMemo(()=>shuffleQuestions(options).slice(0,10),[]);
  const [index,setIndex]=useState(0),[choice,setChoice]=useState<number|null>(null),[checked,setChecked]=useState(false),[hits,setHits]=useState(0),[ended,setEnded]=useState(false);
  const q=quiz[index];
  function speak(){if(typeof window==="undefined"||!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(q.prompt);utterance.lang="en-US";utterance.rate=.86;window.speechSynthesis.speak(utterance);}
