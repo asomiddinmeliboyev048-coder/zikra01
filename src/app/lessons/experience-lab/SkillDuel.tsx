@@ -132,7 +132,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   useEffect(() => {
     if (stage !== "play" || !turn) return;
     const interval = window.setInterval(() => {
-      setTotal(t => { if (t <= 1) { window.clearInterval(interval); finish(false); return 0; } return t - 1; });
+      setTotal(t => { if (t <= 1) { window.clearInterval(interval); const mine=words.filter(w=>w.userId===me?.id).length; const rival=words.filter(w=>w.userId!==(me?.id||"")).length; finish(mine>=rival); return 0; } return t - 1; });
       setRemaining(t => { if (t <= 1) { window.clearInterval(interval); if (opponent) { void roomRef.current?.send({type:"broadcast",event:"game",payload:{type:"timeout",from:me?.id,winner:(turn==="you"||turn===me?.id)?opponent.id:me?.id}}); } finish(turn !== "you"); return 0; } return t - 1; });
     }, 1000);
     return () => window.clearInterval(interval);
@@ -161,7 +161,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     if(words.some(x=>norm(x.text)===word)){setMessage("Bu so‘z avval ishlatilgan.");return;}
     if(last&&!word.startsWith(last)){setMessage("So‘z "+last.toUpperCase()+" harfidan boshlanishi kerak.");return;}
     const line:ChatLine={id:shortId(),userId:me?.id||"me",name:me?.name||"Siz",text:word,kind:"word",at:Date.now()};
-    setWords(prev=>[...prev,line]);setChat(prev=>[...prev,line]);setEntry("");setMessage(opponent?"Javob yuborildi. Raqib navbati.":"Javob qabul qilindi.");setTurn(opponent?"bot":"bot");setRemaining(15);
+    setWords(prev=>[...prev,line]);setChat(prev=>[...prev,line]);setEntry("");setMessage(opponent?"Javob yuborildi. Raqib navbati.":"Javob qabul qilindi.");setTurn(opponent?.id||"bot");setRemaining(15);
     if(opponent&&me) await roomRef.current?.send({type:"broadcast",event:"game",payload:{type:"word",from:me.id,line}});
   };
   const sendChat = async (e: React.FormEvent) => {
