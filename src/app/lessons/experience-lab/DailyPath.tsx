@@ -40,7 +40,8 @@ function taskQuestions(date: string, task: number, attempt: number): QuizQuestio
   const base = seededShuffle(allQuestions, `${date}:daily-pool`);
   const chunk = base.slice(task * 3, task * 3 + 3);
   if (attempt === 0) return chunk;
-  const unused = seededShuffle(base.filter((q) => !chunk.some((c) => c.key === q.key)), `${date}:${task}:${attempt}:alternatives`);
+  const assignedToday = new Set(base.slice(0, 15).map((q) => q.key));
+  const unused = seededShuffle(base.filter((q) => !assignedToday.has(q.key) && !chunk.some((c) => c.key === q.key)), `${date}:${task}:${attempt}:alternatives`);
   return unused.slice(0, 3);
 }
 
