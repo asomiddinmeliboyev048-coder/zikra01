@@ -57,6 +57,8 @@ export default function DailyPath({ completedIndexes: initialIndexes, date, stre
   const [passed, setPassed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [xpNow, setXpNow] = useState(xp);
+  const [awardedXp, setAwardedXp] = useState(0);
   const [error, setError] = useState("");
   const questionSet = useMemo(() => active === null ? [] : taskQuestions(date, active, attempt), [active, date, attempt]);
   const ordered = [...completed].sort((a,b)=>a-b);
@@ -95,6 +97,9 @@ export default function DailyPath({ completedIndexes: initialIndexes, date, stre
     try {
       const result = await completeDailyTaskAction({ index, correct: score, total: 3 });
       if (result.error) throw new Error(result.error);
+      const reward = result.result?.xp ?? 0;
+      setAwardedXp(reward);
+      setXpNow((value) => value + reward);
       setCompleted((prev) => prev.includes(index) ? prev : [...prev, index].sort((a,b)=>a-b));
       setSaved(true);
     } catch (e) {
@@ -118,7 +123,7 @@ export default function DailyPath({ completedIndexes: initialIndexes, date, stre
         <div className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-center"><p className="text-2xl font-black">{completed.length}/5</p><p className="text-[10px] font-bold uppercase tracking-wider text-white/75">Vazifalar</p></div>
       </div>
       <div className="mt-5 h-3 overflow-hidden rounded-full bg-black/15" role="progressbar" aria-label="Kunlik vazifalar bajarilishi" aria-valuemin={0} aria-valuemax={5} aria-valuenow={completed.length}><div className="h-full rounded-full bg-white transition-all duration-500" style={{width:`${completed.length/5*100}%`}}/></div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-bold"><span className="inline-flex items-center gap-1.5"><Flame size={17} className="text-amber-200"/> {streak} kunlik seriya</span><span className="inline-flex items-center gap-1.5"><Zap size={17} className="text-amber-200"/> {xp} XP</span><span className="text-xs font-medium text-white/75">XP mukofoti bu bosqichda yoqilmagan</span></div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-bold"><span className="inline-flex items-center gap-1.5"><Flame size={17} className="text-amber-200"/> {streak} kunlik seriya</span><span className="inline-flex items-center gap-1.5"><Zap size={17} className="text-amber-200"/> {xpNow} XP</span><span className="text-xs font-medium text-white/75">Vazifalarni bajaring va XP yig‘ing</span></div>
     </header>
     <div className="relative px-3 py-7 sm:px-6 sm:py-9">
       {migrationMissing && <div role="alert" className="mb-5 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-100"><b>Kunlik vazifalar hali yoqilmagan.</b><p className="mt-1">Supabase SQL Editor’da `202611040004_daily_tasks.sql` migratsiyasini ishga tushiring, keyin sahifani yangilang.</p></div>}
@@ -159,7 +164,7 @@ export default function DailyPath({ completedIndexes: initialIndexes, date, stre
           {!feedback?<button type="button" disabled={selected===null} onClick={checkAnswer} className="mt-5 min-h-12 w-full rounded-xl bg-brand px-4 font-black text-white shadow-[0_4px_0_#07645B] disabled:opacity-40">Tekshirish</button>:<button type="button" onClick={nextQuestion} disabled={saving} className="mt-5 min-h-12 w-full rounded-xl bg-brand px-4 font-black text-white shadow-[0_4px_0_#07645B] disabled:opacity-50">{qIndex<2?"Davom etish":saving?"Saqlanmoqda…":"Natijani ko‘rish"}</button>}
         </div>}
         {passed&&<div className="py-7 text-center"><div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-success-50 text-success-600 dark:bg-success-500/10"><Trophy size={40}/></div><h4 className="mt-4 text-2xl font-black">{saved?"Vazifa saqlandi!":"Ajoyib natija!"}</h4><p className="mt-2 text-sm text-slate-500">{correct}/3 to‘g‘ri javob · {correct>=3?"Mukammal!":"Vazifa bajarildi."}</p>
-          {saved?<div className="mt-4 rounded-2xl bg-success-50 p-4 text-sm font-bold text-success-700 dark:bg-success-500/10 dark:text-success-100"><Check className="mx-auto mb-1"/>Vazifa kunlik yo‘lga qo‘shildi. XP mukofoti bu versiyada faol emas.</div>:error?<div role="alert" className="mt-4 rounded-2xl bg-rose-50 p-4 text-sm text-rose-800 dark:bg-rose-500/10 dark:text-rose-100">{error}<button type="button" disabled={saving} onClick={()=>saveTask(active,correct)} className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-rose-700 font-black text-white disabled:opacity-50"><RefreshCw size={16}/>Qayta saqlash</button></div>:<p className="mt-3 text-sm text-slate-500">Natija tasdiqlanmoqda…</p>}
+          {saved?<div className="mt-4 rounded-2xl bg-success-50 p-4 text-sm font-bold text-success-700 dark:bg-success-500/10 dark:text-success-100"><Check className="mx-auto mb-1"/>Vazifa kunlik yo‘lga qo‘shildi. +{awardedXp} XP qo‘shildi.</div>:error?<div role="alert" className="mt-4 rounded-2xl bg-rose-50 p-4 text-sm text-rose-800 dark:bg-rose-500/10 dark:text-rose-100">{error}<button type="button" disabled={saving} onClick={()=>saveTask(active,correct)} className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-rose-700 font-black text-white disabled:opacity-50"><RefreshCw size={16}/>Qayta saqlash</button></div>:<p className="mt-3 text-sm text-slate-500">Natija tasdiqlanmoqda…</p>}
           {saved?<button type="button" onClick={closeQuiz} className="mt-5 min-h-12 w-full rounded-xl bg-brand font-black text-white">Davom etish <ChevronRight className="ml-1 inline" size={18}/></button>:null}
         </div>}
         {!passed&&feedback&&qIndex===2&&correct<2&&<div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-400/30 dark:bg-amber-500/10"><p className="font-black text-amber-900 dark:text-amber-100">Yana bir bor urinib ko‘ring</p><p className="mt-1 text-sm text-amber-800 dark:text-amber-200">Kamida 2 ta to‘g‘ri javob kerak.</p><button type="button" onClick={retryTask} className="mt-3 min-h-11 w-full rounded-xl bg-accent-600 font-black text-white">Qayta urinish</button></div>}
