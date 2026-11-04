@@ -24,7 +24,8 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const [turn, setTurn] = useState<string>("");
   const [words, setWords] = useState<ChatLine[]>([]);
   const [chat, setChat] = useState<ChatLine[]>([]);
-  const [entry, setEntry] = useState("");\n  const [chatEntry, setChatEntry] = useState("");
+  const [entry, setEntry] = useState("");
+  const [chatEntry, setChatEntry] = useState("");
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
   const [online, setOnline] = useState(false);
