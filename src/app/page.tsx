@@ -222,6 +222,53 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* DEVICE SHOWCASE */}
+        <section className="relative overflow-hidden bg-[#0a1715] py-20 text-white sm:py-28">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,rgba(120,72,220,.28),transparent_55%)]" />
+          <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-emerald-300">Har bir qurilmada Zikra</p>
+              <h2 className="mt-4 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">O'rganish uchun joy — qayerda bo'lsang ham.</h2>
+              <p className="mt-5 text-sm leading-7 text-white/60">Kompyuterda ham, telefoningda ham bilim almashish, darslarni ko'rish va suhbatlashish imkoniyati.</p>
+            </div>
+
+            <div className="mt-14 grid items-center gap-10 lg:grid-cols-[1.25fr_.75fr] lg:gap-14">
+              <div className="relative mx-auto w-full max-w-[760px]">
+                <div className="absolute -inset-8 rounded-[3rem] bg-violet-500/20 blur-3xl" />
+                <div className="relative rounded-[1.7rem] border border-white/20 bg-[#202323] p-2 shadow-[0_35px_100px_-35px_rgba(0,0,0,.8)] sm:rounded-[2rem] sm:p-3">
+                  <div className="overflow-hidden rounded-xl bg-white sm:rounded-2xl">
+                    <div className="flex h-7 items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-3">
+                      <span className="h-2 w-2 rounded-full bg-red-400" /><span className="h-2 w-2 rounded-full bg-amber-400" /><span className="h-2 w-2 rounded-full bg-emerald-400" />
+                      <span className="ml-3 rounded-md bg-white px-3 py-0.5 text-[9px] text-slate-400">zikra · hamkor topish</span>
+                    </div>
+                    <div className="relative aspect-[16/10] overflow-hidden bg-[#f4f8f7]">
+                      <iframe title="Zikra kompyuter ko'rinishi" src="/discovery" loading="lazy" className="absolute left-0 top-0 h-[900px] w-[1440px] origin-top-left scale-[.34] border-0 sm:scale-[.48] lg:scale-[.52]" />
+                    </div>
+                  </div>
+                  <div className="mx-auto mt-2 h-1.5 w-24 rounded-full bg-white/20" />
+                </div>
+                <p className="mt-4 text-center text-xs font-semibold tracking-wide text-white/55">KOMPYUTER VA NOUTBUK UCHUN</p>
+              </div>
+
+              <div className="flex items-end justify-center gap-4 sm:gap-6">
+                <div className="relative w-[min(42%,190px)] rotate-[-4deg] rounded-[2rem] border-[5px] border-[#25272a] bg-black p-1.5 shadow-[0_25px_70px_-25px_rgba(0,0,0,.9)] ring-1 ring-white/20">
+                  <div className="relative aspect-[9/19.5] overflow-hidden rounded-[1.45rem] bg-white">
+                    <div className="absolute left-1/2 top-1.5 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-black" />
+                    <iframe title="Zikra mobil video ko'rinishi" src="/videos" loading="lazy" className="absolute left-0 top-0 h-[844px] w-[390px] origin-top-left scale-[.43] border-0" />
+                  </div>
+                </div>
+                <div className="relative mb-8 w-[min(42%,190px)] rotate-[4deg] rounded-[2rem] border-[5px] border-[#25272a] bg-black p-1.5 shadow-[0_25px_70px_-25px_rgba(0,0,0,.9)] ring-1 ring-white/20">
+                  <div className="relative aspect-[9/19.5] overflow-hidden rounded-[1.45rem] bg-white">
+                    <div className="absolute left-1/2 top-1.5 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-black" />
+                    <iframe title="Zikra mobil suhbatlar ko'rinishi" src="/chat" loading="lazy" className="absolute left-0 top-0 h-[844px] w-[390px] origin-top-left scale-[.43] border-0" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p className="mt-8 text-center text-[11px] leading-5 text-white/40">Ilova ichidagi sahifalar real Zikra interfeysidan namoyish etiladi. Ayrim bo'limlar kirishni talab qilishi mumkin.</p>
+          </div>
+        </section>
+
         {/* VALUE STRIP */}
         <section className="border-y border-[#e8efea] bg-white/75 py-7 dark:border-white/[.07] dark:bg-white/[.025]">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-5 text-center sm:grid-cols-3 sm:px-8">
@@ -333,6 +380,26 @@ export default function HomePage() {
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-8 md:grid-cols-[auto_1fr] lg:px-10">
             <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-[2.3rem] bg-gradient-to-br from-emerald-700 to-teal-500 text-4xl font-black text-white shadow-2xl shadow-emerald-900/20 ring-8 ring-white dark:ring-white/5 sm:h-44 sm:w-44 sm:text-5xl">AM</div>
             <div className="max-w-3xl"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Loyiha asoschisi</p><h2 className="mt-4 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">Asomiddin Meliboyev</h2><p className="mt-4 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">TATU Axborot xavfsizligi yo'nalishi talabasi va full-stack dasturchi. Zikra g'oyasi — insonlar o'z bilimlarini o'zaro ulashishi va bir-birining rivojlanishiga hissa qo'shishi mumkin bo'lgan ochiq muhit yaratish.</p><div className="mt-6 flex flex-wrap gap-3"><a href="https://t.me/asomiddinmeliboyev" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-[#123b32] px-5 py-3 text-xs font-bold text-white transition hover:-translate-y-0.5 dark:bg-emerald-300 dark:text-[#09221b]"><MessageCircle className="h-4 w-4" /> Telegram orqali bog'lanish</a><a href="https://asomiddin1.vercel.app" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-[#d7e4da] bg-white px-5 py-3 text-xs font-bold text-[#29463d] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[.05] dark:text-white"><Laptop className="h-4 w-4" /> Portfolio <ArrowUpRight className="h-3.5 w-3.5" /></a></div></div>
+          </div>
+        </section>
+
+        {/* APP DOWNLOAD */}
+        <section id="ilovani-yuklab-olish" className="bg-[#eff7f3] px-5 py-20 dark:bg-[#0a211a] sm:px-8 sm:py-24 lg:px-10">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 rounded-[2rem] border border-emerald-900/10 bg-white p-7 shadow-[0_30px_80px_-55px_rgba(10,80,60,.4)] dark:border-white/10 dark:bg-[#10251f] sm:p-10 lg:grid-cols-[1fr_auto] lg:p-14">
+            <div className="max-w-2xl">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Zikra doim yoningda</p>
+              <h2 className="mt-4 text-4xl font-semibold tracking-[-.06em] text-[#142522] dark:text-white sm:text-5xl">Zikra'ni qurilmangga o'rnat.</h2>
+              <p className="mt-5 text-sm leading-7 text-[#71827a] dark:text-[#a0b5ae]">Bosh ekranga qo'sh, alohida ilova kabi och va bilim almashishni davom ettir. O'rnatish bepul.</p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <InstallPWAButton variant="primary" />
+                <a href="/download" className="inline-flex items-center justify-center rounded-2xl border border-[#dce7e1] px-6 py-3.5 text-sm font-bold text-[#29463d] transition hover:bg-emerald-50 dark:border-white/10 dark:text-white dark:hover:bg-white/5">Batafsil yo'riqnoma</a>
+              </div>
+              <p className="mt-4 text-xs text-[#87968e] dark:text-[#82978d]">Android, iPhone va kompyuter uchun qo'llab-quvvatlanadigan o'rnatish usullari.</p>
+            </div>
+            <div className="flex items-center gap-4 rounded-2xl bg-[#f4f8f5] p-5 dark:bg-white/[.05]">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=https%3A%2F%2Fzikra01.vercel.app" alt="Zikra saytiga o'tish uchun QR kod" width="132" height="132" className="h-[132px] w-[132px] rounded-xl bg-white p-1" loading="lazy" />
+              <div className="max-w-[130px]"><p className="text-sm font-bold text-[#18352d] dark:text-white">QR-kodni skanerlang</p><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Telefon kamerasi bilan skanerlab, Zikra'ni oching.</p></div>
+            </div>
           </div>
         </section>
 
