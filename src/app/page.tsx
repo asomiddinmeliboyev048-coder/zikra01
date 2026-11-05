@@ -92,7 +92,7 @@ const audiences = [
     title: "Mutaxassislar",
     description: "Kasbiy tajribangni ulash, boshqa yo'nalishlarni o'rgan va yangi aloqalar o'rnat.",
     image:
-      "https://thumbs.wbm.im/pw/medium/8d03b94c091071e47c7070fcde60d883.jpg",
+      "https://images.unsplash.com/photo-1758691737083-0e7fdbde0f05?auto=format&fit=crop&w=1100&q=85",
     alt: "Noutbuk orqali tajriba almashayotgan ikki mutaxassis",
     label: "Tajriba va hamkorlik",
   },
@@ -100,7 +100,7 @@ const audiences = [
     title: "O'qituvchilar",
     description: "Bilimingni kengroq auditoriya bilan bo'lish va boshqalardan ham yangi bilim ol.",
     image:
-      "https://images.unsplash.com/photo-1758685848142-06e158cf64bc?auto=format&fit=crop&w=1100&q=85",
+      "https://images.unsplash.com/photo-1758685848174-e061c6486651?auto=format&fit=crop&w=1100&q=85",
     alt: "Noutbuk va kitoblar bilan ishlayotgan o'qituvchi",
     label: "O'rgatish va ulashish",
   },
@@ -197,7 +197,7 @@ export default function HomePage() {
               <div className="relative overflow-hidden rounded-[2.1rem] border border-white/80 bg-white p-2 shadow-[0_40px_100px_-45px_rgba(16,60,48,.45)] dark:border-white/10 dark:bg-[#10251f] sm:rounded-[2.5rem] sm:p-3">
                 <div className="relative h-[300px] overflow-hidden rounded-[1.65rem] sm:h-[410px] sm:rounded-[2rem]">
                   <img
-                    src="https://images.unsplash.com/photo-1758270705317-3ef6142d306f?auto=format&fit=crop&w=1600&q=90"
+                    src="https://images.unsplash.com/photo-1758270705518-b61b40527e76?auto=format&fit=crop&w=1600&q=90"
                     alt="Birgalikda noutbuk atrofida bilim va tajriba almashayotgan yoshlar"
                     className="absolute inset-0 h-full w-full object-cover"
                     fetchPriority="high"
@@ -352,7 +352,7 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-x-7 gap-y-3 text-xs font-semibold text-[#74867c] dark:text-[#9aafa5]"><Link href="#qanday-ishlaydi" className="hover:text-emerald-700">Qanday ishlaydi?</Link><Link href="#imkoniyatlar" className="hover:text-emerald-700">Imkoniyatlar</Link><Link href="#faq" className="hover:text-emerald-700">FAQ</Link><Link href="/login" className="hover:text-emerald-700">Kirish</Link><Link href="/register" className="hover:text-emerald-700">Ro'yxatdan o'tish</Link></div>
           <p className="text-xs text-[#9aa8a1]">© {new Date().getFullYear()} Zikra. Barcha huquqlar himoyalangan.</p>
         </div>
-        <div className="mx-auto max-w-7xl px-5 pb-5 text-[10px] text-[#9aa8a1] sm:px-8 lg:px-10">Rasmlar: Unsplash (Vitaly Gariev) va Pikwizard. Vizual materiallar namoyish maqsadida ishlatilgan.</div>
+        <div className="mx-auto max-w-7xl px-5 pb-5 text-[10px] text-[#9aa8a1] sm:px-8 lg:px-10">Rasmlar: Unsplash — Vitaly Gariev. Vizual materiallar namoyish maqsadida ishlatilgan.</div>
       </footer>
     </div>
   );
