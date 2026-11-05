@@ -535,6 +535,16 @@ const rows: Array<[string, string, string]> = [
   ["Bosh ekranga qo'sh, alohida ilova kabi och va bilim almashishni davom ettir. O'rnatish bepul.", "Add it to your home screen, open it like an app, and keep exchanging knowledge. Installation is free.", "Добавьте на главный экран, открывайте как приложение и продолжайте обмен знаниями. Установка бесплатна."],
   ["Batafsil yo'riqnoma", "Installation guide", "Инструкция по установке"],
   ["Telefon kamerasi bilan skanerlab, Zikra'ni oching.", "Scan with your phone camera to open Zikra.", "Отсканируйте камерой телефона, чтобы открыть Zikra."],
+  ["Bilim harakatda","Knowledge in motion","Знания в движении"],
+  ["O'rganish jarayonidan lavhalar.","A glimpse into the learning journey.","Моменты учебного процесса."],
+  ["Hamkorlik, texnologiya va yangi ko'nikmalar — qisqa videolar orqali.","Collaboration, technology, and new skills through short videos.","Сотрудничество, технологии и новые навыки в коротких видео."],
+  ["Birgalikda o'rganish","Learning together","Учимся вместе"],
+  ["Talabalar hamkorlikda bilim olayotganidan lavha.","A glimpse of students learning together.","Студенты учатся вместе."],
+  ["Raqamli ta'lim","Digital learning","Цифровое обучение"],
+  ["Noutbuk va raqamli vositalar yordamida o'rganish.","Learning with laptops and digital tools.","Обучение с помощью ноутбуков и цифровых инструментов."],
+  ["Fikr almashish","Exchanging ideas","Обмен идеями"],
+  ["Bir-biridan o'rganayotgan yoshlar.","Young people learning from each other.","Молодые люди учатся друг у друга."],
+  ["Videolar Pexels bepul videolaridan. Ularni faqat foydalanuvchi Play tugmasini bosganda ijro etiladi.","Videos are free stock footage from Pexels. They play only when the user presses Play.","Видео взяты из бесплатной коллекции Pexels. Воспроизведение начинается только после нажатия Play."],
 ];
 
 export const translations: Record<string, Partial<Record<Locale, string>>> = Object.fromEntries(
