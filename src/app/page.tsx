@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import InstallPWAButton from "@/components/InstallPWAButton";
+import DownloadQRCode from "@/components/DownloadQRCode";
 
 export const metadata: Metadata = {
   title: "Zikra — Bilim almashish orqali birga rivojlaning",
@@ -378,7 +379,7 @@ export default function HomePage() {
         {/* FOUNDER */}
         <section className="border-y border-[#e7eee8] bg-[#f4f8f5] py-20 dark:border-white/[.07] dark:bg-[#0b201a] sm:py-24">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-8 md:grid-cols-[auto_1fr] lg:px-10">
-            <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-[2.3rem] bg-gradient-to-br from-emerald-700 to-teal-500 text-4xl font-black text-white shadow-2xl shadow-emerald-900/20 ring-8 ring-white dark:ring-white/5 sm:h-44 sm:w-44 sm:text-5xl">AM</div>
+            <div className="mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-[2.3rem] bg-gradient-to-br from-emerald-700 to-teal-500 text-4xl font-black text-white shadow-2xl shadow-emerald-900/20 ring-8 ring-white dark:ring-white/5 sm:h-44 sm:w-44 sm:text-5xl"><span>AM</span></div>
             <div className="max-w-3xl"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Loyiha asoschisi</p><h2 className="mt-4 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">Asomiddin Meliboyev</h2><p className="mt-4 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">TATU Axborot xavfsizligi yo'nalishi talabasi va full-stack dasturchi. Zikra g'oyasi — insonlar o'z bilimlarini o'zaro ulashishi va bir-birining rivojlanishiga hissa qo'shishi mumkin bo'lgan ochiq muhit yaratish.</p><div className="mt-6 flex flex-wrap gap-3"><a href="https://t.me/asomiddinmeliboyev" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-[#123b32] px-5 py-3 text-xs font-bold text-white transition hover:-translate-y-0.5 dark:bg-emerald-300 dark:text-[#09221b]"><MessageCircle className="h-4 w-4" /> Telegram orqali bog'lanish</a><a href="https://asomiddin1.vercel.app" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-[#d7e4da] bg-white px-5 py-3 text-xs font-bold text-[#29463d] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[.05] dark:text-white"><Laptop className="h-4 w-4" /> Portfolio <ArrowUpRight className="h-3.5 w-3.5" /></a></div></div>
           </div>
         </section>
@@ -397,7 +398,7 @@ export default function HomePage() {
               <p className="mt-4 text-xs text-[#87968e] dark:text-[#82978d]">Android, iPhone va kompyuter uchun qo'llab-quvvatlanadigan o'rnatish usullari.</p>
             </div>
             <div className="flex items-center gap-4 rounded-2xl bg-[#f4f8f5] p-5 dark:bg-white/[.05]">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=https%3A%2F%2Fzikra01.vercel.app" alt="Zikra saytiga o'tish uchun QR kod" width="132" height="132" className="h-[132px] w-[132px] rounded-xl bg-white p-1" loading="lazy" />
+              <DownloadQRCode />
               <div className="max-w-[130px]"><p className="text-sm font-bold text-[#18352d] dark:text-white">QR-kodni skanerlang</p><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Telefon kamerasi bilan skanerlab, Zikra'ni oching.</p></div>
             </div>
           </div>
