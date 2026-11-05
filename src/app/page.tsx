@@ -362,19 +362,19 @@ export default function HomePage() {
             </div>
             <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
-                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none" poster="https://images.pexels.com/videos/5200028/students-working-on-a-laptop-in-a-classroom-5200028.jpeg?auto=compress&cs=tinysrgb&w=900">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
                   <source src="https://videos.pexels.com/video-files/5200029/5200029-uhd_3840_2160_25fps.mp4" type="video/mp4" />
                 </video>
                 <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Birgalikda o'rganish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Talabalar hamkorlikda bilim olayotganidan lavha.</p></div>
               </article>
               <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
-                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none" poster="https://images.pexels.com/videos/9198421/pexels-photo-9198421.jpeg?auto=compress&cs=tinysrgb&w=900">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
                   <source src="https://videos.pexels.com/video-files/9198424/9198424-hd_1920_1080_25fps.mp4" type="video/mp4" />
                 </video>
                 <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Raqamli ta'lim</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Noutbuk va raqamli vositalar yordamida o'rganish.</p></div>
               </article>
               <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04] md:col-span-2 lg:col-span-1">
-                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none" poster="https://images.pexels.com/videos/9198425/pexels-photo-9198425.jpeg?auto=compress&cs=tinysrgb&w=900">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
                   <source src="https://videos.pexels.com/video-files/9198421/9198421-hd_1920_1080_25fps.mp4" type="video/mp4" />
                 </video>
                 <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Fikr almashish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Bir-biridan o'rganayotgan yoshlar.</p></div>
