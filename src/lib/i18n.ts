@@ -517,6 +517,14 @@ const rows: Array<[string, string, string]> = [
   ["Zikra platformasi ishlab chiqilgan va uning imkoniyatlari bosqichma-bosqich takomillashtirilmoqda. Mavjud funksiyalarni roʻyxatdan oʻtib ko‘rishingiz mumkin.", "The Zikra platform has been built and its features are being improved step by step. Sign up to explore the available features.", "Платформа Zikra уже создана, а её возможности постепенно улучшаются. Зарегистрируйтесь, чтобы ознакомиться с доступными функциями."],
   ["Tasdiqlangan profil", "Verified profile", "Подтверждённый профиль"],
   ["Oʻrgatuvchi sertifikatini tekshiruvga yuborishi mumkin", "Teachers can submit certificates for review", "Преподаватели могут отправить сертификаты на проверку"],
+  ["Zikra hamjamiyati", "The Zikra community", "Сообщество Zikra"],
+  ["Bilim birlashganda", "When knowledge comes together", "Когда знания объединяются"],
+  ["Har kimda ulashishga arziydigan bilim bor.", "Everyone has knowledge worth sharing.", "У каждого есть знания, которыми стоит поделиться."],
+  ["Birgalikda noutbuk atrofida bilim va tajriba almashayotgan yoshlar", "Young people sharing knowledge and experience around a laptop", "Молодые люди обмениваются знаниями и опытом за ноутбуком"],
+  ["Noutbuk atrofida birgalikda bilim olayotgan talabalar", "Students learning together around a laptop", "Студенты вместе учатся за ноутбуком"],
+  ["Noutbuk orqali tajriba almashayotgan ikki mutaxassis", "Two professionals exchanging experience using a laptop", "Два специалиста обмениваются опытом за ноутбуком"],
+  ["Noutbuk va kitoblar bilan ishlayotgan o'qituvchi", "A teacher working with a laptop and books", "Преподаватель работает с ноутбуком и книгами"],
+  ["Rasmlar: Unsplash — Vitaly Gariev. Vizual materiallar namoyish maqsadida ishlatilgan.", "Photos: Unsplash — Vitaly Gariev. Images are used for illustrative purposes.", "Фото: Unsplash — Vitaly Gariev. Изображения используются в иллюстративных целях."],
 ];
 
 export const translations: Record<string, Partial<Record<Locale, string>>> = Object.fromEntries(
