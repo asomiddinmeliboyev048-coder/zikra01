@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import AppDownloadButtons from "@/components/AppDownloadButtons";
+import InstallPWAButton from "@/components/InstallPWAButton";
+import DownloadQRCode from "@/components/DownloadQRCode";
 
 export const metadata: Metadata = {
   title: "Ilovani yuklab olish",
@@ -48,7 +49,7 @@ export default function DownloadPage() {
             </p>
 
             <div className="mt-8">
-              <AppDownloadButtons />
+              <InstallPWAButton />
             </div>
 
             <p className="mt-4 text-xs text-gray-400">
@@ -92,14 +93,7 @@ export default function DownloadPage() {
 
             {/* QR kod (sayt manziliga) */}
             <div className="flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-card dark:border-gray-800 dark:bg-gray-900">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://zikra.uz/download"
-                alt="Zikra yuklab olish QR kodi"
-                width={120}
-                height={120}
-                className="h-28 w-28 rounded-lg"
-              />
+              <DownloadQRCode />
               <p className="text-xs text-gray-500">
                 QR kodni skanerlab telefoningizda oching
               </p>
