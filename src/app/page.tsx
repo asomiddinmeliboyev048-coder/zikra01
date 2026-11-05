@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   ArrowRight, ArrowUpRight, Award, BookOpen, Check, ChevronRight,
   CirclePlay, Flame, GraduationCap, Layers3, MessageCircle, Play,
-  Sparkles, Star, Trophy, Users, Video, Zap, Globe2, ShieldCheck,
+  Sparkles, Star, Trophy, Users, Video, Zap, Globe2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import InstallPWAButton from "@/components/InstallPWAButton";
