@@ -230,7 +230,7 @@ export default function HomePage() {
               { icon: CircleDollarSign, title: "To'liq bepul", note: "Qo'shilish va foydalanish bepul" },
               { icon: Users, title: "Haqiqiy hamjamiyat", note: "Talabalar, mutaxassislar, ustozlar" },
             ].map(({ icon: Icon, title, note }, i) => (
-              <div key={title} className="flex items-center justify-center gap-3" data-aos-delay={i * 100}>
+              <div key={title} className="flex items-center justify-center gap-3">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200"><Icon className="h-5 w-5" /></span>
                 <span className="text-left"><b className="block text-sm">{title}</b><small className="mt-1 block text-xs text-[#8a9b93]">{note}</small></span>
               </div>
@@ -249,7 +249,7 @@ export default function HomePage() {
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               {steps.map(({ number, icon: Icon, title, description }, i) => (
-                <article key={number} className="group rounded-[1.7rem] border border-[#e5ede7] bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-emerald-700/20 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.35)] dark:border-white/10 dark:bg-white/[.035]" data-aos-delay={i * 120}>
+                <article key={number} className="group rounded-[1.7rem] border border-[#e5ede7] bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-emerald-700/20 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.35)] dark:border-white/10 dark:bg-white/[.035]">
                   <div className="flex items-center justify-between"><span className="text-xs font-black tracking-[.15em] text-[#a1b0a8]">{number}</span><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 transition group-hover:bg-emerald-700 group-hover:text-white dark:bg-emerald-300/10 dark:text-emerald-200"><Icon className="h-5 w-5" /></span></div>
                   <h3 className="mt-9 text-lg font-bold tracking-tight">{title}</h3>
                   <p className="mt-3 text-sm leading-6 text-[#7c8d84] dark:text-[#9aafa5]">{description}</p>
@@ -277,7 +277,7 @@ export default function HomePage() {
             </div>
             <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {features.map(({ icon: Icon, title, description, tone }, i) => (
-                <article key={title} className="group relative overflow-hidden rounded-[1.7rem] border border-[#e1eae3] bg-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.3)] dark:border-white/10 dark:bg-[#10271f]" data-aos-delay={(i % 3) * 100}>
+                <article key={title} className="group relative overflow-hidden rounded-[1.7rem] border border-[#e1eae3] bg-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.3)] dark:border-white/10 dark:bg-[#10271f]">
                   <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${tone} text-emerald-800 dark:text-emerald-200`}><Icon className="h-6 w-6" /></div>
                   <h3 className="mt-7 text-xl font-bold tracking-tight">{title}</h3>
                   <p className="mt-3 max-w-xs text-sm leading-6 text-[#7b8c83] dark:text-[#9aafa5]">{description}</p>
@@ -296,7 +296,7 @@ export default function HomePage() {
           </div>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             {audiences.map((item, i) => (
-              <article key={item.title} className="group overflow-hidden rounded-[1.8rem] border border-[#e5ede7] bg-white shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/[.035]" data-aos-delay={i * 120}>
+              <article key={item.title} className="group overflow-hidden rounded-[1.8rem] border border-[#e5ede7] bg-white shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/[.035]">
                 <div className="relative h-56 overflow-hidden sm:h-64"><img src={item.image} alt={item.alt} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" /><span className="absolute bottom-4 left-4 rounded-full border border-white/30 bg-black/25 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur">{item.label}</span></div>
                 <div className="p-6"><h3 className="text-xl font-bold">{item.title}</h3><p className="mt-3 text-sm leading-6 text-[#7b8c83] dark:text-[#9aafa5]">{item.description}</p></div>
               </article>
@@ -320,7 +320,7 @@ export default function HomePage() {
           <div><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Savollaringiz bormi?</p><h2 className="mt-5 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Ko'p so'raladigan savollar.</h2><p className="mt-5 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Zikra haqida bilmoqchi bo'lgan asosiy ma'lumotlaringni shu yerdan topishing mumkin.</p><a href="https://t.me/asomiddinmeliboyev" target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-emerald-800 hover:gap-3 dark:text-emerald-300">Yana savoling bormi? <ArrowUpRight className="h-4 w-4" /></a></div>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <details key={faq.question} className="group rounded-2xl border border-[#e5ede7] bg-white px-5 py-4 transition open:border-emerald-700/20 open:shadow-sm dark:border-white/10 dark:bg-white/[.035]" data-aos-delay={Math.min(i * 35, 210)}>
+              <details key={faq.question} className="group rounded-2xl border border-[#e5ede7] bg-white px-5 py-4 transition open:border-emerald-700/20 open:shadow-sm dark:border-white/10 dark:bg-white/[.035]">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold marker:hidden"><span>{faq.question}</span><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f0f6f1] text-emerald-800 transition group-open:rotate-180 dark:bg-white/10 dark:text-emerald-200"><ChevronDown className="h-4 w-4" /></span></summary>
                 <p className="max-w-2xl pt-4 pr-10 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">{faq.answer}</p>
               </details>
