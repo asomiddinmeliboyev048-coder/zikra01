@@ -525,6 +525,16 @@ const rows: Array<[string, string, string]> = [
   ["Noutbuk orqali tajriba almashayotgan ikki mutaxassis", "Two professionals exchanging experience using a laptop", "Два специалиста обмениваются опытом за ноутбуком"],
   ["Noutbuk va kitoblar bilan ishlayotgan o'qituvchi", "A teacher working with a laptop and books", "Преподаватель работает с ноутбуком и книгами"],
   ["Rasmlar: Unsplash — Vitaly Gariev. Vizual materiallar namoyish maqsadida ishlatilgan.", "Photos: Unsplash — Vitaly Gariev. Images are used for illustrative purposes.", "Фото: Unsplash — Vitaly Gariev. Изображения используются в иллюстративных целях."],
+  ["Har bir qurilmada Zikra", "Zikra on every device", "Zikra на каждом устройстве"],
+  ["O'rganish uchun joy — qayerda bo'lsang ham.", "A place to learn — wherever you are.", "Место для обучения — где бы вы ни были."],
+  ["Kompyuterda ham, telefoningda ham bilim almashish, darslarni ko'rish va suhbatlashish imkoniyati.", "Exchange knowledge, watch lessons, and chat on your computer or phone.", "Обменивайтесь знаниями, смотрите уроки и общайтесь с компьютера или телефона."],
+  ["KOMPYUTER VA NOUTBUK UCHUN", "FOR DESKTOP AND LAPTOP", "ДЛЯ КОМПЬЮТЕРА И НОУТБУКА"],
+  ["Ilova ichidagi sahifalar real Zikra interfeysidan namoyish etiladi. Ayrim bo'limlar kirishni talab qilishi mumkin.", "The screens show the real Zikra interface. Some sections may require sign-in.", "На экранах показан реальный интерфейс Zikra. Для некоторых разделов может потребоваться вход."],
+  ["Zikra doim yoningda", "Zikra is always with you", "Zikra всегда рядом"],
+  ["Zikra'ni qurilmangga o'rnat.", "Install Zikra on your device.", "Установите Zikra на своё устройство."],
+  ["Bosh ekranga qo'sh, alohida ilova kabi och va bilim almashishni davom ettir. O'rnatish bepul.", "Add it to your home screen, open it like an app, and keep exchanging knowledge. Installation is free.", "Добавьте на главный экран, открывайте как приложение и продолжайте обмен знаниями. Установка бесплатна."],
+  ["Batafsil yo'riqnoma", "Installation guide", "Инструкция по установке"],
+  ["Telefon kamerasi bilan skanerlab, Zikra'ni oching.", "Scan with your phone camera to open Zikra.", "Отсканируйте камерой телефона, чтобы открыть Zikra."],
 ];
 
 export const translations: Record<string, Partial<Record<Locale, string>>> = Object.fromEntries(
