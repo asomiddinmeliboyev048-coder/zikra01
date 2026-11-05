@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ArrowRight, ArrowUpRight, Award, BookOpen, Check, ChevronDown,
+  ArrowRight, ArrowUpRight, Award, BookOpen, Check, ChevronDown, CirclePlay,
   CircleDollarSign, Flame, GraduationCap, Handshake, Languages,
-  MessageCircle, Sparkles, Users, Video, Zap, Globe2, Laptop,
-  ShieldCheck, Lightbulb, Repeat2,
+  MessageCircle, Sparkles, Users, Video, Globe2, Laptop,
+  Lightbulb, Repeat2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import InstallPWAButton from "@/components/InstallPWAButton";
@@ -48,7 +48,7 @@ const features = [
     tone: "from-emerald-500/15 to-teal-500/5",
   },
   {
-    icon: PlayIcon,
+    icon: CirclePlay,
     title: "Qisqa bilimlar",
     description: "Reels formatidagi qisqa videolar orqali yangi g'oyalarni kashf et.",
     tone: "from-violet-500/15 to-indigo-500/5",
@@ -148,10 +148,6 @@ const faqs = [
       "“Bepul qo'shilish” tugmasini bosib, ro'yxatdan o'tish sahifasiga o't. Hisob yaratganingdan so'ng profilingni to'ldirib, bilim almashishni boshlashing mumkin.",
   },
 ];
-
-function PlayIcon({ className }: { className?: string }) {
-  return <span className={className} aria-hidden="true">▶</span>;
-}
 
 export default function HomePage() {
   return (
