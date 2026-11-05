@@ -34,6 +34,7 @@ export default function NavbarClient({ profile, unread }: Props) {
   if (!profile) {
     return (
       <nav className="flex items-center gap-2">
+        <ThemeToggle />
         <Link href="/login" className="btn-ghost">
           Kirish
         </Link>
