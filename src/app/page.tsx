@@ -352,6 +352,38 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* VIDEO PREVIEW */}
+        <section className="bg-[#f2f7f4] px-5 py-20 dark:bg-[#0a211a] sm:px-8 sm:py-24 lg:px-10">
+          <div className="mx-auto max-w-7xl">
+            <div className="max-w-2xl">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Bilim harakatda</p>
+              <h2 className="mt-4 text-4xl font-semibold tracking-[-.06em] text-[#142522] dark:text-white sm:text-5xl">O'rganish jarayonidan lavhalar.</h2>
+              <p className="mt-5 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Hamkorlik, texnologiya va yangi ko'nikmalar — qisqa videolar orqali.</p>
+            </div>
+            <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none" poster="https://images.pexels.com/videos/5200028/students-working-on-a-laptop-in-a-classroom-5200028.jpeg?auto=compress&cs=tinysrgb&w=900">
+                  <source src="https://videos.pexels.com/video-files/5200029/5200029-uhd_3840_2160_25fps.mp4" type="video/mp4" />
+                </video>
+                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Birgalikda o'rganish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Talabalar hamkorlikda bilim olayotganidan lavha.</p></div>
+              </article>
+              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none" poster="https://images.pexels.com/videos/9198421/pexels-photo-9198421.jpeg?auto=compress&cs=tinysrgb&w=900">
+                  <source src="https://videos.pexels.com/video-files/9198424/9198424-hd_1920_1080_25fps.mp4" type="video/mp4" />
+                </video>
+                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Raqamli ta'lim</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Noutbuk va raqamli vositalar yordamida o'rganish.</p></div>
+              </article>
+              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04] md:col-span-2 lg:col-span-1">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none" poster="https://images.pexels.com/videos/9198425/pexels-photo-9198425.jpeg?auto=compress&cs=tinysrgb&w=900">
+                  <source src="https://videos.pexels.com/video-files/9198421/9198421-hd_1920_1080_25fps.mp4" type="video/mp4" />
+                </video>
+                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Fikr almashish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Bir-biridan o'rganayotgan yoshlar.</p></div>
+              </article>
+            </div>
+            <p className="mt-5 text-[10px] leading-5 text-[#94a39b] dark:text-[#758a80]">Videolar Pexels bepul videolaridan. Ularni faqat foydalanuvchi Play tugmasini bosganda ijro etiladi.</p>
+          </div>
+        </section>
+
         {/* FREE + STATUS */}
         <section className="bg-[#0d2821] py-20 text-white dark:bg-[#0a211a] sm:py-24">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-[1fr_.85fr] lg:px-10">
