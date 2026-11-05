@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   ArrowRight, ArrowUpRight, Award, BookOpen, Check, ChevronDown, CirclePlay,
   CircleDollarSign, Flame, Handshake,
-  MessageCircle, Sparkles, Users, Video, Globe2, Laptop,
+  MessageCircle, Sparkles, Users, Video, Globe2, Laptop, ShieldCheck,
   Lightbulb, Repeat2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -133,14 +133,14 @@ const faqs = [
       "Dasturlash, xorijiy tillar, dizayn, marketing, biznes va boshqa ko'plab yo'nalishlarda bilim almashish mumkin. Muhimi — sen nimani o'rgata olishing va nimani o'rganmoqchi ekaning.",
   },
   {
-    question: "Zikra'da sertifikat olish mumkinmi?",
+    question: "Oʻz sertifikatimni profilga qoʻsha olamanmi?",
     answer:
-      "Sertifikat tizimi hozirda ishlab chiqilmoqda. Tayyor bo'lgach, ushbu imkoniyat haqida platformada alohida ma'lumot beriladi.",
+      "Ha. Oʻrgata oladigan fan yoki ko‘nikmangiz bo‘yicha sertifikatingiz bo‘lsa, profilni to‘ldirish jarayonida yuklashingiz mumkin. Admin tekshiruvidan so‘ng profilingizda tasdiq belgisi ko‘rinadi.",
   },
   {
-    question: "Zikra hozir faol ishlayaptimi?",
+    question: "Zikra hozir qanday bosqichda?",
     answer:
-      "Ha. Zikra hozir ishlamoqda va platformadan foydalanuvchilar foydalanmoqda. Jamoa platformani muntazam rivojlantirib bormoqda.",
+      "Zikra platformasi ishlab chiqilgan va uning imkoniyatlari bosqichma-bosqich takomillashtirilmoqda. Mavjud funksiyalarni roʻyxatdan oʻtib ko‘rishingiz mumkin.",
   },
   {
     question: "Qanday qilib ro'yxatdan o'taman?",
@@ -312,7 +312,7 @@ export default function HomePage() {
             <div data-aos="fade-right"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-300">Ochiq imkoniyat</p><h2 className="mt-5 max-w-xl text-4xl font-semibold leading-tight tracking-[-.06em] sm:text-5xl">Bilim almashish uchun to'lov kerak emas.</h2><p className="mt-6 max-w-xl text-sm leading-7 text-white/65">Zikra'ga qo'shilish va undan foydalanish to'liq bepul. Biz bilim va tajriba almashish imkoniyatini hamma uchun ochiq qilishni istaymiz.</p><Link href="/register" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-6 py-3.5 text-sm font-extrabold text-[#09221b] transition hover:-translate-y-1 hover:bg-emerald-200">Hoziroq qo'shilish <ArrowRight className="h-4 w-4" /></Link></div>
             <div className="grid gap-4 sm:grid-cols-2" data-aos="fade-left">
               <div className="rounded-[1.5rem] border border-white/10 bg-white/[.06] p-6"><CircleDollarSign className="h-7 w-7 text-emerald-300" /><p className="mt-6 text-3xl font-semibold">0 so'm</p><p className="mt-2 text-sm text-white/60">Ro'yxatdan o'tish va foydalanish</p></div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-white/[.06] p-6"><Award className="h-7 w-7 text-amber-300" /><p className="mt-6 text-xl font-semibold">Ishlab chiqilmoqda</p><p className="mt-2 text-sm text-white/60">Sertifikat tizimi ustida ish ketmoqda</p></div>
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[.06] p-6"><ShieldCheck className="h-7 w-7 text-amber-300" /><p className="mt-6 text-xl font-semibold">Tasdiqlangan profil</p><p className="mt-2 text-sm text-white/60">Oʻrgatuvchi sertifikatini tekshiruvga yuborishi mumkin</p></div>
             </div>
           </div>
         </section>
