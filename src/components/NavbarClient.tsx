@@ -38,7 +38,7 @@ export default function NavbarClient({ profile, unread }: Props) {
     window.dispatchEvent(new CustomEvent("zikra-locale-change", { detail: next }));
   }
 
-  if (!profile) return <nav className="flex items-center gap-2"><select aria-label="Language" value={locale} onChange={(e) => chooseLocale(e.target.value)} className="rounded-xl border border-gray-200 bg-transparent px-2 py-2 text-xs font-semibold dark:border-white/15"><option value="uz">UZ</option><option value="en">EN</option><option value="ru">RU</option></select><Link href="/login" className="btn-ghost">Kirish</Link><Link href="/register" className="btn-primary">Boshlash</Link></nav>;
+  if (!profile) return <nav className="flex items-center gap-2"><ThemeToggle /><select aria-label="Language" value={locale} onChange={(e) => chooseLocale(e.target.value)} className="rounded-xl border border-gray-200 bg-transparent px-2 py-2 text-xs font-semibold dark:border-white/15"><option value="uz">UZ</option><option value="en">EN</option><option value="ru">RU</option></select><Link href="/login" className="btn-ghost">Kirish</Link><Link href="/register" className="btn-primary">Boshlash</Link></nav>;
 
   return <>
     <nav className="hidden items-center gap-1 md:flex">

@@ -1,1070 +1,482 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-
 import {
-  ArrowRight,
-  Award,
-  BookOpen,
-  Check,
-  ChevronRight,
-  Flame,
-  GraduationCap,
-  Layers3,
-  MessageCircle,
-  Play,
-  Rocket,
-  Sparkles,
-  Star,
-  Trophy,
-  Users,
-  Video,
-  Zap,
+  ArrowRight, ArrowUpRight, Award, BookOpen, Check, ChevronDown, CirclePlay,
+  CircleDollarSign, Flame, Handshake,
+  MessageCircle, Sparkles, Users, Video, Globe2, Laptop, ShieldCheck,
+  Lightbulb, Repeat2,
 } from "lucide-react";
-
 import Navbar from "@/components/Navbar";
 import InstallPWAButton from "@/components/InstallPWAButton";
+import DownloadQRCode from "@/components/DownloadQRCode";
 
 export const metadata: Metadata = {
-  title: "Zikra — Learn. Teach. Be remembered.",
+  title: "Zikra — Bilim almashish orqali birga rivojlaning",
   description:
-    "Zikra — o'zbekistondagi yangi avlod P2P bilim va ko'nikma almashish platformasi. O'rganing, o'rgating va rivojlaning.",
+    "Zikra — talabalar, mutaxassislar va o'qituvchilar uchun bepul o'zaro bilim almashish platformasi. Sen menga bir bilim, men senga boshqasini.",
 };
 
 const steps = [
   {
     number: "01",
-    icon: Users,
-    title: "Profilingizni yarating",
+    icon: Lightbulb,
+    title: "Nimani bilishingni ulash",
     description:
-      "Bilgan ko'nikmalaringizni va o'rganmoqchi bo'lgan yo'nalishlaringizni belgilang.",
+      "O'zing yaxshi biladigan ko'nikmalarni profilingga qo'sh. Boshqalarga nimani o'rgata olishingni ko'rsat.",
   },
   {
     number: "02",
-    icon: MessageCircle,
-    title: "Insonlar bilan bog'laning",
+    icon: Users,
+    title: "Senga mos insonni top",
     description:
-      "Sizga mos insonlarni toping, tajriba almashing va real muloqot orqali o'rganing.",
+      "O'rganmoqchi bo'lgan yo'nalishing bo'yicha bilimga ega insonlarni kashf et va ular bilan bog'lan.",
   },
   {
     number: "03",
-    icon: Trophy,
-    title: "O'rgating va rivojlaning",
+    icon: Repeat2,
+    title: "Bilimlarni o'zaro almash",
     description:
-      "Darslar yarating, XP yig'ing, streak saqlang va yangi darajalarga ko'tariling.",
+      "Sen unga bir bilim berasan, u esa senga boshqasini o'rgatadi. Ikkalangiz ham yutasiz.",
   },
 ];
 
 const features = [
   {
     icon: Video,
-    number: "01",
     title: "Video darslar",
-    description:
-      "Bilimingizni qisqa yoki to'liq video darslar orqali boshqalarga ulashing.",
-    className: "md:col-span-2",
+    description: "Bilimingni video dars orqali ulash va boshqalarning tajribasidan o'rgan.",
+    tone: "from-emerald-500/15 to-teal-500/5",
   },
   {
-    icon: Play,
-    number: "02",
-    title: "Reels",
-    description:
-      "Qisqa, foydali va tushunarli bilim kontentlarini tomosha qiling.",
-    className: "",
+    icon: CirclePlay,
+    title: "Qisqa bilimlar",
+    description: "Reels formatidagi qisqa videolar orqali yangi g'oyalarni kashf et.",
+    tone: "from-violet-500/15 to-indigo-500/5",
   },
   {
     icon: MessageCircle,
-    number: "03",
-    title: "Chat",
-    description:
-      "O'rgatuvchilar va o'rganuvchilar bilan bevosita muloqot qiling.",
-    className: "",
-  },
-  {
-    icon: Award,
-    number: "04",
-    title: "Sertifikatlar",
-    description:
-      "O'rgangan ko'nikmalaringizni tasdiqlovchi sertifikatlarga ega bo'ling.",
-    className: "",
+    title: "Jonli muloqot",
+    description: "Savollar ber, fikr almash va bilim almashish bo'yicha kelishib ol.",
+    tone: "from-sky-500/15 to-cyan-500/5",
   },
   {
     icon: Flame,
-    number: "05",
-    title: "Streak & XP",
-    description:
-      "Har kungi faolligingizni streak, XP, level va badge'lar orqali kuzating.",
-    className: "md:col-span-2",
+    title: "XP va streak",
+    description: "Faolligingni kuzat, o'rganish odatini shakllantir va davomiylikni saqla.",
+    tone: "from-orange-500/15 to-amber-500/5",
+  },
+  {
+    icon: Award,
+    title: "Yutuqlar",
+    description: "O'rganish yo'lida erishgan natijalaring va yutuqlaringni kuzat.",
+    tone: "from-amber-500/15 to-yellow-500/5",
+  },
+  {
+    icon: Globe2,
+    title: "Hamjamiyat",
+    description: "Turli tajriba va qarashlarga ega insonlar bilan bir muhitda rivojlan.",
+    tone: "from-pink-500/15 to-rose-500/5",
   },
 ];
 
-const stats = [
+const audiences = [
   {
-    value: "10K+",
-    label: "O'rganuvchilar",
-    icon: Users,
+    title: "Talabalar",
+    description: "Darsdan tashqarida amaliy ko'nikmalarni o'rgan va bilimingni boshqalar bilan mustahkamla.",
+    image:
+      "https://images.unsplash.com/photo-1758270705317-3ef6142d306f?auto=format&fit=crop&w=1100&q=85",
+    alt: "Noutbuk atrofida birgalikda bilim olayotgan talabalar",
+    label: "O'rganish va tajriba",
   },
   {
-    value: "2.5K+",
-    label: "Video darslar",
-    icon: Video,
+    title: "Mutaxassislar",
+    description: "Kasbiy tajribangni ulash, boshqa yo'nalishlarni o'rgan va yangi aloqalar o'rnat.",
+    image:
+      "https://images.unsplash.com/photo-1758691737083-0e7fdbde0f05?auto=format&fit=crop&w=1100&q=85",
+    alt: "Noutbuk orqali tajriba almashayotgan ikki mutaxassis",
+    label: "Tajriba va hamkorlik",
   },
   {
-    value: "500+",
-    label: "O'rgatuvchilar",
-    icon: GraduationCap,
-  },
-  {
-    value: "50K+",
-    label: "Bilim almashish",
-    icon: Sparkles,
+    title: "O'qituvchilar",
+    description: "Bilimingni kengroq auditoriya bilan bo'lish va boshqalardan ham yangi bilim ol.",
+    image:
+      "https://images.unsplash.com/photo-1758685848174-e061c6486651?auto=format&fit=crop&w=1100&q=85",
+    alt: "Noutbuk va kitoblar bilan ishlayotgan o'qituvchi",
+    label: "O'rgatish va ulashish",
   },
 ];
 
-const benefits = [
-  "Bepul bilim almashish",
-  "Real insonlardan amaliy tajriba",
-  "Video va qisqa kontentlar",
-  "XP, streak va badge tizimi",
-  "PWA orqali tezkor foydalanish",
-  "Sertifikat va rivojlanish imkoniyati",
+const faqs = [
+  {
+    question: "Zikra nima?",
+    answer:
+      "Zikra — insonlar o'z bilim va ko'nikmalarini o'zaro almashishlari uchun yaratilgan platforma. Bu yerda sen o'rgatishing ham, yangi bilimlarni o'rganishing ham mumkin.",
+  },
+  {
+    question: "Bilim almashish qanday ishlaydi?",
+    answer:
+      "Zikra o'zaro barter tamoyiliga asoslanadi: sen boshqa insonga o'zing bilgan bir bilimni o'rgatasan, u esa senga o'zidagi boshqa bilimni ulashadi. Tafsilotlarni o'zaro kelishib olasiz.",
+  },
+  {
+    question: "Zikra'dan foydalanish bepulmi?",
+    answer:
+      "Ha. Zikra'ga qo'shilish va platformadan foydalanish to'liq bepul. Bilim almashish uchun platformaga to'lov qilishing shart emas.",
+  },
+  {
+    question: "Kimlar Zikra'dan foydalanishi mumkin?",
+    answer:
+      "Zikra, avvalo, talabalar, turli soha mutaxassislari va o'qituvchilar uchun. Bilimini ulashishni yoki yangi narsalarni o'rganishni istagan har bir inson qo'shilishi mumkin.",
+  },
+  {
+    question: "Qaysi yo'nalishlarda bilim almashish mumkin?",
+    answer:
+      "Dasturlash, xorijiy tillar, dizayn, marketing, biznes va boshqa ko'plab yo'nalishlarda bilim almashish mumkin. Muhimi — sen nimani o'rgata olishing va nimani o'rganmoqchi ekaning.",
+  },
+  {
+    question: "Oʻz sertifikatimni profilga qoʻsha olamanmi?",
+    answer:
+      "Ha. Oʻrgata oladigan fan yoki ko‘nikmangiz bo‘yicha sertifikatingiz bo‘lsa, profilni to‘ldirish jarayonida yuklashingiz mumkin. Admin tekshiruvidan so‘ng profilingizda tasdiq belgisi ko‘rinadi.",
+  },
+  {
+    question: "Zikra hozir qanday bosqichda?",
+    answer:
+      "Zikra platformasi ishlab chiqilgan va uning imkoniyatlari bosqichma-bosqich takomillashtirilmoqda. Mavjud funksiyalarni roʻyxatdan oʻtib ko‘rishingiz mumkin.",
+  },
+  {
+    question: "Qanday qilib ro'yxatdan o'taman?",
+    answer:
+      "“Bepul qo'shilish” tugmasini bosib, ro'yxatdan o'tish sahifasiga o't. Hisob yaratganingdan so'ng profilingni to'ldirib, bilim almashishni boshlashing mumkin.",
+  },
 ];
 
 export default function HomePage() {
   return (
-    <div className="zikra-landing min-h-screen overflow-x-hidden bg-white text-gray-950">
+    <div className="zikra-site min-h-screen overflow-hidden bg-[#fbfcfa] text-[#142522] transition-colors duration-300 dark:bg-[#071512] dark:text-[#eaf4f0]">
       <Navbar />
-
       <main>
-        {/* =====================================================
-            HERO
-        ====================================================== */}
-
-        <section className="relative overflow-hidden">
-          {/* Background */}
+        {/* HERO */}
+        <section className="relative isolate overflow-hidden">
           <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute left-1/2 top-[-300px] h-[650px] w-[900px] -translate-x-1/2 rounded-full bg-brand/10 blur-[140px]" />
-            <div className="absolute left-[-200px] top-[350px] h-[400px] w-[400px] rounded-full bg-accent/10 blur-[120px]" />
-            <div className="absolute right-[-150px] top-[180px] h-[400px] w-[400px] rounded-full bg-blue-100/70 blur-[120px]" />
+            <div className="absolute -right-40 -top-44 h-[38rem] w-[38rem] rounded-full bg-emerald-300/20 blur-[110px] dark:bg-emerald-400/10" />
+            <div className="absolute -left-48 top-64 h-[30rem] w-[30rem] rounded-full bg-amber-200/30 blur-[100px] dark:bg-amber-400/5" />
+            <div className="absolute inset-0 opacity-[.18] [background-image:radial-gradient(#68877d_0.7px,transparent_0.7px)] [background-size:24px_24px] dark:opacity-[.1]" />
           </div>
-
-          <div className="container-app px-4 pb-20 pt-10 sm:pb-28 sm:pt-16 lg:pb-36 lg:pt-24">
-            <div className="grid items-center gap-16 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12">
-              {/* Hero content */}
-              <div className="max-w-2xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand-50/80 px-3 py-1.5 text-xs font-bold text-brand-700 shadow-sm backdrop-blur">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[9px] font-black text-white">
-                    Z
-                  </span>
-
-                  O'zbekistonda yangi avlod bilim platformasi
-
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </div>
-
-                <h1 className="mt-7 max-w-4xl text-[3.3rem] font-black leading-[0.98] tracking-[-0.055em] text-gray-950 sm:text-6xl lg:text-[5.2rem]">
-                  Learn.
-                  <br />
-                  <span className="bg-gradient-to-r from-brand via-brand-600 to-accent bg-clip-text text-transparent">
-                    Teach.
-                  </span>
-                  <br />
-                  Be remembered.
-                </h1>
-
-                <p className="mt-7 max-w-xl text-base leading-7 text-gray-500 sm:text-lg sm:leading-8">
-                  O'zingiz bilgan ko'nikmani boshqalarga o'rgating va o'zingiz
-                  xohlagan yangi bilimlarni amalda egallang. Zikra — bilim
-                  berish va o'rganishni insonlar bilan bog'laydigan P2P
-                  platforma.
-                </p>
-
-                {/* CTA */}
-                <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href="/register"
-                    className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gray-950 px-6 py-4 text-sm font-black text-white shadow-xl shadow-gray-950/10 transition duration-300 hover:-translate-y-1 hover:bg-brand hover:shadow-brand/25 sm:text-base"
-                  >
-                    Boshlash
-
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Link>
-
-                  <InstallPWAButton variant="outline" />
-                </div>
-
-                {/* Trust */}
-                <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-400">
-                  <span className="flex items-center gap-1.5">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-50 text-green-500">
-                      <Check className="h-2.5 w-2.5" />
-                    </span>
-                    Bepul boshlash
-                  </span>
-
-                  <span className="flex items-center gap-1.5">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-50 text-green-500">
-                      <Check className="h-2.5 w-2.5" />
-                    </span>
-                    PWA
-                  </span>
-
-                  <span className="flex items-center gap-1.5">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-50 text-green-500">
-                      <Check className="h-2.5 w-2.5" />
-                    </span>
-                    O'zbek tilida
-                  </span>
-                </div>
+          <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 pb-20 pt-14 sm:px-8 sm:pt-20 lg:grid-cols-[.9fr_1.1fr] lg:gap-12 lg:px-10 lg:pb-28 lg:pt-24">
+            <div className="relative z-10 max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-800/10 bg-white/80 px-3.5 py-2 text-xs font-bold text-emerald-800 shadow-sm backdrop-blur dark:border-emerald-200/10 dark:bg-white/[.06] dark:text-emerald-200">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-700 text-[10px] font-black text-white">Z</span>
+                Bilim almashishning yangi usuli
+                <span className="ml-1 rounded-full bg-emerald-50 px-2 py-1 text-[9px] text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200">100% bepul</span>
               </div>
-
-              {/* =================================================
-                  PRODUCT MOCKUP
-              ================================================== */}
-
-              <div className="relative mx-auto w-full max-w-[620px] lg:ml-auto">
-                {/* Glow */}
-                <div className="absolute -inset-12 -z-10 rounded-full bg-brand/10 blur-3xl" />
-
-                {/* Floating notification */}
-                <div className="absolute -left-4 top-12 z-30 hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl shadow-gray-900/10 sm:block">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
-                      <Sparkles className="h-5 w-5 text-green-500" />
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-black text-gray-900">
-                        Yangi bilim topildi
-                      </p>
-
-                      <p className="mt-0.5 text-[10px] text-gray-400">
-                        Sizga mos dars
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main application */}
-                <div className="rounded-[2rem] border border-gray-200 bg-white p-3 shadow-2xl shadow-gray-900/10 sm:p-5">
-                  {/* App header */}
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-sm font-black text-white shadow-lg shadow-brand/20">
-                        Z
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-black text-gray-950">
-                          Zikra
-                        </p>
-
-                        <p className="text-[9px] text-gray-400">
-                          Learn. Teach. Be remembered.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="hidden h-8 w-24 rounded-xl bg-gray-50 sm:block" />
-                      <div className="h-8 w-8 rounded-full bg-gray-100" />
-                    </div>
-                  </div>
-
-                  {/* App body */}
-                  <div className="mt-4 grid gap-4 sm:grid-cols-[0.72fr_1.28fr]">
-                    {/* Sidebar */}
-                    <div className="hidden rounded-2xl bg-gray-50 p-3 sm:block">
-                      <div className="space-y-2">
-                        {[
-                          "Bosh sahifa",
-                          "Darslar",
-                          "Reels",
-                          "Chat",
-                          "Profil",
-                        ].map((item, index) => (
-                          <div
-                            key={item}
-                            className={`rounded-xl px-3 py-2.5 text-[10px] font-bold ${
-                              index === 0
-                                ? "bg-white text-brand shadow-sm"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-6 rounded-2xl bg-gray-950 p-3 text-white">
-                        <Zap className="h-4 w-4 text-yellow-400" />
-
-                        <p className="mt-2 text-[10px] font-black">
-                          Bugungi maqsad
-                        </p>
-
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                          <div className="h-full w-[72%] rounded-full bg-brand" />
-                        </div>
-
-                        <p className="mt-1.5 text-[8px] text-white/40">
-                          720 / 1000 XP
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Dashboard */}
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-[9px] text-gray-400">
-                            Xush kelibsiz
-                          </p>
-
-                          <p className="text-sm font-black text-gray-950">
-                            Sardor 👋
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1.5">
-                          <Flame className="h-3 w-3 fill-orange-500 text-orange-500" />
-
-                          <span className="text-[9px] font-black text-orange-600">
-                            7 kun
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Profile card */}
-                      <div className="mt-4 rounded-2xl bg-gradient-to-br from-brand-50 via-white to-purple-50 p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-tr from-brand to-accent text-sm font-black text-white">
-                              S
-                            </div>
-
-                            <div>
-                              <p className="text-xs font-black">
-                                Sardor Karimov
-                              </p>
-
-                              <p className="text-[9px] text-gray-400">
-                                UI/UX Designer
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-
-                            <span className="text-[9px] font-black">4.9</span>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-1.5">
-                          <span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-bold text-brand shadow-sm">
-                            UI/UX
-                          </span>
-
-                          <span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-bold text-blue-600 shadow-sm">
-                            Figma
-                          </span>
-
-                          <span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-bold text-purple-600 shadow-sm">
-                            Product
-                          </span>
-                        </div>
-
-                        <div className="mt-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-gray-600">
-                              Level 7 • Expert
-                            </span>
-
-                            <span className="text-[8px] text-gray-400">
-                              1,420 / 2,000 XP
-                            </span>
-                          </div>
-
-                          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-200">
-                            <div className="h-full w-[71%] rounded-full bg-gradient-to-r from-brand to-accent" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Recommended */}
-                      <div className="mt-4">
-                        <div className="mb-2 flex items-center justify-between">
-                          <p className="text-[10px] font-black">
-                            Sizga tavsiya
-                          </p>
-
-                          <span className="text-[8px] font-bold text-brand">
-                            Barchasi →
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-xl border border-gray-100 p-2">
-                            <div className="flex h-16 items-center justify-center rounded-lg bg-gradient-to-br from-purple-100 to-blue-50">
-                              <Layers3 className="h-6 w-6 text-purple-500" />
-                            </div>
-
-                            <p className="mt-2 text-[9px] font-black">
-                              UI/UX asoslari
-                            </p>
-
-                            <p className="mt-0.5 text-[7px] text-gray-400">
-                              12 min • 240 XP
-                            </p>
-                          </div>
-
-                          <div className="rounded-xl border border-gray-100 p-2">
-                            <div className="flex h-16 items-center justify-center rounded-lg bg-gradient-to-br from-orange-100 to-yellow-50">
-                              <BookOpen className="h-6 w-6 text-orange-500" />
-                            </div>
-
-                            <p className="mt-2 text-[9px] font-black">
-                              English Speaking
-                            </p>
-
-                            <p className="mt-0.5 text-[7px] text-gray-400">
-                              18 min • 320 XP
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* XP floating card */}
-                <div className="absolute -bottom-5 -right-3 z-30 hidden rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-2xl shadow-gray-900/10 sm:block">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-yellow-50">
-                      <Zap className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-black">+120 XP</p>
-
-                      <p className="text-[9px] text-gray-400">
-                        Bugungi dars
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            STATS
-        ====================================================== */}
-
-        <section className="border-y border-gray-100 bg-gray-50/70">
-          <div className="container-app px-4 py-9 sm:py-12">
-            <div className="grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:gap-0">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
-
-                return (
-                  <div
-                    key={stat.label}
-                    className={`flex flex-col items-center justify-center text-center ${
-                      index !== 0
-                        ? "border-gray-200 sm:border-l"
-                        : ""
-                    }`}
-                  >
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm">
-                      <Icon className="h-4 w-4 text-brand" />
-                    </div>
-
-                    <p className="text-2xl font-black tracking-tight text-gray-950 sm:text-3xl">
-                      {stat.value}
-                    </p>
-
-                    <p className="mt-1 text-xs text-gray-400">
-                      {stat.label}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            P2P PHILOSOPHY
-        ====================================================== */}
-
-        <section
-          id="imkoniyatlar"
-          className="container-app px-4 pb-6 pt-24 sm:pt-32 lg:pt-40"
-        >
-          <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-24">
-            <div>
-              <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-brand">
-                <Sparkles className="h-3.5 w-3.5" />
-                Zikra falsafasi
-              </span>
-
-              <h2 className="mt-5 max-w-xl text-3xl font-black leading-[1.08] tracking-[-0.04em] text-gray-950 sm:text-4xl lg:text-5xl">
-                Bilimni iste'mol qilish emas.
-                <span className="text-brand"> Uni yaratish.</span>
-              </h2>
-
-              <p className="mt-6 max-w-xl text-sm leading-7 text-gray-500 sm:text-base">
-                Zikra faqat dars ko'rish platformasi emas. Bu yerda har bir
-                inson bir vaqtning o'zida o'rganuvchi ham, o'rgatuvchi ham
-                bo'lishi mumkin.
+              <h1 className="mt-8 text-[3.55rem] font-semibold leading-[.96] tracking-[-.075em] sm:text-7xl lg:text-[5.45rem]">
+                Bilimingni
+                <span className="block bg-gradient-to-r from-emerald-700 via-teal-600 to-amber-600 bg-clip-text pb-2 text-transparent dark:from-emerald-300 dark:via-teal-300 dark:to-amber-300">ulash.</span>
+                <span className="block">Birga rivojlan.</span>
+              </h1>
+              <p className="mt-7 max-w-xl text-base leading-8 text-[#60736e] dark:text-[#a0b5ae] sm:text-lg">
+                Sen menga bir bilim, men senga boshqasini. Zikra — bilimni pulga emas, o'zaro manfaatli almashuvga asoslangan hamjamiyat.
               </p>
-
-              <div className="mt-8 space-y-3">
-                {benefits.slice(0, 4).map((benefit) => (
-                  <div
-                    key={benefit}
-                    className="flex items-center gap-3 text-sm text-gray-600"
-                  >
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand">
-                      <Check className="h-3 w-3" />
-                    </span>
-
-                    {benefit}
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8">
-                <Link
-                  href="/register"
-                  className="group inline-flex items-center gap-2 text-sm font-black text-brand"
-                >
-                  Zikra bilan boshlash
-
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Link href="/register" className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-[#123b32] px-7 py-4 text-sm font-bold text-white shadow-[0_18px_45px_-20px_rgba(10,90,69,.65)] transition duration-300 hover:-translate-y-1 hover:bg-emerald-700 dark:bg-emerald-300 dark:text-[#09221b] dark:hover:bg-emerald-200">
+                  Bepul qo'shilish <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
+                <a href="#qanday-ishlaydi" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#dce7e1] bg-white/70 px-6 py-4 text-sm font-bold text-[#29463d] transition hover:border-emerald-700/30 hover:bg-white dark:border-white/10 dark:bg-white/[.04] dark:text-[#d8e9e1] dark:hover:bg-white/[.08]">
+                  <BookOpen className="h-4 w-4" /> Qanday ishlaydi?
+                </a>
+              </div>
+              <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-[#83938d] dark:text-[#80958d]">
+                <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-600" /> To'liq bepul</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-600" /> O'zaro barter</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-600" /> Faol platforma</span>
               </div>
             </div>
 
-            {/* Philosophy visual */}
-            <div className="relative">
-              <div className="absolute inset-0 rounded-[3rem] bg-brand/5 blur-3xl" />
-
-              <div className="relative rounded-[2.5rem] border border-gray-100 bg-gray-50 p-5 sm:p-7">
-                <div className="rounded-[2rem] bg-white p-6 shadow-sm sm:p-8">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-gray-400">
-                        Sizning rivojlanishingiz
-                      </p>
-
-                      <p className="mt-1 text-xl font-black">
-                        Level 7
-                      </p>
-                    </div>
-
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-lg shadow-brand/20">
-                      <Rocket className="h-5 w-5" />
-                    </div>
+            <div className="relative mx-auto w-full max-w-[660px]">
+              <div className="absolute -inset-7 rounded-[3rem] bg-emerald-400/20 blur-3xl dark:bg-emerald-400/10" />
+              <div className="relative overflow-hidden rounded-[2.1rem] border border-white/80 bg-white p-2 shadow-[0_40px_100px_-45px_rgba(16,60,48,.45)] dark:border-white/10 dark:bg-[#10251f] sm:rounded-[2.5rem] sm:p-3">
+                <div className="relative h-[300px] overflow-hidden rounded-[1.65rem] sm:h-[410px] sm:rounded-[2rem]">
+                  <img
+                    src="https://images.unsplash.com/photo-1758270705518-b61b40527e76?auto=format&fit=crop&w=1600&q=90"
+                    alt="Birgalikda noutbuk atrofida bilim va tajriba almashayotgan yoshlar"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    fetchPriority="high"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#071d18]/90 via-[#071d18]/15 to-transparent" />
+                  <div className="absolute left-5 top-5 rounded-full border border-white/25 bg-black/20 px-3 py-2 text-[10px] font-bold uppercase tracking-[.16em] text-white backdrop-blur-md sm:left-7 sm:top-7">
+                    Zikra hamjamiyati
                   </div>
-
-                  <div className="mt-7">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-gray-600">
-                        Expert
-                      </span>
-
-                      <span className="text-gray-400">
-                        71%
-                      </span>
-                    </div>
-
-                    <div className="mt-2 h-3 overflow-hidden rounded-full bg-gray-100">
-                      <div className="h-full w-[71%] rounded-full bg-gradient-to-r from-brand to-accent" />
-                    </div>
-                  </div>
-
-                  <div className="mt-8 grid grid-cols-3 gap-3">
-                    <div className="rounded-2xl bg-orange-50 p-4 text-center">
-                      <Flame className="mx-auto h-5 w-5 text-orange-500" />
-
-                      <p className="mt-2 text-lg font-black">7</p>
-
-                      <p className="text-[9px] text-gray-400">
-                        Streak
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-brand-50 p-4 text-center">
-                      <Zap className="mx-auto h-5 w-5 text-brand" />
-
-                      <p className="mt-2 text-lg font-black">1.4K</p>
-
-                      <p className="text-[9px] text-gray-400">
-                        XP
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-yellow-50 p-4 text-center">
-                      <Award className="mx-auto h-5 w-5 text-yellow-500" />
-
-                      <p className="mt-2 text-lg font-black">12</p>
-
-                      <p className="text-[9px] text-gray-400">
-                        Badges
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 rounded-2xl border border-gray-100 p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50">
-                        <Trophy className="h-5 w-5 text-purple-500" />
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-black">
-                          Keyingi maqsad
-                        </p>
-
-                        <p className="mt-0.5 text-[10px] text-gray-400">
-                          Master darajasiga 580 XP qoldi
-                        </p>
-                      </div>
-
-                      <ArrowRight className="ml-auto h-4 w-4 text-gray-300" />
-                    </div>
+                  <div className="absolute bottom-5 left-5 right-5 text-white sm:bottom-8 sm:left-8 sm:right-8">
+                    <p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-200">Bilim birlashganda</p>
+                    <p className="mt-2 max-w-md text-3xl font-semibold leading-tight tracking-[-.045em] sm:text-4xl">Har kimda ulashishga arziydigan bilim bor.</p>
                   </div>
                 </div>
+              </div>
+              <div className="absolute -left-3 top-20 hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/95 px-4 py-3 shadow-xl backdrop-blur dark:border-white/10 dark:bg-[#18342b] sm:flex">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-300/10 dark:text-emerald-200"><Handshake className="h-5 w-5" /></span>
+                <span><b className="block text-xs">O'zaro barter</b><small className="text-[10px] text-[#8a9b93]">Bilim ↔ bilim</small></span>
+              </div>
+              <div className="absolute -bottom-5 -right-2 hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/95 px-4 py-3 shadow-xl backdrop-blur dark:border-white/10 dark:bg-[#18342b] sm:flex">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-300/10 dark:text-amber-200"><CircleDollarSign className="h-5 w-5" /></span>
+                <span><b className="block text-xs">0 so'm</b><small className="text-[10px] text-[#8a9b93]">Foydalanish bepul</small></span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* =====================================================
-            HOW IT WORKS
-        ====================================================== */}
-
-        <section
-          id="qanday-ishlaydi"
-          className="container-app px-4 pt-24 sm:pt-32 lg:pt-40"
-        >
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="text-xs font-black uppercase tracking-[0.18em] text-brand">
-              Juda oddiy
-            </span>
-
-            <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] sm:text-4xl lg:text-5xl">
-              Uch qadam.
-              <span className="text-brand"> Cheksiz imkoniyat.</span>
-            </h2>
-
-            <p className="mt-5 text-sm leading-7 text-gray-500 sm:text-base">
-              Zikra'da bilim almashishni boshlash uchun murakkab jarayonlar
-              kerak emas.
-            </p>
-          </div>
-
-          <div className="relative mt-12 grid gap-5 sm:grid-cols-3 lg:mt-16">
-            <div className="absolute left-[16%] right-[16%] top-14 hidden h-px bg-gradient-to-r from-gray-200 via-brand/30 to-gray-200 sm:block" />
-
-            {steps.map((step) => {
-              const Icon = step.icon;
-
-              return (
-                <div
-                  key={step.number}
-                  className="group relative rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-gray-900/5 sm:p-8"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-950 text-white transition duration-300 group-hover:bg-brand">
-                      <Icon className="h-5 w-5" />
-                    </div>
-
-                    <span className="text-4xl font-black tracking-tighter text-gray-100">
-                      {step.number}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-7 text-lg font-black">
-                    {step.title}
-                  </h3>
-
-                  <p className="mt-3 text-sm leading-6 text-gray-500">
-                    {step.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* =====================================================
-            FEATURE MATRIX
-        ====================================================== */}
-
-        <section
-          id="darslar"
-          className="container-app px-4 pt-24 sm:pt-32 lg:pt-40"
-        >
-          <div className="grid items-end gap-6 md:grid-cols-2">
-            <div>
-              <span className="text-xs font-black uppercase tracking-[0.18em] text-brand">
-                Platforma
-              </span>
-
-              <h2 className="mt-4 max-w-2xl text-3xl font-black leading-tight tracking-[-0.04em] sm:text-4xl lg:text-5xl">
-                O'rganish uchun kerak bo'lgan hamma narsa.
-              </h2>
+        {/* DEVICE SHOWCASE */}
+        <section className="relative overflow-hidden bg-[#0a1715] py-20 text-white sm:py-28">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,rgba(120,72,220,.28),transparent_55%)]" />
+          <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-extrabold uppercase tracking-[.22em] text-emerald-300">Har bir qurilmada Zikra</p>
+              <h2 className="mt-4 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">O'rganish uchun joy — qayerda bo'lsang ham.</h2>
+              <p className="mt-5 text-sm leading-7 text-white/60">Kompyuterda ham, telefoningda ham bilim almashish, darslarni ko'rish va suhbatlashish imkoniyati.</p>
             </div>
 
-            <p className="max-w-md text-sm leading-7 text-gray-500 md:ml-auto">
-              Video, Reels, chat, gamifikatsiya va sertifikatlar — barchasi
-              bitta platformada.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-
-              return (
-                <div
-                  key={feature.number}
-                  className={`group relative overflow-hidden rounded-[2rem] border border-gray-100 bg-gray-50/70 p-6 transition duration-300 hover:-translate-y-1 hover:border-brand/20 hover:bg-white hover:shadow-2xl hover:shadow-brand/5 sm:p-8 ${feature.className}`}
-                >
-                  <div className="absolute right-[-50px] top-[-50px] h-32 w-32 rounded-full bg-brand/5 blur-2xl transition duration-500 group-hover:bg-brand/10" />
-
-                  <div className="relative">
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition duration-300 group-hover:scale-105">
-                        <Icon className="h-5 w-5 text-brand" />
-                      </div>
-
-                      <span className="text-xs font-black text-gray-300">
-                        {feature.number}
-                      </span>
+            <div className="mt-14 grid items-center gap-10 lg:grid-cols-[1.25fr_.75fr] lg:gap-14">
+              <div className="relative mx-auto w-full max-w-[760px]">
+                <div className="absolute -inset-8 rounded-[3rem] bg-violet-500/20 blur-3xl" />
+                <div className="relative rounded-[1.7rem] border border-white/20 bg-[#202323] p-2 shadow-[0_35px_100px_-35px_rgba(0,0,0,.8)] sm:rounded-[2rem] sm:p-3">
+                  <div className="overflow-hidden rounded-xl bg-white sm:rounded-2xl">
+                    <div className="flex h-7 items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-3">
+                      <span className="h-2 w-2 rounded-full bg-red-400" /><span className="h-2 w-2 rounded-full bg-amber-400" /><span className="h-2 w-2 rounded-full bg-emerald-400" />
+                      <span className="ml-3 rounded-md bg-white px-3 py-0.5 text-[9px] text-slate-400">zikra · hamkor topish</span>
                     </div>
-
-                    <h3 className="mt-7 text-lg font-black">
-                      {feature.title}
-                    </h3>
-
-                    <p className="mt-3 max-w-lg text-sm leading-6 text-gray-500">
-                      {feature.description}
-                    </p>
-
-                    <div className="mt-6 flex items-center gap-1 text-xs font-black text-brand opacity-0 transition duration-300 group-hover:opacity-100">
-                      Batafsil
-                      <ArrowRight className="h-3.5 w-3.5" />
+                    <div className="relative aspect-[3/2] overflow-hidden bg-[#f4f8f7]">
+                      <img
+                        src="/ChatGPT%20Image%20Nov%206,%202026,%2001_41_38%20AM.png"
+                        alt="Zikra hamkor topish sahifasining to'liq kompyuter ko'rinishi"
+                        className="h-full w-full object-contain object-center"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                   </div>
+                  <div className="mx-auto mt-2 h-1.5 w-24 rounded-full bg-white/20" />
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* =====================================================
-            PWA
-        ====================================================== */}
-
-        <section className="container-app px-4 pt-24 sm:pt-32 lg:pt-40">
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-gray-950 px-6 py-12 text-white sm:px-10 sm:py-16 lg:px-14">
-            <div className="absolute right-[-120px] top-[-120px] h-[400px] w-[400px] rounded-full bg-brand/30 blur-[120px]" />
-            <div className="absolute bottom-[-150px] left-[30%] h-[300px] w-[300px] rounded-full bg-accent/20 blur-[120px]" />
-
-            <div className="relative grid items-center gap-12 lg:grid-cols-[1fr_0.8fr]">
-              <div className="max-w-xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-bold text-white/80">
-                  <Zap className="h-3.5 w-3.5 text-yellow-400" />
-                  Progressive Web App
-                </div>
-
-                <h2 className="mt-6 text-3xl font-black leading-tight tracking-[-0.03em] sm:text-4xl">
-                  Zikra har doim yoningizda.
-                </h2>
-
-                <p className="mt-4 text-sm leading-7 text-white/55 sm:text-base">
-                  Play Market yoki App Store qidirishingiz shart emas. Zikra'ni
-                  brauzeringizdan bir necha soniyada telefoningiz bosh ekraniga
-                  o'rnating.
-                </p>
-
-                <div className="mt-7">
-                  <InstallPWAButton variant="primary" />
-                </div>
-
-                <p className="mt-4 text-[11px] leading-5 text-white/35">
-                  iPhone/iPad: Safari → Share → Add to Home Screen.
-                </p>
+                <p className="mt-4 text-center text-xs font-semibold tracking-wide text-white/55">KOMPYUTER VA NOUTBUK UCHUN</p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                {[
-                  {
-                    icon: Zap,
-                    title: "Tezkor",
-                    text: "Ilova kabi tez ishlaydi.",
-                  },
-                  {
-                    icon: Layers3,
-                    title: "Yengil",
-                    text: "Telefon xotirasini tejaydi.",
-                  },
-                  {
-                    icon: Rocket,
-                    title: "Oson",
-                    text: "Do'konsiz o'rnatiladi.",
-                  },
-                ].map((item) => {
-                  const Icon = item.icon;
-
-                  return (
-                    <div
-                      key={item.title}
-                      className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                        <Icon className="h-4 w-4 text-white" />
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-black">
-                          {item.title}
-                        </p>
-
-                        <p className="mt-0.5 text-[10px] text-white/40">
-                          {item.text}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            SOCIAL PROOF / COMMUNITY
-        ====================================================== */}
-
-        <section className="container-app px-4 pt-24 sm:pt-32 lg:pt-40">
-          <div className="rounded-[2.5rem] border border-gray-100 bg-gray-50 p-6 sm:p-10 lg:p-14">
-            <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-              <div>
-                <span className="text-xs font-black uppercase tracking-[0.18em] text-brand">
-                  Hamjamiyat
-                </span>
-
-                <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
-                  Har kuni kimdir
-                  <span className="text-brand"> nimanidir o'rgatmoqda.</span>
-                </h2>
-
-                <p className="mt-5 max-w-xl text-sm leading-7 text-gray-500">
-                  Zikra'da siz faqat kontent tomosha qilmaysiz. Siz boshqa
-                  insonlarning rivojlanishiga hissa qo'shasiz va o'zingiz ham
-                  yangi bilimlarga ega bo'lasiz.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {[
-                  ["🎨", "Dizayn"],
-                  ["💻", "Dasturlash"],
-                  ["🇬🇧", "Tillar"],
-                  ["📈", "Biznes"],
-                  ["📸", "Kontent"],
-                  ["🧠", "Shaxsiy rivoj"],
-                ].map(([icon, title]) => (
-                  <div
-                    key={title}
-                    className="rounded-2xl border border-gray-100 bg-white p-4 text-center transition hover:-translate-y-1 hover:shadow-lg"
-                  >
-                    <div className="text-xl">{icon}</div>
-
-                    <p className="mt-2 text-xs font-bold text-gray-600">
-                      {title}
-                    </p>
+              <div className="flex items-end justify-center gap-4 sm:gap-6">
+                <div className="relative w-[min(42%,190px)] rotate-[-4deg] rounded-[2rem] border-[5px] border-[#25272a] bg-black p-1.5 shadow-[0_25px_70px_-25px_rgba(0,0,0,.9)] ring-1 ring-white/20">
+                  <div className="relative aspect-[9/19.5] overflow-hidden rounded-[1.45rem] bg-white">
+                    <div className="absolute left-1/2 top-1.5 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-black" />
+                    <img
+                      src="/ChatGPT%20Image%20Nov%206,%202026,%2001_41_56%20AM.png"
+                      alt="Zikra mobil video darslar sahifasi"
+                      className="h-full w-full object-contain object-center"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
-                ))}
+                </div>
+                <div className="relative mb-8 w-[min(42%,190px)] rotate-[4deg] rounded-[2rem] border-[5px] border-[#25272a] bg-black p-1.5 shadow-[0_25px_70px_-25px_rgba(0,0,0,.9)] ring-1 ring-white/20">
+                  <div className="relative aspect-[9/19.5] overflow-hidden rounded-[1.45rem] bg-white">
+                    <div className="absolute left-1/2 top-1.5 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-black" />
+                    <img
+                      src="/ChatGPT%20Image%20Nov%206,%202026,%2001_41_50%20AM.png"
+                      alt="Zikra mobil suhbatlar sahifasi"
+                      className="h-full w-full object-contain object-center"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                </div>
               </div>
+            </div>
+            <p className="mt-8 text-center text-[11px] leading-5 text-white/40">Zikra interfeysining kompyuter va mobil qurilmalardagi ko'rinishlari.</p>
+          </div>
+        </section>
+
+        {/* VALUE STRIP */}
+        <section className="border-y border-[#e8efea] bg-white/75 py-7 dark:border-white/[.07] dark:bg-white/[.025]">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-5 text-center sm:grid-cols-3 sm:px-8">
+            {[
+              { icon: Repeat2, title: "O'zaro bilim almashish", note: "Har ikki tomon uchun foyda" },
+              { icon: CircleDollarSign, title: "To'liq bepul", note: "Qo'shilish va foydalanish bepul" },
+              { icon: Users, title: "Haqiqiy hamjamiyat", note: "Talabalar, mutaxassislar, ustozlar" },
+            ].map(({ icon: Icon, title, note }, i) => (
+              <div key={title} className="flex items-center justify-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200"><Icon className="h-5 w-5" /></span>
+                <span className="text-left"><b className="block text-sm">{title}</b><small className="mt-1 block text-xs text-[#8a9b93]">{note}</small></span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* HOW IT WORKS */}
+        <section id="qanday-ishlaydi" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+          <div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:gap-20">
+            <div className="max-w-md">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Oddiy. O'zaro. Bepul.</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Bilim almashish uchun uch qadam.</h2>
+              <p className="mt-5 text-sm leading-7 text-[#73847c] dark:text-[#9aafa5]">Har kim nimanidir biladi. Har kim nimanidir o'rganishi mumkin. Zikra shu ikki ehtiyojni bir joyda uchrashtiradi.</p>
+              <Link href="/register" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-emerald-800 transition hover:gap-3 dark:text-emerald-300">O'z yo'lingni boshlash <ArrowUpRight className="h-4 w-4" /></Link>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {steps.map(({ number, icon: Icon, title, description }, i) => (
+                <article key={number} className="group rounded-[1.7rem] border border-[#e5ede7] bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-emerald-700/20 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.35)] dark:border-white/10 dark:bg-white/[.035]">
+                  <div className="flex items-center justify-between"><span className="text-xs font-black tracking-[.15em] text-[#a1b0a8]">{number}</span><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800 transition group-hover:bg-emerald-700 group-hover:text-white dark:bg-emerald-300/10 dark:text-emerald-200"><Icon className="h-5 w-5" /></span></div>
+                  <h3 className="mt-9 text-lg font-bold tracking-tight">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#7c8d84] dark:text-[#9aafa5]">{description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+          <div className="mt-12 overflow-hidden rounded-[1.8rem] border border-emerald-900/10 bg-gradient-to-r from-[#eaf5ed] via-white to-[#f8f2e5] p-6 dark:border-white/10 dark:from-[#10271f] dark:via-[#10251f] dark:to-[#29251b] sm:p-8">
+            <div className="grid items-center gap-5 sm:grid-cols-[1fr_auto_1fr]">
+              <div><p className="text-xs font-bold uppercase tracking-[.15em] text-emerald-700 dark:text-emerald-300">Sen ulashasan</p><p className="mt-2 text-2xl font-semibold tracking-tight">Ingliz tili</p><p className="mt-1 text-sm text-[#7b8c83] dark:text-[#9aafa5]">O'zing yaxshi bilgan bilim</p></div>
+              <div className="flex items-center justify-center"><div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700 text-white shadow-lg shadow-emerald-900/15 dark:bg-emerald-300 dark:text-[#09221b]"><Repeat2 className="h-6 w-6" /></div></div>
+              <div className="sm:text-right"><p className="text-xs font-bold uppercase tracking-[.15em] text-amber-700 dark:text-amber-300">Sen o'rganasan</p><p className="mt-2 text-2xl font-semibold tracking-tight">Dasturlash</p><p className="mt-1 text-sm text-[#7b8c83] dark:text-[#9aafa5]">Hamkoring bilgan bilim</p></div>
+            </div>
+            <p className="mt-6 text-center text-xs font-medium text-[#7b8c83] dark:text-[#9aafa5]">Namunaviy bilim almashish — yo'nalishlarni o'zaro kelishib tanlaysiz.</p>
+          </div>
+        </section>
+
+        {/* FEATURES */}
+        <section id="imkoniyatlar" className="bg-[#f1f6f2] py-24 dark:bg-[#0b201a] sm:py-28">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Zikra imkoniyatlari</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">O'rganish va ulashish — bir platformada.</h2>
+              <p className="mt-5 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Bilimni topish, ulashish va kundalik odatga aylantirish uchun kerakli vositalar.</p>
+            </div>
+            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {features.map(({ icon: Icon, title, description, tone }, i) => (
+                <article key={title} className="group relative overflow-hidden rounded-[1.7rem] border border-[#e1eae3] bg-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.3)] dark:border-white/10 dark:bg-[#10271f]">
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${tone} text-emerald-800 dark:text-emerald-200`}><Icon className="h-6 w-6" /></div>
+                  <h3 className="mt-7 text-xl font-bold tracking-tight">{title}</h3>
+                  <p className="mt-3 max-w-xs text-sm leading-6 text-[#7b8c83] dark:text-[#9aafa5]">{description}</p>
+                  <div className="pointer-events-none absolute -bottom-12 -right-10 h-32 w-32 rounded-full bg-emerald-100/70 blur-3xl transition group-hover:bg-emerald-200 dark:bg-emerald-400/5" />
+                </article>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* =====================================================
-            FINAL CTA
-        ====================================================== */}
+        {/* AUDIENCE */}
+        <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div className="max-w-2xl"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Kimlar uchun?</p><h2 className="mt-5 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Bilim ulashishni istagan har bir inson uchun.</h2></div>
+            <p className="max-w-sm text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Zikra turli tajriba va bilimga ega insonlarni bir maqsad atrofida birlashtiradi.</p>
+          </div>
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {audiences.map((item, i) => (
+              <article key={item.title} className="group overflow-hidden rounded-[1.8rem] border border-[#e5ede7] bg-white shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/[.035]">
+                <div className="relative h-56 overflow-hidden sm:h-64"><img src={item.image} alt={item.alt} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" /><span className="absolute bottom-4 left-4 rounded-full border border-white/30 bg-black/25 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur">{item.label}</span></div>
+                <div className="p-6"><h3 className="text-xl font-bold">{item.title}</h3><p className="mt-3 text-sm leading-6 text-[#7b8c83] dark:text-[#9aafa5]">{item.description}</p></div>
+              </article>
+            ))}
+          </div>
+        </section>
 
-        <section className="container-app px-4 pb-20 pt-24 sm:pb-28 sm:pt-32 lg:pb-36">
-          <div className="relative overflow-hidden rounded-[2.8rem] bg-gradient-to-br from-brand via-brand-600 to-brand-800 px-6 py-16 text-center shadow-2xl shadow-brand/20 sm:px-10 sm:py-20 lg:py-24">
-            <div className="absolute left-1/2 top-[-100px] h-[350px] w-[700px] -translate-x-1/2 rounded-full bg-white/10 blur-[120px]" />
-
-            <div className="absolute bottom-[-150px] left-[-100px] h-[300px] w-[300px] rounded-full bg-black/10 blur-[100px]" />
-
-            <div className="relative">
-              <div className="mx-auto flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/80">
-                <Sparkles className="h-3.5 w-3.5" />
-                Bugun boshlang
-              </div>
-
-              <h2 className="mx-auto mt-6 max-w-3xl text-3xl font-black leading-tight tracking-[-0.04em] text-white sm:text-4xl lg:text-5xl">
-                Siz bilgan narsa —
-                <br className="hidden sm:block" />
-                boshqa birov uchun imkoniyat.
-              </h2>
-
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
-                O'zingiz bilgan ko'nikmani ulashing. Yangi bilimlarni o'rganing.
-                Zikra hamjamiyatining bir qismiga aylaning.
-              </p>
-
-              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link
-                  href="/register"
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-7 py-4 text-sm font-black text-brand-700 shadow-xl transition duration-300 hover:-translate-y-1 hover:bg-gray-50 sm:w-auto"
-                >
-                  Bepul boshlash
-
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-
-                <InstallPWAButton variant="outline" />
-              </div>
-
-              <p className="mt-6 text-xs text-white/50">
-                Allaqachon a'zomisiz?{" "}
-                <Link
-                  href="/login"
-                  className="font-bold text-white/80 transition hover:text-white"
-                >
-                  Hisobingizga kiring
-                </Link>
-              </p>
+        {/* VIDEO PREVIEW */}
+        <section className="bg-[#f2f7f4] px-5 py-20 dark:bg-[#0a211a] sm:px-8 sm:py-24 lg:px-10">
+          <div className="mx-auto max-w-7xl">
+            <div className="max-w-2xl">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Bilim harakatda</p>
+              <h2 className="mt-4 text-4xl font-semibold tracking-[-.06em] text-[#142522] dark:text-white sm:text-5xl">O'rganish jarayonidan lavhalar.</h2>
+              <p className="mt-5 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Hamkorlik, texnologiya va yangi ko'nikmalar — qisqa videolar orqali.</p>
             </div>
+            <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
+                  <source src="https://videos.pexels.com/video-files/5200029/5200029-uhd_3840_2160_25fps.mp4" type="video/mp4" />
+                </video>
+                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Birgalikda o'rganish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Talabalar hamkorlikda bilim olayotganidan lavha.</p></div>
+              </article>
+              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
+                  <source src="https://videos.pexels.com/video-files/9198424/9198424-hd_1920_1080_25fps.mp4" type="video/mp4" />
+                </video>
+                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Raqamli ta'lim</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Noutbuk va raqamli vositalar yordamida o'rganish.</p></div>
+              </article>
+              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04] md:col-span-2 lg:col-span-1">
+                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
+                  <source src="https://videos.pexels.com/video-files/9198421/9198421-hd_1920_1080_25fps.mp4" type="video/mp4" />
+                </video>
+                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Fikr almashish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Bir-biridan o'rganayotgan yoshlar.</p></div>
+              </article>
+            </div>
+            <p className="mt-5 text-[10px] leading-5 text-[#94a39b] dark:text-[#758a80]">Videolar Pexels bepul videolaridan. Ularni faqat foydalanuvchi Play tugmasini bosganda ijro etiladi.</p>
+          </div>
+        </section>
+
+        {/* FREE + STATUS */}
+        <section className="bg-[#0d2821] py-20 text-white dark:bg-[#0a211a] sm:py-24">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-[1fr_.85fr] lg:px-10">
+            <div><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-300">Ochiq imkoniyat</p><h2 className="mt-5 max-w-xl text-4xl font-semibold leading-tight tracking-[-.06em] sm:text-5xl">Bilim almashish uchun to'lov kerak emas.</h2><p className="mt-6 max-w-xl text-sm leading-7 text-white/65">Zikra'ga qo'shilish va undan foydalanish to'liq bepul. Biz bilim va tajriba almashish imkoniyatini hamma uchun ochiq qilishni istaymiz.</p><Link href="/register" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-6 py-3.5 text-sm font-extrabold text-[#09221b] transition hover:-translate-y-1 hover:bg-emerald-200">Hoziroq qo'shilish <ArrowRight className="h-4 w-4" /></Link></div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[.06] p-6"><CircleDollarSign className="h-7 w-7 text-emerald-300" /><p className="mt-6 text-3xl font-semibold">0 so'm</p><p className="mt-2 text-sm text-white/60">Ro'yxatdan o'tish va foydalanish</p></div>
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[.06] p-6"><ShieldCheck className="h-7 w-7 text-amber-300" /><p className="mt-6 text-xl font-semibold">Tasdiqlangan profil</p><p className="mt-2 text-sm text-white/60">Oʻrgatuvchi sertifikatini tekshiruvga yuborishi mumkin</p></div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:gap-20 lg:px-10 lg:py-32">
+          <div><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Savollaringiz bormi?</p><h2 className="mt-5 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Ko'p so'raladigan savollar.</h2><p className="mt-5 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Zikra haqida bilmoqchi bo'lgan asosiy ma'lumotlaringni shu yerdan topishing mumkin.</p><a href="https://t.me/asomiddinmeliboyev" target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-emerald-800 hover:gap-3 dark:text-emerald-300">Yana savoling bormi? <ArrowUpRight className="h-4 w-4" /></a></div>
+          <div className="space-y-3">
+            {faqs.map((faq, i) => (
+              <details key={faq.question} className="group rounded-2xl border border-[#e5ede7] bg-white px-5 py-4 transition open:border-emerald-700/20 open:shadow-sm dark:border-white/10 dark:bg-white/[.035]">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold marker:hidden"><span>{faq.question}</span><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f0f6f1] text-emerald-800 transition group-open:rotate-180 dark:bg-white/10 dark:text-emerald-200"><ChevronDown className="h-4 w-4" /></span></summary>
+                <p className="max-w-2xl pt-4 pr-10 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* FOUNDER */}
+        <section className="border-y border-[#e7eee8] bg-[#f4f8f5] py-20 dark:border-white/[.07] dark:bg-[#0b201a] sm:py-24">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-8 md:grid-cols-[auto_1fr] lg:px-10">
+            <div className="mx-auto h-36 w-36 overflow-hidden rounded-full bg-emerald-100 shadow-2xl shadow-emerald-900/20 ring-8 ring-white dark:ring-white/5 sm:h-44 sm:w-44">
+              <img
+                src="/ChatGPT%20Image%20Nov%206,%202026,%2001_39_51%20AM.png"
+                alt="Zikra loyihasi asoschisi Asomiddin Meliboyev"
+                className="h-full w-full object-cover object-[center_24%]"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="max-w-3xl"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Loyiha asoschisi</p><h2 className="mt-4 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">Asomiddin Meliboyev</h2><p className="mt-4 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">TATU Axborot xavfsizligi yo'nalishi talabasi va full-stack dasturchi. Zikra g'oyasi — insonlar o'z bilimlarini o'zaro ulashishi va bir-birining rivojlanishiga hissa qo'shishi mumkin bo'lgan ochiq muhit yaratish.</p><div className="mt-6 flex flex-wrap gap-3"><a href="https://t.me/asomiddinmeliboyev" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-[#123b32] px-5 py-3 text-xs font-bold text-white transition hover:-translate-y-0.5 dark:bg-emerald-300 dark:text-[#09221b]"><MessageCircle className="h-4 w-4" /> Telegram orqali bog'lanish</a><a href="https://asomiddin1.vercel.app" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-[#d7e4da] bg-white px-5 py-3 text-xs font-bold text-[#29463d] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[.05] dark:text-white"><Laptop className="h-4 w-4" /> Portfolio <ArrowUpRight className="h-3.5 w-3.5" /></a></div></div>
+          </div>
+        </section>
+
+        {/* APP DOWNLOAD */}
+        <section id="ilovani-yuklab-olish" className="bg-[#eff7f3] px-5 py-20 dark:bg-[#0a211a] sm:px-8 sm:py-24 lg:px-10">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 rounded-[2rem] border border-emerald-900/10 bg-white p-7 shadow-[0_30px_80px_-55px_rgba(10,80,60,.4)] dark:border-white/10 dark:bg-[#10251f] sm:p-10 lg:grid-cols-[1fr_auto] lg:p-14">
+            <div className="max-w-2xl">
+              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Zikra doim yoningda</p>
+              <h2 className="mt-4 text-4xl font-semibold tracking-[-.06em] text-[#142522] dark:text-white sm:text-5xl">Zikra'ni qurilmangga o'rnat.</h2>
+              <p className="mt-5 text-sm leading-7 text-[#71827a] dark:text-[#a0b5ae]">Bosh ekranga qo'sh, alohida ilova kabi och va bilim almashishni davom ettir. O'rnatish bepul.</p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <InstallPWAButton variant="primary" />
+                <a href="/download" className="inline-flex items-center justify-center rounded-2xl border border-[#dce7e1] px-6 py-3.5 text-sm font-bold text-[#29463d] transition hover:bg-emerald-50 dark:border-white/10 dark:text-white dark:hover:bg-white/5">Batafsil yo'riqnoma</a>
+              </div>
+              <p className="mt-4 text-xs text-[#87968e] dark:text-[#82978d]">Android, iPhone va kompyuter uchun qo'llab-quvvatlanadigan o'rnatish usullari.</p>
+            </div>
+            <div className="flex items-center gap-4 rounded-2xl bg-[#f4f8f5] p-5 dark:bg-white/[.05]">
+              <DownloadQRCode />
+              <div className="max-w-[130px]"><p className="text-sm font-bold text-[#18352d] dark:text-white">QR-kodni skanerlang</p><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Telefon kamerasi bilan skanerlab, Zikra'ni oching.</p></div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+          <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-[#17483a] via-[#0e382e] to-[#102c28] px-7 py-16 text-center text-white shadow-[0_35px_90px_-45px_rgba(10,70,50,.65)] sm:px-12 sm:py-24">
+            <div className="pointer-events-none absolute -right-20 -top-40 h-96 w-96 rounded-full bg-emerald-300/15 blur-[90px]" />
+            <div className="relative mx-auto max-w-3xl"><span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-emerald-100"><Sparkles className="h-3.5 w-3.5" /> Sening navbating</span><h2 className="mt-7 text-4xl font-semibold leading-[1.05] tracking-[-.06em] sm:text-6xl">Sen bilgan bilim — kimdir uchun yangi imkoniyat.</h2><p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/65 sm:text-base">Bugun bir bilim ulash. Ertaga yangi bilim bilan qayt. Zikra hamjamiyatiga bepul qo'shil.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-7 py-4 text-sm font-extrabold text-[#17483a] transition hover:-translate-y-1 hover:bg-emerald-50">Bepul boshlash <ArrowRight className="h-4 w-4" /></Link><InstallPWAButton variant="outline" /></div><p className="mt-6 text-xs text-white/45">Hisobing bormi? <Link href="/login" className="font-bold text-white/85 hover:text-white">Kirish</Link></p></div>
           </div>
         </section>
       </main>
-
-      {/* =====================================================
-          FOOTER
-      ====================================================== */}
-
-      <footer className="border-t border-gray-100 bg-gray-50">
-        <div className="container-app px-4 py-12">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Brand */}
-            <div className="lg:col-span-2">
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 text-lg font-black tracking-tight"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-sm font-black text-white">
-                  Z
-                </span>
-
-                Zikra
-              </Link>
-
-              <p className="mt-4 max-w-sm text-sm leading-6 text-gray-400">
-                Learn. Teach. Be remembered. Bilimni ulashing, o'rganing va
-                rivojlaning.
-              </p>
-            </div>
-
-            {/* Platform */}
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-gray-900">
-                Platforma
-              </p>
-
-              <div className="mt-4 space-y-3 text-sm text-gray-400">
-                <Link
-                  href="#darslar"
-                  className="block transition hover:text-brand"
-                >
-                  Darslar
-                </Link>
-
-                <Link
-                  href="#darslar"
-                  className="block transition hover:text-brand"
-                >
-                  Reels
-                </Link>
-
-                <Link
-                  href="#imkoniyatlar"
-                  className="block transition hover:text-brand"
-                >
-                  Imkoniyatlar
-                </Link>
-
-                <Link
-                  href="#qanday-ishlaydi"
-                  className="block transition hover:text-brand"
-                >
-                  Qanday ishlaydi?
-                </Link>
-              </div>
-            </div>
-
-            {/* Account */}
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-gray-900">
-                Hisob
-              </p>
-
-              <div className="mt-4 space-y-3 text-sm text-gray-400">
-                <Link
-                  href="/login"
-                  className="block transition hover:text-brand"
-                >
-                  Kirish
-                </Link>
-
-                <Link
-                  href="/register"
-                  className="block font-semibold text-gray-700 transition hover:text-brand"
-                >
-                  Ro'yxatdan o'tish
-                </Link>
-
-                <Link
-                  href="/"
-                  className="block transition hover:text-brand"
-                >
-                  PWA ilova
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-10 flex flex-col gap-4 border-t border-gray-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-gray-400">
-              © {new Date().getFullYear()} Zikra. Barcha huquqlar himoyalangan.
-            </p>
-
-            <div className="flex items-center gap-4 text-xs text-gray-400">
-              <span className="transition hover:text-gray-900">
-                Telegram
-              </span>
-
-              <span className="transition hover:text-gray-900">
-                Instagram
-              </span>
-
-              <span className="transition hover:text-gray-900">
-                YouTube
-              </span>
-            </div>
-          </div>
+      <footer className="border-t border-[#e5ede7] bg-white/60 dark:border-white/[.07] dark:bg-white/[.02]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-10 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-10">
+          <div><Link href="/" className="inline-flex items-center gap-2 text-lg font-black"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-700 text-sm text-white">Z</span>Zikra</Link><p className="mt-3 text-xs text-[#87968e] dark:text-[#82978d]">Bilimni ulash. Birga rivojlan.</p></div>
+          <div className="flex flex-wrap gap-x-7 gap-y-3 text-xs font-semibold text-[#74867c] dark:text-[#9aafa5]"><Link href="#qanday-ishlaydi" className="hover:text-emerald-700">Qanday ishlaydi?</Link><Link href="#imkoniyatlar" className="hover:text-emerald-700">Imkoniyatlar</Link><Link href="#faq" className="hover:text-emerald-700">FAQ</Link><Link href="/login" className="hover:text-emerald-700">Kirish</Link><Link href="/register" className="hover:text-emerald-700">Ro'yxatdan o'tish</Link></div>
+          <p className="text-xs text-[#9aa8a1]">© {new Date().getFullYear()} Zikra. Barcha huquqlar himoyalangan.</p>
         </div>
+        <div className="mx-auto max-w-7xl px-5 pb-5 text-[10px] text-[#9aa8a1] sm:px-8 lg:px-10">Rasmlar: Unsplash — Vitaly Gariev. Vizual materiallar namoyish maqsadida ishlatilgan.</div>
       </footer>
     </div>
   );
