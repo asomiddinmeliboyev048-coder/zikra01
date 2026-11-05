@@ -242,8 +242,14 @@ export default function HomePage() {
                       <span className="h-2 w-2 rounded-full bg-red-400" /><span className="h-2 w-2 rounded-full bg-amber-400" /><span className="h-2 w-2 rounded-full bg-emerald-400" />
                       <span className="ml-3 rounded-md bg-white px-3 py-0.5 text-[9px] text-slate-400">zikra · hamkor topish</span>
                     </div>
-                    <div className="relative aspect-[16/10] overflow-hidden bg-[#f4f8f7]">
-                      <iframe title="Zikra kompyuter ko'rinishi" src="/discovery" loading="lazy" className="absolute left-0 top-0 h-[900px] w-[1440px] origin-top-left scale-[.34] border-0 sm:scale-[.48] lg:scale-[.52]" />
+                    <div className="relative aspect-[3/2] overflow-hidden bg-[#f4f8f7]">
+                      <img
+                        src="/ChatGPT%20Image%20Nov%206,%202026,%2001_41_38%20AM.png"
+                        alt="Zikra hamkor topish sahifasining to'liq kompyuter ko'rinishi"
+                        className="h-full w-full object-contain object-center"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                   </div>
                   <div className="mx-auto mt-2 h-1.5 w-24 rounded-full bg-white/20" />
@@ -255,18 +261,30 @@ export default function HomePage() {
                 <div className="relative w-[min(42%,190px)] rotate-[-4deg] rounded-[2rem] border-[5px] border-[#25272a] bg-black p-1.5 shadow-[0_25px_70px_-25px_rgba(0,0,0,.9)] ring-1 ring-white/20">
                   <div className="relative aspect-[9/19.5] overflow-hidden rounded-[1.45rem] bg-white">
                     <div className="absolute left-1/2 top-1.5 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-black" />
-                    <iframe title="Zikra mobil video ko'rinishi" src="/videos" loading="lazy" className="absolute left-0 top-0 h-[844px] w-[390px] origin-top-left scale-[.43] border-0" />
+                    <img
+                      src="/ChatGPT%20Image%20Nov%206,%202026,%2001_41_56%20AM.png"
+                      alt="Zikra mobil video darslar sahifasi"
+                      className="h-full w-full object-contain object-center"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                 </div>
                 <div className="relative mb-8 w-[min(42%,190px)] rotate-[4deg] rounded-[2rem] border-[5px] border-[#25272a] bg-black p-1.5 shadow-[0_25px_70px_-25px_rgba(0,0,0,.9)] ring-1 ring-white/20">
                   <div className="relative aspect-[9/19.5] overflow-hidden rounded-[1.45rem] bg-white">
                     <div className="absolute left-1/2 top-1.5 z-10 h-3 w-16 -translate-x-1/2 rounded-full bg-black" />
-                    <iframe title="Zikra mobil suhbatlar ko'rinishi" src="/chat" loading="lazy" className="absolute left-0 top-0 h-[844px] w-[390px] origin-top-left scale-[.43] border-0" />
+                    <img
+                      src="/ChatGPT%20Image%20Nov%206,%202026,%2001_41_50%20AM.png"
+                      alt="Zikra mobil suhbatlar sahifasi"
+                      className="h-full w-full object-contain object-center"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                 </div>
               </div>
             </div>
-            <p className="mt-8 text-center text-[11px] leading-5 text-white/40">Ilova ichidagi sahifalar real Zikra interfeysidan namoyish etiladi. Ayrim bo'limlar kirishni talab qilishi mumkin.</p>
+            <p className="mt-8 text-center text-[11px] leading-5 text-white/40">Zikra interfeysining kompyuter va mobil qurilmalardagi ko'rinishlari.</p>
           </div>
         </section>
 
@@ -411,7 +429,15 @@ export default function HomePage() {
         {/* FOUNDER */}
         <section className="border-y border-[#e7eee8] bg-[#f4f8f5] py-20 dark:border-white/[.07] dark:bg-[#0b201a] sm:py-24">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-8 md:grid-cols-[auto_1fr] lg:px-10">
-            <div className="mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-[2.3rem] bg-gradient-to-br from-emerald-700 to-teal-500 text-4xl font-black text-white shadow-2xl shadow-emerald-900/20 ring-8 ring-white dark:ring-white/5 sm:h-44 sm:w-44 sm:text-5xl"><span>AM</span></div>
+            <div className="mx-auto h-36 w-36 overflow-hidden rounded-full bg-emerald-100 shadow-2xl shadow-emerald-900/20 ring-8 ring-white dark:ring-white/5 sm:h-44 sm:w-44">
+              <img
+                src="/ChatGPT%20Image%20Nov%206,%202026,%2001_39_51%20AM.png"
+                alt="Zikra loyihasi asoschisi Asomiddin Meliboyev"
+                className="h-full w-full object-cover object-[center_24%]"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
             <div className="max-w-3xl"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Loyiha asoschisi</p><h2 className="mt-4 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">Asomiddin Meliboyev</h2><p className="mt-4 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">TATU Axborot xavfsizligi yo'nalishi talabasi va full-stack dasturchi. Zikra g'oyasi — insonlar o'z bilimlarini o'zaro ulashishi va bir-birining rivojlanishiga hissa qo'shishi mumkin bo'lgan ochiq muhit yaratish.</p><div className="mt-6 flex flex-wrap gap-3"><a href="https://t.me/asomiddinmeliboyev" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-[#123b32] px-5 py-3 text-xs font-bold text-white transition hover:-translate-y-0.5 dark:bg-emerald-300 dark:text-[#09221b]"><MessageCircle className="h-4 w-4" /> Telegram orqali bog'lanish</a><a href="https://asomiddin1.vercel.app" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-[#d7e4da] bg-white px-5 py-3 text-xs font-bold text-[#29463d] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[.05] dark:text-white"><Laptop className="h-4 w-4" /> Portfolio <ArrowUpRight className="h-3.5 w-3.5" /></a></div></div>
           </div>
         </section>
