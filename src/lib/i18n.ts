@@ -511,6 +511,12 @@ const rows: Array<[string, string, string]> = [
   ["FAQ", "FAQ", "FAQ"],
   ["Rasmlar: Unsplash (Vitaly Gariev) va Pikwizard. Vizual materiallar namoyish maqsadida ishlatilgan.", "Photos: Unsplash (Vitaly Gariev). Images are used for illustrative purposes.", "Фото: Unsplash (Vitaly Gariev). Изображения используются в иллюстративных целях."],
   ["Yangi", "New", "Новое"],
+  ["Oʻz sertifikatimni profilga qoʻsha olamanmi?", "Can I add my certificate to my profile?", "Могу ли я добавить сертификат в профиль?"],
+  ["Ha. Oʻrgata oladigan fan yoki ko‘nikmangiz bo‘yicha sertifikatingiz bo‘lsa, profilni to‘ldirish jarayonida yuklashingiz mumkin. Admin tekshiruvidan so‘ng profilingizda tasdiq belgisi ko‘rinadi.", "Yes. If you have a certificate for a subject or skill you can teach, you can upload it while completing your profile. After admin review, a verification badge will appear on your profile.", "Да. Если у вас есть сертификат по предмету или навыку, которому вы можете обучать, загрузите его при заполнении профиля. После проверки администратором в профиле появится значок подтверждения."],
+  ["Zikra hozir qanday bosqichda?", "What stage is Zikra at now?", "На каком этапе сейчас Zikra?"],
+  ["Zikra platformasi ishlab chiqilgan va uning imkoniyatlari bosqichma-bosqich takomillashtirilmoqda. Mavjud funksiyalarni roʻyxatdan oʻtib ko‘rishingiz mumkin.", "The Zikra platform has been built and its features are being improved step by step. Sign up to explore the available features.", "Платформа Zikra уже создана, а её возможности постепенно улучшаются. Зарегистрируйтесь, чтобы ознакомиться с доступными функциями."],
+  ["Tasdiqlangan profil", "Verified profile", "Подтверждённый профиль"],
+  ["Oʻrgatuvchi sertifikatini tekshiruvga yuborishi mumkin", "Teachers can submit certificates for review", "Преподаватели могут отправить сертификаты на проверку"],
 ];
 
 export const translations: Record<string, Partial<Record<Locale, string>>> = Object.fromEntries(
