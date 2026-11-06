@@ -340,7 +340,10 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* FEATURED COMMUNITY — live profiles + video showcase */}\n        <LandingShowcase profiles={featuredProfiles} videos={featuredVideos} />\n\n        {/* VALUE STRIP */}
+        {/* FEATURED COMMUNITY — live profiles + video showcase */}
+        <LandingShowcase profiles={featuredProfiles} videos={featuredVideos} />
+
+        {/* VALUE STRIP */}
         <section data-aos="fade-up" className="border-y border-[#e8efea] bg-white/75 py-7 dark:border-white/[.07] dark:bg-white/[.025]">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-5 text-center sm:grid-cols-3 sm:px-8">
             {[
