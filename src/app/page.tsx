@@ -11,6 +11,7 @@ import InstallPWAButton from "@/components/InstallPWAButton";
 import DownloadQRCode from "@/components/DownloadQRCode";
 import LandingAOS from "@/components/landing/LandingAOS";
 import LandingShowcase from "@/components/landing/LandingShowcase";
+import LandingTips from "@/components/landing/LandingTips";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -204,6 +205,7 @@ export default async function HomePage() {
   return (
     <div className="zikra-site min-h-screen overflow-hidden bg-[#fbfcfa] text-[#142522] transition-colors duration-300 dark:bg-[#071512] dark:text-[#eaf4f0]">
       <Navbar />
+      <LandingTips />
       <LandingAOS />
       <main>
         {/* HERO */}
