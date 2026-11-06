@@ -6,8 +6,9 @@ import {
   Award, Bell, BookOpen, CheckCircle2, ChevronLeft, ChevronRight,
   CircleHelp, Compass, Flame, GraduationCap, LayoutDashboard,
   Mail, Play, Search, Settings, Sparkles, Target, TrendingUp,
-  Users, Video, type LucideIcon,
+  Users, Video, Map as MapIcon, type LucideIcon,
 } from "lucide-react";
+import LearningGamesHub from "@/components/learn/LearningGamesHub";
 
 type Course = { id: string; title: string; thumbnail_url: string | null; duration: number | null; skill_name: string | null; created_at: string; };
 type Props = {
@@ -20,7 +21,7 @@ type Props = {
 const navItems: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Dashboard", href: "/learn", icon: LayoutDashboard },
   { label: "Mening kurslarim", href: "/videos", icon: GraduationCap },
-  { label: "Rivojlanish", href: "/lessons", icon: Target },
+  { label: "Yo‘l xaritasi", href: "/lessons", icon: Target },
   { label: "Video darslar", href: "/videos", icon: Video },
   { label: "Xabarlar", href: "/chat", icon: Mail },
   { label: "Hamjamiyat", href: "/discovery", icon: Users },
@@ -120,7 +121,16 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
             <img src="/zikra-mascot.webp" alt="Zikra Learn mushukcha maskoti" className="pointer-events-none absolute -bottom-4 right-2 z-0 h-[94%] max-w-[43%] object-contain object-bottom drop-shadow-[0_14px_20px_rgba(0,0,0,.2)] sm:right-8 sm:h-[112%] sm:max-w-[34%]" />
           </section>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
+          <section className="overflow-hidden rounded-[24px] border border-emerald-100 bg-gradient-to-r from-white via-[#f2fbf7] to-[#e3f6ef] p-5 shadow-sm dark:border-emerald-300/10 dark:from-[#10231e] dark:via-[#102b25] dark:to-[#123b31] sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-7">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"><Target size={13}/> Shaxsiy rivojlanish</span>
+              <h2 className="mt-3 text-xl font-black sm:text-2xl">Yo‘l xaritangizni yarating</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Aniq bir maqsadingiz — bir qadam. Ko‘nikma, hozirgi daraja va maqsadingizni belgilang. Zikra siz uchun shaxsiy o‘quv yo‘lini tayyorlaydi.</p>
+            </div>
+            <Link href="/lessons" className="mt-4 inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c] sm:mt-0"><MapIcon size={17}/> Yo‘l xaritasi <ChevronRight size={17}/></Link>
+          </section>
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]
             <section className="grid gap-4 sm:grid-cols-2">
               <article className="rounded-[22px] border border-white bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#10231e]">
                 <div className="flex items-center justify-between"><p className="text-sm font-extrabold">Faollik</p><span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">Bugungi holat</span></div>
@@ -198,6 +208,8 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
             </aside>
           </div>
 
+
+          <LearningGamesHub />
 
           {skills.length > 0 && <section className="rounded-[22px] border border-white bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#10231e] sm:p-5">
             <div className="flex items-center justify-between gap-3"><div><h2 className="text-sm font-black">Mening yo‘nalishlarim</h2><p className="mt-1 text-[10px] text-slate-400">Profilingda belgilangan ko‘nikmalar</p></div><Link href="/onboarding" className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">Tahrirlash ↗</Link></div>
