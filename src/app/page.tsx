@@ -204,6 +204,7 @@ export default async function HomePage() {
   return (
     <div className="zikra-site min-h-screen overflow-hidden bg-[#fbfcfa] text-[#142522] transition-colors duration-300 dark:bg-[#071512] dark:text-[#eaf4f0]">
       <Navbar />
+      <LandingAOS />
       <main>
         {/* HERO */}
         <section data-aos="fade-up" className="relative isolate overflow-hidden">
