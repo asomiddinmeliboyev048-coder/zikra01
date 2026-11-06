@@ -1,8 +1,9 @@
-export type AssessmentTrack = "english" | "coding" | "cyber";
+export type AssessmentTrack = "english" | "russian" | "coding" | "cyber";
 export type AssessmentQuestion = { id: string; prompt: string; choices: string[]; answer: number; explanation: string };
 
 export const assessmentTracks: Record<AssessmentTrack, { title: string; levels: string[]; description: string }> = {
   english: { title: "Ingliz tili", levels: ["A1 · Beginner", "A2 · Elementary", "B1 · Intermediate", "B2 · Upper-intermediate", "C1 · Advanced", "C2 · Proficient"], description: "CEFR yo‘nalishidagi boshlang‘ich diagnostika" },
+  russian: { title: "Rus tili", levels: ["A1 · Начальный", "A2 · Элементарный", "B1 · Средний", "B2 · Выше среднего", "C1 · Продвинутый", "C2 · В совершенстве"], description: "Rus tili bo‘yicha boshlang‘ich diagnostika" },
   coding: { title: "Dasturlash", levels: ["Boshlang‘ich", "Asosiy", "O‘rta", "Yaxshi", "Ilg‘or", "Ekspert"], description: "Dasturlash mantiqi va JavaScript asoslari" },
   cyber: { title: "Kiberxavfsizlik", levels: ["Boshlang‘ich", "Asosiy", "O‘rta", "Yaxshi", "Ilg‘or", "Ekspert"], description: "Axborot xavfsizligi bo‘yicha bilimlar" },
 };
@@ -19,6 +20,18 @@ export const assessmentBank: Record<AssessmentTrack, AssessmentQuestion[]> = {
     { id:"en8", prompt:"Had I known about the delay, I ___ earlier.", choices:["would leave","will leave","would have left","left"], answer:2, explanation:"Inversion bilan third conditional: would have + V3." },
     { id:"en9", prompt:"“Notwithstanding” so‘ziga eng yaqin ma’no?", choices:["Because of","Despite","Before","Instead"], answer:1, explanation:"Notwithstanding — despite, ...ga qaramasdan." },
     { id:"en10", prompt:"Which sentence is grammatically correct?", choices:["No sooner I arrived than it rained.","No sooner had I arrived than it started raining.","No sooner I had arrive when it rained.","No sooner did I arrived than it rained."], answer:1, explanation:"No sooner bilan inversion va Past Perfect ishlatiladi." },
+  ],
+  russian: [
+    { id:"ru1", prompt:"Выберите правильное предложение.", choices:["Я изучать русский язык.","Я изучаю русский язык.","Я изучает русский язык.","Я изучал русский язык каждый день сейчас."], answer:1, explanation:"С местоимением «я» в настоящем времени: я изучаю." },
+    { id:"ru2", prompt:"«Здравствуйте» so‘zining ma’nosi?", choices:["Xayr","Rahmat","Assalomu alaykum / Salom","Iltimos"], answer:2, explanation:"Здравствуйте — rasmiy salomlashish shakli." },
+    { id:"ru3", prompt:"У меня ___ книга.", choices:["новая","новый","новое","новые"], answer:0, explanation:"Книга — женский род, поэтому новая." },
+    { id:"ru4", prompt:"«Вчера» qaysi vaqtni bildiradi?", choices:["Bugun","Ertaga","Kecha","Hozir"], answer:2, explanation:"Вчера — kecha." },
+    { id:"ru5", prompt:"Выберите правильный вариант: Я живу ___ Ташкенте.", choices:["на","в","к","из"], answer:1, explanation:"Shahar ichida yashash: жить в Ташкенте." },
+    { id:"ru6", prompt:"«Я прочитал книгу» qaysi zamon?", choices:["Hozirgi","Kelasi","O‘tgan","Buyruq"], answer:2, explanation:"Прочитал — o‘tgan zamon, совершенный вид." },
+    { id:"ru7", prompt:"Как правильно спросить имя?", choices:["Как тебя зовут?","Где тебя зовут?","Что тебя имя?","Кто твой зовут?"], answer:0, explanation:"Как тебя зовут? — Isming nima?" },
+    { id:"ru8", prompt:"Выберите правильное окончание: Мы говорим по-русск__.", choices:["ий","ому","и","ому языку"], answer:2, explanation:"To‘g‘ri shakl: говорить по-русски." },
+    { id:"ru9", prompt:"«Несмотря на» ma’nosi qaysi?", choices:["Sababli","...ga qaramasdan","Oldin","O‘rniga"], answer:1, explanation:"Несмотря на — ...ga qaramasdan." },
+    { id:"ru10", prompt:"Выберите грамматически правильное предложение.", choices:["Если бы я знал, я бы помог.","Если я знал бы вчера, помогу.","Если бы я знаю, помог.","Если я бы знал, помогал бы завтра."], answer:0, explanation:"Нереальное условие: если бы + прошедшее время, я бы + infinitive." },
   ],
   coding: [
     { id:"co1", prompt:"JavaScript’da o‘zgarmas bog‘lanish e’lon qilish?", choices:["var","let","const","static"], answer:2, explanation:"const qayta qiymat biriktirishni taqiqlaydi." },
@@ -45,6 +58,19 @@ export const assessmentBank: Record<AssessmentTrack, AssessmentQuestion[]> = {
     { id:"cy10", prompt:"Incident response’da containment bosqichining maqsadi?", choices:["Hodisani yashirish","Zarar tarqalishini cheklash","Serverni reklama qilish","Parollarni ommaga chiqarish"], answer:1, explanation:"Containment zararlanish tarqalishini cheklashga qaratiladi." },
   ],
 };
+
+export const practicalTasks: Record<AssessmentTrack, { title: string; prompt: string; hint: string; accepted: string[] }> = {
+  english: { title: "English in action", prompt: "“Men har kuni ingliz tilini o‘rganaman” gapini ingliz tiliga tarjima qiling.", hint: "Present Simple zamonidan foydalaning.", accepted: ["i learn english every day", "i study english every day", "i am learning english every day"] },
+  russian: { title: "Русский на практике", prompt: "“Men har kuni rus tilini o‘rganaman” gapini rus tiliga tarjima qiling.", hint: "“Я” bilan boshlang va “изучаю” fe’lidan foydalaning.", accepted: ["я изучаю русский язык каждый день", "каждый день я изучаю русский язык", "я каждый день учу русский язык"] },
+  coding: { title: "JavaScript amaliyoti", prompt: "[1, 2, 3] massivining har bir elementini 2 ga ko‘paytirib, yangi massiv qaytaradigan map ifodasini yozing.", hint: "Array.map() va arrow function’dan foydalaning.", accepted: ["[1,2,3].map(n=>n*2)", "[1, 2, 3].map(n => n * 2)", "[1,2,3].map(x=>x*2)", "[1, 2, 3].map(x => x * 2)"] },
+  cyber: { title: "Xavfsizlik vaziyati", prompt: "Notanish odam yuborgan email ilovasini ochishdan oldin birinchi navbatda nima qilasiz? Qisqa javob yozing.", hint: "Yuboruvchini mustaqil kanal orqali tekshirish va faylni ochmaslik haqida yozing.", accepted: ["yuboruvchini mustaqil kanal orqali tekshiraman va faylni ochmayman", "faylni ochmayman va yuboruvchini tekshiraman", "avval yuboruvchini tekshiraman, ilovani ochmayman"] },
+};
+
+export function checkPracticalAnswer(track: AssessmentTrack, answer: string) {
+  const normalize = (value: string) => value.toLocaleLowerCase().normalize("NFKC").replace(/[.,!?;:'"`]/g, "").replace(/\\s+/g, " ").trim();
+  const candidate = normalize(answer);
+  return practicalTasks[track].accepted.some((item) => normalize(item) === candidate);
+}
 
 export function getAssessmentLevel(track: AssessmentTrack, score: number) {
   const index = Math.min(5, Math.floor(score / 2));
