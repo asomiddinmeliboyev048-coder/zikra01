@@ -21,7 +21,7 @@ export default function LearningExperienceLab() {
   const SelectedIcon = skill.icon;
 
   if (assessmentOpen) return <div className="fixed inset-0 z-[100] h-[100dvh] w-full overflow-y-auto overscroll-contain touch-pan-y bg-[#f4f8f7]"><AssessmentFlow track={selected} onClose={() => setAssessmentOpen(false)} /></div>;
-  if (duelOpen) return <div className="fixed inset-0 z-[100] min-h-[100dvh] w-full overflow-hidden bg-[#f4f8f7]"><SkillDuel skill={skill.title} onClose={() => setDuelOpen(false)} /></div>;
+  if (duelOpen) return <div className="fixed inset-0 z-[100] h-[100dvh] w-full overflow-y-auto overscroll-contain touch-pan-y bg-[#f4f8f7]"><SkillDuel skill={skill.title} onClose={() => setDuelOpen(false)} /></div>;
 
   return (
     <main className="relative isolate min-h-[calc(100dvh-5rem)] w-full overflow-hidden bg-[#f4f8f7] px-4 py-8 text-[#102321] sm:px-7 lg:px-10 lg:py-12">
