@@ -9,6 +9,9 @@ import {
 import Navbar from "@/components/Navbar";
 import InstallPWAButton from "@/components/InstallPWAButton";
 import DownloadQRCode from "@/components/DownloadQRCode";
+import LandingAOS from "@/components/landing/LandingAOS";
+import LandingShowcase from "@/components/landing/LandingShowcase";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Zikra — Bilim almashish orqali birga rivojlaning",
@@ -149,13 +152,62 @@ const faqs = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const [{ data: profileRows }, { data: videoRows }] = await Promise.all([
+    supabase.from("profiles")
+      .select("id, full_name, username, city, bio, avatar_url, xp, level, trust_score, streak_days, is_verified")
+      .eq("onboarded", true)
+      .order("xp", { ascending: false })
+      .order("trust_score", { ascending: false })
+      .limit(5),
+    supabase.from("videos")
+      .select("id, title, cloudinary_url, thumbnail_url, duration, uploader_id, skill:skills(name)")
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
+  const featuredProfiles = (profileRows ?? []).map((profile) => ({
+    ...profile,
+    xp: Number(profile.xp ?? 0),
+    trust_score: Number(profile.trust_score ?? 0),
+    streak_days: Number(profile.streak_days ?? 0),
+    is_verified: Boolean(profile.is_verified),
+    teach_skills: [] as string[],
+    learn_skills: [] as string[],
+  }));
+  const featuredIds = featuredProfiles.map((profile) => profile.id);
+  if (featuredIds.length) {
+    const { data: skillRows } = await supabase.from("user_skills")
+      .select("user_id, type, skill:skills(name)")
+      .in("user_id", featuredIds);
+    for (const row of (skillRows ?? []) as unknown as { user_id: string; type: string; skill: { name: string } | null }[]) {
+      const profile = featuredProfiles.find((item) => item.id === row.user_id);
+      if (profile && row.skill) (row.type === "teach" ? profile.teach_skills : profile.learn_skills).push(row.skill.name);
+    }
+  }
+  const uploaderIds = Array.from(new Set((videoRows ?? []).map((video) => video.uploader_id)));
+  const { data: uploaderRows } = uploaderIds.length
+    ? await supabase.from("profiles").select("id, full_name, avatar_url").in("id", uploaderIds)
+    : { data: [] as { id: string; full_name: string; avatar_url: string | null }[] };
+  const uploaderMap = new Map((uploaderRows ?? []).map((uploader) => [uploader.id, uploader]));
+  const featuredVideos = (videoRows ?? []).map((video) => ({
+    id: video.id,
+    title: video.title,
+    cloudinary_url: video.cloudinary_url,
+    thumbnail_url: video.thumbnail_url,
+    duration: video.duration,
+    uploader: uploaderMap.get(video.uploader_id) ?? null,
+    skill_name: Array.isArray(video.skill) ? video.skill[0]?.name ?? null : (video.skill as { name?: string } | null)?.name ?? null,
+  }));
+
   return (
     <div className="zikra-site min-h-screen overflow-hidden bg-[#fbfcfa] text-[#142522] transition-colors duration-300 dark:bg-[#071512] dark:text-[#eaf4f0]">
       <Navbar />
+      <LandingAOS />
       <main>
         {/* HERO */}
-        <section className="relative isolate overflow-hidden">
+        <section data-aos="fade-up" className="relative isolate overflow-hidden">
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="absolute -right-40 -top-44 h-[38rem] w-[38rem] rounded-full bg-emerald-300/20 blur-[110px] dark:bg-emerald-400/10" />
             <div className="absolute -left-48 top-64 h-[30rem] w-[30rem] rounded-full bg-amber-200/30 blur-[100px] dark:bg-amber-400/5" />
@@ -224,7 +276,7 @@ export default function HomePage() {
         </section>
 
         {/* DEVICE SHOWCASE */}
-        <section className="relative overflow-hidden bg-[#0a1715] py-20 text-white sm:py-28">
+        <section data-aos="fade-up" className="relative overflow-hidden bg-[#0a1715] py-20 text-white sm:py-28">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,rgba(120,72,220,.28),transparent_55%)]" />
           <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
             <div className="mx-auto max-w-2xl text-center">
@@ -288,8 +340,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* VALUE STRIP */}
-        <section className="border-y border-[#e8efea] bg-white/75 py-7 dark:border-white/[.07] dark:bg-white/[.025]">
+        {/* FEATURED COMMUNITY — live profiles + video showcase */}\n        <LandingShowcase profiles={featuredProfiles} videos={featuredVideos} />\n\n        {/* VALUE STRIP */}
+        <section data-aos="fade-up" className="border-y border-[#e8efea] bg-white/75 py-7 dark:border-white/[.07] dark:bg-white/[.025]">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-5 text-center sm:grid-cols-3 sm:px-8">
             {[
               { icon: Repeat2, title: "O'zaro bilim almashish", note: "Har ikki tomon uchun foyda" },
@@ -305,7 +357,7 @@ export default function HomePage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section id="qanday-ishlaydi" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+        <section data-aos="fade-up" id="qanday-ishlaydi" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
           <div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:gap-20">
             <div className="max-w-md">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Oddiy. O'zaro. Bepul.</p>
@@ -334,7 +386,7 @@ export default function HomePage() {
         </section>
 
         {/* FEATURES */}
-        <section id="imkoniyatlar" className="bg-[#f1f6f2] py-24 dark:bg-[#0b201a] sm:py-28">
+        <section data-aos="fade-up" id="imkoniyatlar" className="bg-[#f1f6f2] py-24 dark:bg-[#0b201a] sm:py-28">
           <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Zikra imkoniyatlari</p>
@@ -343,7 +395,7 @@ export default function HomePage() {
             </div>
             <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {features.map(({ icon: Icon, title, description, tone }, i) => (
-                <article key={title} className="group relative overflow-hidden rounded-[1.7rem] border border-[#e1eae3] bg-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.3)] dark:border-white/10 dark:bg-[#10271f]">
+                <article data-aos="fade-up" key={title} className="group relative overflow-hidden rounded-[1.7rem] border border-[#e1eae3] bg-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_60px_-42px_rgba(10,80,60,.3)] dark:border-white/10 dark:bg-[#10271f]">
                   <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${tone} text-emerald-800 dark:text-emerald-200`}><Icon className="h-6 w-6" /></div>
                   <h3 className="mt-7 text-xl font-bold tracking-tight">{title}</h3>
                   <p className="mt-3 max-w-xs text-sm leading-6 text-[#7b8c83] dark:text-[#9aafa5]">{description}</p>
@@ -355,14 +407,14 @@ export default function HomePage() {
         </section>
 
         {/* AUDIENCE */}
-        <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+        <section data-aos="fade-up" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div className="max-w-2xl"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Kimlar uchun?</p><h2 className="mt-5 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Bilim ulashishni istagan har bir inson uchun.</h2></div>
             <p className="max-w-sm text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Zikra turli tajriba va bilimga ega insonlarni bir maqsad atrofida birlashtiradi.</p>
           </div>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             {audiences.map((item, i) => (
-              <article key={item.title} className="group overflow-hidden rounded-[1.8rem] border border-[#e5ede7] bg-white shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/[.035]">
+              <article data-aos="fade-up" key={item.title} className="group overflow-hidden rounded-[1.8rem] border border-[#e5ede7] bg-white shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/[.035]">
                 <div className="relative h-56 overflow-hidden sm:h-64"><img src={item.image} alt={item.alt} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" /><span className="absolute bottom-4 left-4 rounded-full border border-white/30 bg-black/25 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur">{item.label}</span></div>
                 <div className="p-6"><h3 className="text-xl font-bold">{item.title}</h3><p className="mt-3 text-sm leading-6 text-[#7b8c83] dark:text-[#9aafa5]">{item.description}</p></div>
               </article>
@@ -370,40 +422,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* VIDEO PREVIEW */}
-        <section className="bg-[#f2f7f4] px-5 py-20 dark:bg-[#0a211a] sm:px-8 sm:py-24 lg:px-10">
-          <div className="mx-auto max-w-7xl">
-            <div className="max-w-2xl">
-              <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Bilim harakatda</p>
-              <h2 className="mt-4 text-4xl font-semibold tracking-[-.06em] text-[#142522] dark:text-white sm:text-5xl">O'rganish jarayonidan lavhalar.</h2>
-              <p className="mt-5 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Hamkorlik, texnologiya va yangi ko'nikmalar — qisqa videolar orqali.</p>
-            </div>
-            <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
-                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
-                  <source src="https://videos.pexels.com/video-files/5200029/5200029-uhd_3840_2160_25fps.mp4" type="video/mp4" />
-                </video>
-                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Birgalikda o'rganish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Talabalar hamkorlikda bilim olayotganidan lavha.</p></div>
-              </article>
-              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04]">
-                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
-                  <source src="https://videos.pexels.com/video-files/9198424/9198424-hd_1920_1080_25fps.mp4" type="video/mp4" />
-                </video>
-                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Raqamli ta'lim</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Noutbuk va raqamli vositalar yordamida o'rganish.</p></div>
-              </article>
-              <article className="overflow-hidden rounded-3xl border border-[#e1ebe4] bg-white shadow-sm dark:border-white/10 dark:bg-white/[.04] md:col-span-2 lg:col-span-1">
-                <video className="aspect-video w-full bg-black object-cover" controls playsInline preload="none">
-                  <source src="https://videos.pexels.com/video-files/9198421/9198421-hd_1920_1080_25fps.mp4" type="video/mp4" />
-                </video>
-                <div className="p-5"><h3 className="font-bold text-[#17372e] dark:text-white">Fikr almashish</h3><p className="mt-2 text-xs leading-5 text-[#74867c] dark:text-[#9aafa5]">Bir-biridan o'rganayotgan yoshlar.</p></div>
-              </article>
-            </div>
-            <p className="mt-5 text-[10px] leading-5 text-[#94a39b] dark:text-[#758a80]">Videolar Pexels bepul videolaridan. Ularni faqat foydalanuvchi Play tugmasini bosganda ijro etiladi.</p>
-          </div>
-        </section>
-
         {/* FREE + STATUS */}
-        <section className="bg-[#0d2821] py-20 text-white dark:bg-[#0a211a] sm:py-24">
+        <section data-aos="fade-up" className="bg-[#0d2821] py-20 text-white dark:bg-[#0a211a] sm:py-24">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-[1fr_.85fr] lg:px-10">
             <div><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-300">Ochiq imkoniyat</p><h2 className="mt-5 max-w-xl text-4xl font-semibold leading-tight tracking-[-.06em] sm:text-5xl">Bilim almashish uchun to'lov kerak emas.</h2><p className="mt-6 max-w-xl text-sm leading-7 text-white/65">Zikra'ga qo'shilish va undan foydalanish to'liq bepul. Biz bilim va tajriba almashish imkoniyatini hamma uchun ochiq qilishni istaymiz.</p><Link href="/register" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-6 py-3.5 text-sm font-extrabold text-[#09221b] transition hover:-translate-y-1 hover:bg-emerald-200">Hoziroq qo'shilish <ArrowRight className="h-4 w-4" /></Link></div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -414,7 +434,7 @@ export default function HomePage() {
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:gap-20 lg:px-10 lg:py-32">
+        <section data-aos="fade-up" id="faq" className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:gap-20 lg:px-10 lg:py-32">
           <div><p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Savollaringiz bormi?</p><h2 className="mt-5 text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Ko'p so'raladigan savollar.</h2><p className="mt-5 text-sm leading-7 text-[#74867c] dark:text-[#9aafa5]">Zikra haqida bilmoqchi bo'lgan asosiy ma'lumotlaringni shu yerdan topishing mumkin.</p><a href="https://t.me/asomiddinmeliboyev" target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-emerald-800 hover:gap-3 dark:text-emerald-300">Yana savoling bormi? <ArrowUpRight className="h-4 w-4" /></a></div>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
@@ -427,7 +447,7 @@ export default function HomePage() {
         </section>
 
         {/* FOUNDER */}
-        <section className="border-y border-[#e7eee8] bg-[#f4f8f5] py-20 dark:border-white/[.07] dark:bg-[#0b201a] sm:py-24">
+        <section data-aos="fade-up" className="border-y border-[#e7eee8] bg-[#f4f8f5] py-20 dark:border-white/[.07] dark:bg-[#0b201a] sm:py-24">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-8 md:grid-cols-[auto_1fr] lg:px-10">
             <div className="mx-auto h-36 w-36 overflow-hidden rounded-full bg-emerald-100 shadow-2xl shadow-emerald-900/20 ring-8 ring-white dark:ring-white/5 sm:h-44 sm:w-44">
               <img
@@ -443,7 +463,7 @@ export default function HomePage() {
         </section>
 
         {/* APP DOWNLOAD */}
-        <section id="ilovani-yuklab-olish" className="bg-[#eff7f3] px-5 py-20 dark:bg-[#0a211a] sm:px-8 sm:py-24 lg:px-10">
+        <section data-aos="fade-up" id="ilovani-yuklab-olish" className="bg-[#eff7f3] px-5 py-20 dark:bg-[#0a211a] sm:px-8 sm:py-24 lg:px-10">
           <div className="mx-auto grid max-w-7xl items-center gap-10 rounded-[2rem] border border-emerald-900/10 bg-white p-7 shadow-[0_30px_80px_-55px_rgba(10,80,60,.4)] dark:border-white/10 dark:bg-[#10251f] sm:p-10 lg:grid-cols-[1fr_auto] lg:p-14">
             <div className="max-w-2xl">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Zikra doim yoningda</p>
@@ -463,7 +483,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA */}
-        <section className="px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+        <section data-aos="fade-up" className="px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
           <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-[#17483a] via-[#0e382e] to-[#102c28] px-7 py-16 text-center text-white shadow-[0_35px_90px_-45px_rgba(10,70,50,.65)] sm:px-12 sm:py-24">
             <div className="pointer-events-none absolute -right-20 -top-40 h-96 w-96 rounded-full bg-emerald-300/15 blur-[90px]" />
             <div className="relative mx-auto max-w-3xl"><span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-emerald-100"><Sparkles className="h-3.5 w-3.5" /> Sening navbating</span><h2 className="mt-7 text-4xl font-semibold leading-[1.05] tracking-[-.06em] sm:text-6xl">Sen bilgan bilim — kimdir uchun yangi imkoniyat.</h2><p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/65 sm:text-base">Bugun bir bilim ulash. Ertaga yangi bilim bilan qayt. Zikra hamjamiyatiga bepul qo'shil.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-7 py-4 text-sm font-extrabold text-[#17483a] transition hover:-translate-y-1 hover:bg-emerald-50">Bepul boshlash <ArrowRight className="h-4 w-4" /></Link><InstallPWAButton variant="outline" /></div><p className="mt-6 text-xs text-white/45">Hisobing bormi? <Link href="/login" className="font-bold text-white/85 hover:text-white">Kirish</Link></p></div>
