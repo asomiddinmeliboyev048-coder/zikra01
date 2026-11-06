@@ -56,9 +56,17 @@ export default function ZikraMascot({ mood }: Props) {
 
   useEffect(() => {
     let active = true;
-    loadViewer()
+
+    // Do not mount an empty <model-viewer> when the GLB has not been deployed.
+    // Keep the visible SVG mascot until the actual binary asset is reachable.
+    fetch("/models/zikra-cat.glb", { method: "HEAD", cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error("3D model hali serverda mavjud emas");
+        return loadViewer();
+      })
       .then(() => { if (active) setReady(true); })
       .catch(() => { if (active) setFailed(true); });
+
     return () => { active = false; };
   }, []);
 
