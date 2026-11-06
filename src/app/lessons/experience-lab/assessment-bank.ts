@@ -67,7 +67,7 @@ export const practicalTasks: Record<AssessmentTrack, { title: string; prompt: st
 };
 
 export function checkPracticalAnswer(track: AssessmentTrack, answer: string) {
-  const normalize = (value: string) => value.toLocaleLowerCase().normalize("NFKC").replace(/[.,!?;:'"`]/g, "").replace(/\\s+/g, " ").trim();
+  const normalize = (value: string) => value.toLocaleLowerCase().normalize("NFKC").replace(/[.,!?;:'"`]/g, "").replace(/\s+/g, " ").trim();
   const candidate = normalize(answer);
   return practicalTasks[track].accepted.some((item) => normalize(item) === candidate);
 }
