@@ -1,7 +1,5 @@
-# Zikra mascot model
+# Zikra mascot
 
-The onboarding mascot viewer expects the optimized GLB asset at:
+The learning onboarding uses the built-in animated SVG mascot in `src/app/lessons/experience-lab/ZikraMascot.tsx`.
 
-`public/models/zikra-cat.glb`
-
-The source GLB was uploaded in the ChatGPT conversation, but the repository file integration available for this change only supports text content; it cannot transfer the binary attachment into GitHub. Keep the existing SVG mascot fallback until the GLB is added. Do not commit a placeholder file with the .glb extension.
+No external 3D model or third-party model viewer is required. The mascot stays lightweight, responsive, and available even when offline assets are not present.
