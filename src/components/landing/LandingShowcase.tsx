@@ -29,7 +29,11 @@ export default function LandingShowcase({ profiles, videos }: { profiles: Featur
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const videoStageRef = useRef<HTMLDivElement | null>(null);
   const safeProfiles = useMemo(() => profiles.slice(0, 5), [profiles]);
-  const safeVideos = useMemo(() => videos.slice(0, 5), [videos]);
+  const safeVideos = useMemo(() => videos.length ? videos.slice(0, 5) : [
+    { id: "zikra-demo-1", title: "Birgalikda o'rganish", cloudinary_url: "https://videos.pexels.com/video-files/5200029/5200029-uhd_3840_2160_25fps.mp4", thumbnail_url: null, duration: 7, uploader: null, skill_name: "Hamkorlik" },
+    { id: "zikra-demo-2", title: "Raqamli ta'lim", cloudinary_url: "https://videos.pexels.com/video-files/9198424/9198424-hd_1920_1080_25fps.mp4", thumbnail_url: null, duration: 46, uploader: null, skill_name: "Texnologiya" },
+    { id: "zikra-demo-3", title: "Fikr almashish", cloudinary_url: "https://videos.pexels.com/video-files/9198421/9198421-hd_1920_1080_25fps.mp4", thumbnail_url: null, duration: 26, uploader: null, skill_name: "Hamjamiyat" },
+  ], [videos]);
 
   const moveProfile = (step: number) => setProfileIndex((current) => (current + step + safeProfiles.length) % safeProfiles.length);
   const moveVideo = (step: number) => setVideoIndex((current) => (current + step + safeVideos.length) % safeVideos.length);
