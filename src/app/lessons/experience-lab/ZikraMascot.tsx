@@ -50,7 +50,7 @@ export default function ZikraMascot({ mood }: Props) {
           <path d="M105 111c8-1 13 4 13 10-1 7-9 9-15 3" fill="#F4E8DA" stroke="#D9CABB" strokeWidth="2"/>
         </g>
         {mood === 7 && <g fill="#F6C65D"><path d="m17 25 3-7 4 7 7 3-7 4-4 7-3-7-7-4 7-3Z"/><path d="m124 35 3-6 3 6 6 3-6 3-3 6-3-6-6-3 6-3Z"/></g>}
-        {mood === 4 && <circle cx="119" cy="20" r="7" fill="#F6C65D"/ >}
+        {mood === 4 && <circle cx="119" cy="20" r="7" fill="#F6C65D" />}
       </svg>
     </div>
   );
