@@ -130,7 +130,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
             <Link href="/lessons" className="mt-4 inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c] sm:mt-0"><MapIcon size={17}/> Yo‘l xaritasi <ChevronRight size={17}/></Link>
           </section>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
             <section className="grid gap-4 sm:grid-cols-2">
               <article className="rounded-[22px] border border-white bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#10231e]">
                 <div className="flex items-center justify-between"><p className="text-sm font-extrabold">Faollik</p><span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">Bugungi holat</span></div>
