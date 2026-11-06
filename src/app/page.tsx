@@ -11,6 +11,7 @@ import InstallPWAButton from "@/components/InstallPWAButton";
 import DownloadQRCode from "@/components/DownloadQRCode";
 import LandingAOS from "@/components/landing/LandingAOS";
 import LandingShowcase from "@/components/landing/LandingShowcase";
+import LandingTips from "@/components/landing/LandingTips";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -204,6 +205,7 @@ export default async function HomePage() {
   return (
     <div className="zikra-site min-h-screen overflow-hidden bg-[#fbfcfa] text-[#142522] transition-colors duration-300 dark:bg-[#071512] dark:text-[#eaf4f0]">
       <Navbar />
+      <LandingTips />
       <LandingAOS />
       <main>
         {/* HERO */}
@@ -340,7 +342,10 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* FEATURED COMMUNITY — live profiles + video showcase */}\n        <LandingShowcase profiles={featuredProfiles} videos={featuredVideos} />\n\n        {/* VALUE STRIP */}
+        {/* FEATURED COMMUNITY — live profiles + video showcase */}
+        <LandingShowcase profiles={featuredProfiles} videos={featuredVideos} />
+
+        {/* VALUE STRIP */}
         <section data-aos="fade-up" className="border-y border-[#e8efea] bg-white/75 py-7 dark:border-white/[.07] dark:bg-white/[.025]">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-5 text-center sm:grid-cols-3 sm:px-8">
             {[
