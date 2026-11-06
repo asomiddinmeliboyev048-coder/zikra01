@@ -18,6 +18,7 @@ export default function LearningExperienceLab() {
   const [duelOpen, setDuelOpen] = useState(false);
   const [assessmentOpen, setAssessmentOpen] = useState(false);
   const skill = options.find((item) => item.id === selected)!;
+  const SelectedIcon = skill.icon;
 
   if (assessmentOpen) return <div className="fixed inset-0 z-[100] min-h-[100dvh] w-full overflow-hidden bg-[#090d13]"><AssessmentFlow track={selected} onClose={() => setAssessmentOpen(false)} /></div>;
   if (duelOpen) return <div className="fixed inset-0 z-[100] min-h-[100dvh] w-full overflow-hidden bg-[#090d13]"><SkillDuel skill={skill.title} onClose={() => setDuelOpen(false)} /></div>;
@@ -71,7 +72,7 @@ export default function LearningExperienceLab() {
 
         <section className="mt-7 grid gap-3 lg:grid-cols-[1fr_auto]">
           <div className="rounded-[26px] border border-white/10 bg-[#111923]/90 p-5 sm:p-6">
-            <div className="flex flex-wrap items-center gap-3"><div className={"grid h-11 w-11 place-items-center rounded-xl "+skill.iconBg}><skill.icon size={21}/></div><div><p className="text-[10px] font-black uppercase tracking-[.2em] text-slate-500">TANLANGAN YO‘NALISH</p><h3 className="mt-0.5 text-lg font-extrabold">{skill.title}</h3></div></div>
+            <div className="flex flex-wrap items-center gap-3"><div className={"grid h-11 w-11 place-items-center rounded-xl "+skill.iconBg}><SelectedIcon size={21}/></div><div><p className="text-[10px] font-black uppercase tracking-[.2em] text-slate-500">TANLANGAN YO‘NALISH</p><h3 className="mt-0.5 text-lg font-extrabold">{skill.title}</h3></div></div>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400">Avval bilimingizni aniqlaymiz, so‘ng amaliy topshiriq va mavjud tashqi natijalaringizni qo‘shib, sizga mos tavsiyalarni shakllantiramiz.</p>
             <div className="mt-4 flex flex-wrap gap-2"><span className="rounded-full bg-white/[.06] px-3 py-1.5 text-[11px] font-bold text-slate-300">10 ta diagnostik savol</span><span className="rounded-full bg-white/[.06] px-3 py-1.5 text-[11px] font-bold text-slate-300">Amaliy vazifa</span><span className="rounded-full bg-white/[.06] px-3 py-1.5 text-[11px] font-bold text-slate-300">Portfolio ixtiyoriy</span></div>
           </div>
