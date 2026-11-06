@@ -47,6 +47,6 @@ export const assessmentBank: Record<AssessmentTrack, AssessmentQuestion[]> = {
 };
 
 export function getAssessmentLevel(track: AssessmentTrack, score: number) {
-  const index = Math.min(5, Math.floor((score / 10) * 6));
+  const index = Math.min(5, Math.floor(score / 2));
   return assessmentTracks[track].levels[index];
 }
