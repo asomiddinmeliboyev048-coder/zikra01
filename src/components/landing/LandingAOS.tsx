@@ -1,76 +1,95 @@
 "use client";
 
-import Script from "next/script";
+import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    AOS?: {
-      init: (options?: Record<string, unknown>) => void;
-      refresh: () => void;
-    };
-  }
-}
-
+/**
+ * Zikra landing-page reveal animations.
+ * No third-party CDN is required. Content is visible by default, so a blocked
+ * script, stylesheet, observer, or browser extension can never hide the page.
+ */
 export default function LandingAOS() {
-  function revealAllContent() {
-    document.querySelectorAll<HTMLElement>("[data-aos]").forEach((element) => {
-      element.classList.add("aos-animate");
-      element.style.opacity = "1";
-      element.style.transform = "none";
-      element.style.visibility = "visible";
-    });
-  }
+  useEffect(() => {
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-aos]")
+    );
 
-  function handleAOSLoad() {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      revealAllContent();
+    if (
+      !elements.length ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !("IntersectionObserver" in window)
+    ) {
       return;
     }
 
-    const existing = document.querySelector<HTMLLinkElement>('link[data-zikra-aos="true"]');
-    if (existing) {
-      try {
-        window.AOS?.refresh();
-      } catch {
-        revealAllContent();
-      }
-      return;
-    }
+    let observer: IntersectionObserver | null = null;
 
-    const stylesheet = document.createElement("link");
-    stylesheet.rel = "stylesheet";
-    stylesheet.href = "https://unpkg.com/aos@2.3.4/dist/aos.css";
-    stylesheet.dataset.zikraAos = "true";
-    stylesheet.onload = () => {
-      try {
-        if (!window.AOS) {
-          revealAllContent();
-          return;
+    try {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const element = entry.target as HTMLElement;
+            element.classList.add("zikra-aos-visible");
+            observer?.unobserve(element);
+          });
+        },
+        {
+          threshold: 0.08,
+          rootMargin: "0px 0px -48px 0px",
         }
+      );
 
-        window.AOS.init({
-          offset: 90,
-          duration: 750,
-          easing: "ease-out-cubic",
-          once: true,
-          mirror: false,
-          disable: () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-        });
-        window.AOS.refresh();
-      } catch {
-        revealAllContent();
-      }
-    };
-    stylesheet.onerror = revealAllContent;
-    document.head.appendChild(stylesheet);
-  }
+      elements.forEach((element) => observer?.observe(element));
+    } catch {
+      // Progressive enhancement only: all content remains visible.
+      observer?.disconnect();
+    }
+
+    return () => observer?.disconnect();
+  }, []);
 
   return (
-    <Script
-      src="https://unpkg.com/aos@2.3.4/dist/aos.js"
-      strategy="afterInteractive"
-      onLoad={handleAOSLoad}
-      onError={revealAllContent}
-    />
+    <style jsx global>{`
+      [data-aos] {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+      }
+
+      [data-aos].zikra-aos-visible {
+        animation: zikra-reveal 680ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+      }
+
+      [data-aos="fade-up"].zikra-aos-visible,
+      [data-aos="zoom-in-up"].zikra-aos-visible {
+        --zikra-reveal-y: 22px;
+      }
+
+      [data-aos="zoom-in"].zikra-aos-visible {
+        --zikra-reveal-scale: 0.975;
+      }
+
+      @keyframes zikra-reveal {
+        from {
+          opacity: 0.72;
+          transform: translate3d(0, var(--zikra-reveal-y, 12px), 0)
+            scale(var(--zikra-reveal-scale, 1));
+        }
+        to {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        [data-aos],
+        [data-aos].zikra-aos-visible {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+          transition: none !important;
+        }
+      }
+    `}</style>
   );
 }
