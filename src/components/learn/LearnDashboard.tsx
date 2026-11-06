@@ -127,7 +127,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
               <h2 className="mt-3 text-xl font-black sm:text-2xl">Yo‘l xaritangizni yarating</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Aniq bir maqsadingiz — bir qadam. Ko‘nikma, hozirgi daraja va maqsadingizni belgilang. Zikra siz uchun shaxsiy o‘quv yo‘lini tayyorlaydi.</p>
             </div>
-            <Link href="/lessons" className="mt-4 inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c] sm:mt-0"><MapIcon size={17}/> Yo‘l xaritasi <ChevronRight size={17}/></Link>
+            <div className="mt-4 flex shrink-0 flex-col items-stretch gap-2 sm:mt-0"><Link href="/lessons" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c]"><MapIcon size={17}/> Yo‘l xaritasi <ChevronRight size={17}/></Link><Link href="/lessons" className="text-center text-[10px] font-bold text-emerald-800 underline decoration-emerald-300 underline-offset-4 dark:text-emerald-200">Aniq bir maqsadingiz — bir qadam</Link></div>
           </section>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
