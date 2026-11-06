@@ -12,9 +12,9 @@ export default async function LessonsPage() {
   if (!me) redirect("/login");
 
   return (
-    <div className="min-h-screen bg-[#f7f9fc] dark:bg-[#0b1220]">
+    <div className="min-h-screen bg-[#f4f8f7] dark:bg-[#071513]">
       <Navbar />
-      <main className="w-full px-2 py-3 sm:px-4 sm:py-5 xl:px-6">
+      <main className="w-full px-0 py-0 sm:px-0 sm:py-0 xl:px-0">
         <LearningExperienceLab />
       </main>
     </div>
