@@ -9,6 +9,9 @@ import {
 import Navbar from "@/components/Navbar";
 import InstallPWAButton from "@/components/InstallPWAButton";
 import DownloadQRCode from "@/components/DownloadQRCode";
+import LandingAOS from "@/components/landing/LandingAOS";
+import LandingShowcase from "@/components/landing/LandingShowcase";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Zikra — Bilim almashish orqali birga rivojlaning",
@@ -149,13 +152,61 @@ const faqs = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const [{ data: profileRows }, { data: videoRows }] = await Promise.all([
+    supabase.from("profiles")
+      .select("id, full_name, username, city, bio, avatar_url, xp, level, trust_score, streak_days, is_verified")
+      .eq("onboarded", true)
+      .order("xp", { ascending: false })
+      .order("trust_score", { ascending: false })
+      .limit(5),
+    supabase.from("videos")
+      .select("id, title, cloudinary_url, thumbnail_url, duration, uploader_id, skill:skills(name)")
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
+  const featuredProfiles = (profileRows ?? []).map((profile) => ({
+    ...profile,
+    xp: Number(profile.xp ?? 0),
+    trust_score: Number(profile.trust_score ?? 0),
+    streak_days: Number(profile.streak_days ?? 0),
+    is_verified: Boolean(profile.is_verified),
+    teach_skills: [] as string[],
+    learn_skills: [] as string[],
+  }));
+  const featuredIds = featuredProfiles.map((profile) => profile.id);
+  if (featuredIds.length) {
+    const { data: skillRows } = await supabase.from("user_skills")
+      .select("user_id, type, skill:skills(name)")
+      .in("user_id", featuredIds);
+    for (const row of (skillRows ?? []) as unknown as { user_id: string; type: string; skill: { name: string } | null }[]) {
+      const profile = featuredProfiles.find((item) => item.id === row.user_id);
+      if (profile && row.skill) (row.type === "teach" ? profile.teach_skills : profile.learn_skills).push(row.skill.name);
+    }
+  }
+  const uploaderIds = Array.from(new Set((videoRows ?? []).map((video) => video.uploader_id)));
+  const { data: uploaderRows } = uploaderIds.length
+    ? await supabase.from("profiles").select("id, full_name, avatar_url").in("id", uploaderIds)
+    : { data: [] as { id: string; full_name: string; avatar_url: string | null }[] };
+  const uploaderMap = new Map((uploaderRows ?? []).map((uploader) => [uploader.id, uploader]));
+  const featuredVideos = (videoRows ?? []).map((video) => ({
+    id: video.id,
+    title: video.title,
+    cloudinary_url: video.cloudinary_url,
+    thumbnail_url: video.thumbnail_url,
+    duration: video.duration,
+    uploader: uploaderMap.get(video.uploader_id) ?? null,
+    skill_name: Array.isArray(video.skill) ? video.skill[0]?.name ?? null : (video.skill as { name?: string } | null)?.name ?? null,
+  }));
+
   return (
     <div className="zikra-site min-h-screen overflow-hidden bg-[#fbfcfa] text-[#142522] transition-colors duration-300 dark:bg-[#071512] dark:text-[#eaf4f0]">
       <Navbar />
       <main>
         {/* HERO */}
-        <section className="relative isolate overflow-hidden">
+        <section data-aos="fade-up" className="relative isolate overflow-hidden">
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="absolute -right-40 -top-44 h-[38rem] w-[38rem] rounded-full bg-emerald-300/20 blur-[110px] dark:bg-emerald-400/10" />
             <div className="absolute -left-48 top-64 h-[30rem] w-[30rem] rounded-full bg-amber-200/30 blur-[100px] dark:bg-amber-400/5" />
@@ -288,7 +339,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* VALUE STRIP */}
+        {/* FEATURED COMMUNITY — live profiles + video showcase */}\n        <LandingShowcase profiles={featuredProfiles} videos={featuredVideos} />\n\n        {/* VALUE STRIP */}
         <section className="border-y border-[#e8efea] bg-white/75 py-7 dark:border-white/[.07] dark:bg-white/[.025]">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-5 text-center sm:grid-cols-3 sm:px-8">
             {[
@@ -305,7 +356,7 @@ export default function HomePage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section id="qanday-ishlaydi" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
+        <section data-aos="fade-up" id="qanday-ishlaydi" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
           <div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:gap-20">
             <div className="max-w-md">
               <p className="text-xs font-extrabold uppercase tracking-[.2em] text-emerald-700 dark:text-emerald-300">Oddiy. O'zaro. Bepul.</p>
