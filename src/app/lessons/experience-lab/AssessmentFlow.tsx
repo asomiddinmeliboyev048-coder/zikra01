@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, ExternalLink, Link2, RotateCcw, Sparkles, XCircle } from "lucide-react";
 import { assessmentBank, assessmentTracks, practicalTasks, type AssessmentTrack } from "./assessment-bank";
+import PersonalizedLearningMap from "./PersonalizedLearningMap";
+import type { LearningPlanInput } from "./LearningOnboarding";
 
-type Props = { track: AssessmentTrack; onClose: () => void };
+type Props = { track: AssessmentTrack; plan: LearningPlanInput; onClose: () => void };
 type SavedAssessment = { id: number; track_id: string; score: number; total: number; level: string; practical_passed: boolean; evidence_url: string | null; evidence_provider: string | null; evidence_status: string; assessed_at: string };
 
-export default function AssessmentFlow({ track, onClose }: Props) {
+export default function AssessmentFlow({ track, plan, onClose }: Props) {
   const questions = useMemo(() => assessmentBank[track], [track]);
   const practical = practicalTasks[track];
   const [answers, setAnswers] = useState<number[]>(Array(10).fill(-1));
@@ -99,6 +101,7 @@ export default function AssessmentFlow({ track, onClose }: Props) {
                 </article>;
               })}
             </div>
+            <PersonalizedLearningMap track={track} plan={plan} score={result.score} />
             <button onClick={() => { setAnswers(Array(10).fill(-1)); setIndex(0); setPracticalResponse(""); setEvidenceUrl(""); setEvidenceProvider(""); setResult(null); setError(""); setStage("quiz"); }} className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#d2e3de] bg-white/80 px-5 text-sm font-extrabold hover:bg-white/10 sm:w-auto"><RotateCcw size={16}/> Qayta baholash</button>
           </div>
         </section>
