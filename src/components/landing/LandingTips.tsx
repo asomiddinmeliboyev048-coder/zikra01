@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Lightbulb, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Lightbulb, Sparkles } from "lucide-react";
 
 const tips = [
   "O'rgatmoqchi bo'lgan ko'nikmangni profilingizda aniq yozing — mos hamkor sizni tezroq topadi.",
@@ -11,30 +11,69 @@ const tips = [
   "O'rgangan narsangizni boshqalarga tushuntirib bering: bu bilimni mustahkamlashning samarali usuli.",
 ];
 
+function TipTrack({ copy = false }: { copy?: boolean }) {
+  return (
+    <div className="flex w-max shrink-0 items-center gap-8 pr-8" aria-hidden={copy || undefined}>
+      {tips.map((tip, index) => (
+        <div key={index} className="flex shrink-0 items-center gap-8 whitespace-nowrap">
+          <span className="inline-flex items-center gap-2.5 text-xs font-semibold text-[#285b49] dark:text-emerald-100 sm:text-sm">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-300/10 dark:text-emerald-300">
+              <Sparkles className="h-3.5 w-3.5" />
+            </span>
+            {tip}
+          </span>
+          <span className="h-1.5 w-1.5 shrink-0 rotate-45 rounded-[1px] bg-emerald-400/70" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function LandingTips() {
-  const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  useEffect(() => {
-    if (paused) return;
-    const timer = window.setInterval(() => setIndex((current) => (current + 1) % tips.length), 6500);
-    return () => window.clearInterval(timer);
-  }, [paused]);
+  return (
+    <aside
+      aria-label="Foydali maslahatlar"
+      className="group relative z-20 overflow-hidden border-y border-emerald-100/80 bg-[#f1faf5] text-[#164b3a] dark:border-white/10 dark:bg-[#0d211b]"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
+      }}
+    >
+      <div className="mx-auto flex min-h-[58px] max-w-[1600px] items-center gap-4 px-4 sm:px-7">
+        <span className="relative z-10 inline-flex shrink-0 items-center gap-2 rounded-full bg-emerald-100 px-3 py-2 text-[9px] font-extrabold uppercase tracking-[.14em] text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200 sm:text-[10px]">
+          <Lightbulb className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Foydali maslahatlar</span>
+          <span className="sm:hidden">Maslahat</span>
+        </span>
 
-  const move = (step: number) => setIndex((current) => (current + step + tips.length) % tips.length);
-
-  return <aside aria-label="Foydali maslahatlar" className="border-b border-emerald-100 bg-[#f1faf5] text-[#164b3a] dark:border-white/10 dark:bg-[#0d211b] dark:text-emerald-100"
-    onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-    <div className="mx-auto flex min-h-[54px] max-w-7xl items-center gap-3 px-5 py-2 sm:px-8 lg:px-10">
-      <span className="hidden shrink-0 items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.13em] text-emerald-800 dark:bg-emerald-300/10 dark:text-emerald-200 sm:inline-flex"><Lightbulb className="h-3.5 w-3.5" /> Foydali maslahat</span>
-      <Sparkles className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300 sm:hidden" />
-      <p key={index} aria-live="polite" className="min-w-0 flex-1 animate-[zikra-tip-in_.35s_ease-out_both] text-xs font-semibold leading-5 sm:text-sm">{tips[index]}</p>
-      <div className="flex shrink-0 items-center gap-1">
-        <span className="mr-1 hidden text-[10px] tabular-nums text-emerald-800/50 dark:text-emerald-100/45 sm:inline">{index + 1}/{tips.length}</span>
-        <button type="button" onClick={() => move(-1)} aria-label="Oldingi maslahat" className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-emerald-200/70 dark:hover:bg-white/10"><ArrowLeft className="h-3.5 w-3.5" /></button>
-        <button type="button" onClick={() => move(1)} aria-label="Keyingi maslahat" className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-emerald-200/70 dark:hover:bg-white/10"><ArrowRight className="h-3.5 w-3.5" /></button>
+        <div className="relative min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)]">
+          <div
+            className={`zikra-tips-marquee flex w-max items-center hover:[animation-play-state:paused] ${paused ? "[animation-play-state:paused]" : ""}`}
+          >
+            <TipTrack />
+            <TipTrack copy />
+          </div>
+        </div>
+        <span className="hidden shrink-0 text-[9px] font-bold uppercase tracking-widest text-emerald-800/45 dark:text-emerald-100/40 lg:inline">O'rgan · Ulash · Rivojlan</span>
       </div>
-    </div>
-    <style jsx>{`@keyframes zikra-tip-in { from { opacity: .25; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-  </aside>;
+
+      <style jsx>{`
+        .zikra-tips-marquee {
+          animation: zikra-tips-scroll 52s linear infinite;
+          will-change: transform;
+        }
+        @keyframes zikra-tips-scroll {
+          from { transform: translate3d(0, 0, 0); }
+          to { transform: translate3d(-50%, 0, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .zikra-tips-marquee { animation: none; }
+        }
+      `}</style>
+    </aside>
+  );
 }
