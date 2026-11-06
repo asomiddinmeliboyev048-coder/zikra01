@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BookOpen, Code2, ShieldCheck, Swords } from "lucide-react";
 import SkillDuel from "./SkillDuel";
+import AssessmentFlow from "./AssessmentFlow";
 import type { TrackId } from "./question-bank";
 
 const options: { id: TrackId; title: string; description: string; icon: typeof BookOpen; color: string }[] = [
@@ -14,7 +15,10 @@ const options: { id: TrackId; title: string; description: string; icon: typeof B
 export default function LearningExperienceLab() {
   const [selected, setSelected] = useState<TrackId>("english");
   const [duelOpen, setDuelOpen] = useState(false);
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
   const skill = options.find((item) => item.id === selected)!;
+
+  if (assessmentOpen) return <div className="fixed inset-0 z-[100] min-h-[100dvh] w-full overflow-hidden bg-[#0b0d12]"><AssessmentFlow track={selected} onClose={() => setAssessmentOpen(false)} /></div>;
 
   if (duelOpen) {
     return <div className="fixed inset-0 z-[100] min-h-[100dvh] w-full overflow-hidden bg-[#0b0d12]"><SkillDuel skill={skill.title} onClose={() => setDuelOpen(false)} /></div>;
@@ -35,7 +39,7 @@ export default function LearningExperienceLab() {
           </div>
           <p className="mt-6 text-xs font-black uppercase tracking-[.28em] text-violet-300">ZIKRA ARENA</p>
           <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">Bilimingni sinab ko‘r.</h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">Yo‘nalishni tanla va boshqa Zikra foydalanuvchisi bilan bilim du elida bellash.</p>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">Yo‘nalishni tanla va boshqa Zikra foydalanuvchisi bilan bilim duelida bellash.</p>
         </div>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -55,6 +59,7 @@ export default function LearningExperienceLab() {
         </div>
 
         <div className="mt-7 flex flex-col items-center gap-4">
+          <button type="button" onClick={() => setAssessmentOpen(true)} className="group flex min-h-14 w-full max-w-md items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/[.07] px-8 text-sm font-black text-white transition hover:border-violet-300/50 hover:bg-violet-400/10 active:scale-[.99]"><BookOpen size={19}/> DARAJAMNI ANIQLASH</button>
           <button type="button" onClick={() => setDuelOpen(true)} className="group flex min-h-16 w-full max-w-md items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-600 px-8 text-base font-black shadow-[0_12px_40px_-12px_rgba(124,58,237,.7)] transition hover:brightness-110 active:scale-[.99]">
             <Swords size={21} /> DUELNI BOSHLASH
           </button>
