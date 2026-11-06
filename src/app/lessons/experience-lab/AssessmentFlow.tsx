@@ -12,7 +12,7 @@ export default function AssessmentFlow({ track, onClose }: Props) {
   const practical = practicalTasks[track];
   const [answers, setAnswers] = useState<number[]>(Array(10).fill(-1));
   const [index, setIndex] = useState(0);
-  const [stage, setStage] = useState<"quiz" | "practical" | "result">("quiz");
+  const [stage, setStage] = useState<"quiz" | "practical" | "evidence" | "result">("quiz");
   const [practicalResponse, setPracticalResponse] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [evidenceProvider, setEvidenceProvider] = useState("");
@@ -39,7 +39,26 @@ export default function AssessmentFlow({ track, onClose }: Props) {
   };
 
   if (stage === "result" && result) {
-    return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#090d13] px-4 py-8 text-white sm:px-8">
+    if (stage === "practical") {
+    return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#090d13] px-4 py-6 text-white sm:px-8 sm:py-10">
+      <div className="mx-auto max-w-3xl">
+        <button onClick={() => setStage("quiz")} className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-white"><ArrowLeft size={17}/> Testga qaytish</button>
+        <div className="mt-8"><p className="text-xs font-black uppercase tracking-[.2em] text-emerald-300">ZIKRA · 2-QISM / AMALIYOT</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">Bilimingizni amalda ko‘rsating.</h1><p className="mt-3 text-sm leading-6 text-slate-400">Bu topshiriq test natijasini real vazifada qo‘llay olishingizni tekshiradi.</p></div>
+        <section className="mt-7 rounded-[28px] border border-white/10 bg-[#111923] p-5 sm:p-8">
+          <span className="rounded-full bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300">{practical.title}</span>
+          <h2 className="mt-5 text-xl font-extrabold leading-relaxed sm:text-2xl">{practical.prompt}</h2>
+          <p className="mt-3 rounded-xl border border-sky-300/15 bg-sky-300/[.06] p-3 text-sm text-sky-100/80">Maslahat: {practical.hint}</p>
+          <label className="mt-6 block text-sm font-bold text-slate-300" htmlFor="practical-response">Javobingiz</label>
+          <textarea id="practical-response" value={practicalResponse} onChange={(e)=>setPracticalResponse(e.target.value)} maxLength={2000} rows={4} placeholder="Javobingizni shu yerga yozing..." className="mt-2 w-full resize-y rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400"/>
+          <div className="mt-2 text-right text-xs text-slate-500">{practicalResponse.length}/2000</div>
+        </section>
+        {error && <p role="alert" className="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 p-3 text-sm text-rose-200">{error}</p>}
+        <button disabled={practicalResponse.trim().length<3} onClick={()=>setStage("evidence")} className="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 text-sm font-black shadow-xl shadow-violet-900/20 transition hover:brightness-110 disabled:opacity-40">3-BOSQICHGA O‘TISH <ArrowRight size={18}/></button>
+      </div>
+    </main>;
+  }
+
+  return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#090d13] px-4 py-8 text-white sm:px-8">
       <div className="mx-auto max-w-5xl">
         <button onClick={onClose} className="mb-7 inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-white"><ArrowLeft size={17}/> Orqaga</button>
         <section className="overflow-hidden rounded-[32px] border border-white/10 bg-[#111923] shadow-2xl">
@@ -87,30 +106,22 @@ export default function AssessmentFlow({ track, onClose }: Props) {
     </main>;
   }
 
-  if (stage === "practical") {
+  if (stage === "evidence") {
     return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#090d13] px-4 py-6 text-white sm:px-8 sm:py-10">
       <div className="mx-auto max-w-3xl">
-        <button onClick={() => setStage("quiz")} className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-white"><ArrowLeft size={17}/> Testga qaytish</button>
-        <div className="mt-8"><p className="text-xs font-black uppercase tracking-[.2em] text-emerald-300">ZIKRA · 2-QISM / AMALIYOT</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">Bilimingizni amalda ko‘rsating.</h1><p className="mt-3 text-sm leading-6 text-slate-400">Bu topshiriq test natijasini real vazifada qo‘llay olishingizni tekshiradi.</p></div>
+        <button onClick={() => setStage("practical")} className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-white"><ArrowLeft size={17}/> Amaliy topshiriqqa qaytish</button>
+        <div className="mt-8"><p className="text-xs font-black uppercase tracking-[.2em] text-emerald-300">ZIKRA · 3-QISM / TASHQI NATIJA</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">Natijalaringizni taqdim eting.</h1><p className="mt-3 text-sm leading-6 text-slate-400">Sertifikatlaringiz, loyihalaringiz va tashqi platformalardagi natijalaringizni shu yerda biriktiring.</p></div>
         <section className="mt-7 rounded-[28px] border border-white/10 bg-[#111923] p-5 sm:p-8">
-          <span className="rounded-full bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300">{practical.title}</span>
-          <h2 className="mt-5 text-xl font-extrabold leading-relaxed sm:text-2xl">{practical.prompt}</h2>
-          <p className="mt-3 rounded-xl border border-sky-300/15 bg-sky-300/[.06] p-3 text-sm text-sky-100/80">Maslahat: {practical.hint}</p>
-          <label className="mt-6 block text-sm font-bold text-slate-300" htmlFor="practical-response">Javobingiz</label>
-          <textarea id="practical-response" value={practicalResponse} onChange={(e)=>setPracticalResponse(e.target.value)} maxLength={2000} rows={4} placeholder="Javobingizni shu yerga yozing..." className="mt-2 w-full resize-y rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-violet-400"/>
-          <div className="mt-2 text-right text-xs text-slate-500">{practicalResponse.length}/2000</div>
-        </section>
-        <section className="mt-5 rounded-[28px] border border-white/10 bg-[#111923] p-5 sm:p-8">
           <div className="flex items-center gap-2"><Link2 className="text-sky-300"/><h2 className="text-lg font-extrabold">Tashqi natija yoki portfolio</h2><span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-bold text-slate-400">Ixtiyoriy</span></div>
           <p className="mt-2 text-sm leading-6 text-slate-400">Sertifikat, GitHub, LeetCode, HackerRank yoki boshqa platformadagi profilingiz havolasini qo‘shishingiz mumkin. Havola avtomatik tasdiqlanmaydi.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-bold text-slate-400">Platforma / manba<input value={evidenceProvider} onChange={(e)=>setEvidenceProvider(e.target.value)} maxLength={80} placeholder="Masalan: GitHub, EF SET..." className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400"/></label>
             <label className="text-xs font-bold text-slate-400">Natija havolasi<input type="url" value={evidenceUrl} onChange={(e)=>setEvidenceUrl(e.target.value)} placeholder="https://..." className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-sky-400"/></label>
           </div>
-          <p className="mt-3 text-xs text-slate-500">Faqat HTTPS havolalar qabul qilinadi. Hozircha holati “tekshirilmagan” deb belgilanadi.</p>
+          <p className="mt-3 text-xs text-slate-500">Faqat HTTPS havolalar qabul qilinadi. Hozircha holati “tekshirilmagan” deb belgilanadi. Hech qanday havola qo‘shmasangiz ham davom etishingiz mumkin.</p>
         </section>
         {error && <p role="alert" className="mt-4 rounded-xl border border-rose-400/20 bg-rose-400/10 p-3 text-sm text-rose-200">{error}</p>}
-        <button disabled={practicalResponse.trim().length<3||saving} onClick={submit} className="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 text-sm font-black shadow-xl shadow-violet-900/20 transition hover:brightness-110 disabled:opacity-40">{saving ? "Natija saqlanmoqda…" : "BAHOLASH VA NATIJANI SAQLASH"} <Sparkles size={18}/></button>
+        <button disabled={saving} onClick={submit} className="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 text-sm font-black shadow-xl shadow-violet-900/20 transition hover:brightness-110 disabled:opacity-40">{saving ? "Natija saqlanmoqda…" : "YAKUNIY NATIJANI SAQLASH"} <Sparkles size={18}/></button>
       </div>
     </main>;
   }
