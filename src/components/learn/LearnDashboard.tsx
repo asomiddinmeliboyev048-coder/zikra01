@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  Award, Bell, BookOpen, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight,
-  CircleHelp, Clock3, Compass, Flame, FolderOpen, GraduationCap, LayoutDashboard,
-  Mail, MessageSquare, Play, Plus, Search, Settings, Sparkles, Target, TrendingUp,
+  Award, Bell, BookOpen, CheckCircle2, ChevronLeft, ChevronRight,
+  CircleHelp, Compass, Flame, GraduationCap, LayoutDashboard,
+  Mail, Play, Search, Settings, Sparkles, Target, TrendingUp,
   Users, Video, type LucideIcon,
 } from "lucide-react";
 
@@ -41,7 +41,6 @@ function formatDuration(seconds: number | null) {
 export default function LearnDashboard({ profile, courses, skills, lessonStats }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Barchasi");
-  const [courseTab, setCourseTab] = useState("Barchasi");
   const [monthOffset, setMonthOffset] = useState(0);
   const [doneTasks, setDoneTasks] = useState<string[]>([]);
   const filteredCourses = useMemo(() => courses.filter((course) => {
@@ -107,6 +106,19 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
               </Link>
             </div>
           </header>
+
+
+          <section className="relative isolate overflow-hidden rounded-[24px] bg-gradient-to-r from-[#063e35] via-[#087d70] to-[#0d9b83] px-5 py-6 text-white shadow-[0_22px_55px_-30px_rgba(4,80,65,.6)] sm:px-8 sm:py-8">
+            <div className="pointer-events-none absolute -right-10 -top-24 h-64 w-64 rounded-full bg-emerald-200/15 blur-3xl"/>
+            <div className="pointer-events-none absolute bottom-0 left-1/3 h-32 w-64 rounded-full bg-teal-200/10 blur-3xl"/>
+            <div className="relative z-10 max-w-[66%] sm:max-w-[62%]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-bold text-emerald-100"><GraduationCap size={14}/> ZIKRA LEARN</span>
+              <h2 className="mt-3 text-2xl font-black leading-tight tracking-tight sm:text-3xl">O‘rgan, amaliyot qil,<br className="hidden sm:block"/> sertifikat ol!</h2>
+              <p className="mt-2 max-w-md text-xs leading-5 text-emerald-50/85 sm:text-sm">Bilim va ko‘nikmalaringni rivojlantirish uchun kurslar, video darslar va amaliy mashqlar bir joyda.</p>
+              <Link href="/videos" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-extrabold text-[#087d70] shadow-lg transition hover:-translate-y-0.5">Kurslarni ko‘rish <ChevronRight size={15}/></Link>
+            </div>
+            <img src="/zikra-mascot.webp" alt="Zikra Learn mushukcha maskoti" className="pointer-events-none absolute -bottom-4 right-2 z-0 h-[94%] max-w-[43%] object-contain object-bottom drop-shadow-[0_14px_20px_rgba(0,0,0,.2)] sm:right-8 sm:h-[112%] sm:max-w-[34%]" />
+          </section>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
             <section className="grid gap-4 sm:grid-cols-2">
@@ -185,6 +197,12 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
               </section>
             </aside>
           </div>
+
+
+          {skills.length > 0 && <section className="rounded-[22px] border border-white bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#10231e] sm:p-5">
+            <div className="flex items-center justify-between gap-3"><div><h2 className="text-sm font-black">Mening yo‘nalishlarim</h2><p className="mt-1 text-[10px] text-slate-400">Profilingda belgilangan ko‘nikmalar</p></div><Link href="/onboarding" className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">Tahrirlash ↗</Link></div>
+            <div className="mt-3 flex flex-wrap gap-2">{skills.slice(0,10).map((skill) => <span key={skill} className="rounded-full border border-emerald-100 bg-emerald-50/70 px-3 py-1.5 text-[10px] font-bold text-emerald-800 dark:border-emerald-300/10 dark:bg-emerald-400/5 dark:text-emerald-200">{skill}</span>)}</div>
+          </section>}
 
           <section className="grid gap-3 sm:grid-cols-3">
             <Link href="/videos" className="flex items-center gap-3 rounded-2xl border border-white bg-white p-4 shadow-sm transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[#10231e]"><span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300"><Video size={19}/></span><span><b className="block text-xs">Video darslar</b><small className="text-[10px] text-slate-400">Yangi bilimlarni o‘rgan</small></span><ChevronRight className="ml-auto text-slate-400" size={16}/></Link>
