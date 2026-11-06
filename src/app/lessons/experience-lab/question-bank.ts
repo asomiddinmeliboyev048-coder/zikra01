@@ -1,10 +1,11 @@
 import { BookOpen, Gamepad2, ShieldCheck } from "lucide-react";
 
-export type TrackId = "english" | "coding" | "cyber";
+export type TrackId = "english" | "russian" | "coding" | "cyber";
 export type Question = { prompt:string; choices:string[]; answer:number; explanation:string };
 export type Lesson = { id:number; title:string; subtitle:string; questions:Question[] };
 export const tracks:{id:TrackId;name:string;icon:typeof BookOpen;summary:string;color:string}[]=[
  {id:"english",name:"Ingliz tili",icon:BookOpen,summary:"Lug‘at va grammatika",color:"bg-sky-500"},
+ {id:"russian",name:"Rus tili",icon:BookOpen,summary:"Ruscha lug‘at va grammatika",color:"bg-rose-500"},
  {id:"coding",name:"Dasturlash",icon:Gamepad2,summary:"JavaScript va mantiq",color:"bg-violet-600"},
  {id:"cyber",name:"Kiberxavfsizlik",icon:ShieldCheck,summary:"Xavfsiz fikrlash",color:"bg-emerald-600"},
 ];
@@ -30,6 +31,28 @@ export const bank:Record<TrackId,Lesson[]> = {
    {prompt:"I have lived here ___ 2022.",choices:["for","since","during"],answer:1,explanation:"Since aniq boshlanish nuqtasi bilan ishlatiladi."},
    {prompt:"Choose the correct form.",choices:["He has finished.","He have finished.","He finishing."],answer:0,explanation:"He bilan Present Perfect’da has ishlatiladi."},
    {prompt:"“Although” nimani bog‘laydi?",choices:["Joyni","Qarama-qarshi fikrlarni","Buyruqni"],answer:1,explanation:"Although — garchi ma’nosida zid fikrlarni bog‘laydi."}]}
+ ],
+ russian:[
+  {id:1,title:"Русские слова",subtitle:"Kundalik iboralar",questions:[
+   {prompt:"“Спасибо” nimani anglatadi?",choices:["Iltimos","Rahmat","Xayr"],answer:1,explanation:"Спасибо — rahmat."},
+   {prompt:"“Доброе утро” tarjimasi?",choices:["Xayrli tong","Xayrli tun","Xayr"],answer:0,explanation:"Доброе утро — xayrli tong."},
+   {prompt:"“Книга” so‘zining tarjimasi?",choices:["Daftar","Qalam","Kitob"],answer:2,explanation:"Книга — kitob."}]},
+  {id:2,title:"Rus tili grammatikasi",subtitle:"Oddiy gaplar",questions:[
+   {prompt:"To‘g‘ri shaklni tanlang: Я ___ студент.",choices:["есть","—","быть"],answer:1,explanation:"Hozirgi zamonda быть fe’li odatda tushirib qoldiriladi: Я студент."},
+   {prompt:"“Men o‘qiyman” rus tilida?",choices:["Я читаю","Я читаешь","Я читать"],answer:0,explanation:"Я читаю — men o‘qiyman."},
+   {prompt:"“Мы” olmoshi tarjimasi?",choices:["Siz","Ular","Biz"],answer:2,explanation:"Мы — biz."}]},
+  {id:3,title:"So‘z birikmalari",subtitle:"Kundalik muloqot",questions:[
+   {prompt:"“Как дела?” ma’nosi?",choices:["Qayerdansiz?","Ishlar qalay?","Ismingiz nima?"],answer:1,explanation:"Как дела? — ishlar qalay?"},
+   {prompt:"“Пожалуйста” ma’nosi?",choices:["Iltimos / marhamat","Kechirasiz","Ertaga"],answer:0,explanation:"Пожалуйста — iltimos yoki marhamat."},
+   {prompt:"“До свидания” qachon aytiladi?",choices:["Salomlashganda","Minnatdorchilikda","Xayrlashganda"],answer:2,explanation:"До свидания — xayr, ko‘rishguncha."}]},
+  {id:4,title:"O‘tgan zamon",subtitle:"Прошедшее время",questions:[
+   {prompt:"“Я работал” kim haqida?",choices:["Erkak kishi","Ayol kishi","Ko‘plik"],answer:0,explanation:"Работал — erkak jinsidagi o‘tgan zamon."},
+   {prompt:"“Вчера” tarjimasi?",choices:["Bugun","Kecha","Ertaga"],answer:1,explanation:"Вчера — kecha."},
+   {prompt:"“Мы смотрели фильм” tarjimasi?",choices:["Biz film ko‘ramiz","Biz film ko‘rdik","Biz film yozdik"],answer:1,explanation:"Смотрели — ko‘rdik/tomosha qildik."}]},
+  {id:5,title:"Rus tili sinovi",subtitle:"Bo‘lim yakuni",questions:[
+   {prompt:"“Я живу в Ташкенте” tarjimasi?",choices:["Men Toshkentda yashayman","Men Toshkentga boraman","Men Toshkentni ko‘rdim"],answer:0,explanation:"Живу в Ташкенте — Toshkentda yashayman."},
+   {prompt:"To‘g‘ri variant: У меня ___.",choices:["есть брат","быть брат","я брат есть"],answer:0,explanation:"У меня есть брат — mening akam/ukam bor."},
+   {prompt:"“Потому что” ma’nosi?",choices:["Shunga qaramay","Chunki","Oldin"],answer:1,explanation:"Потому что — chunki."}]}
  ],
  coding:[
   {id:1,title:"JavaScript asoslari",subtitle:"Operator va qiymatlar",questions:[
