@@ -4,8 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 const tracks = ["english", "russian", "coding", "cyber"];
 const levels: Record<string, string[]> = {
-  english: ["A1","A2","B1","B2","C1","C2"],
-  russian: ["A1","A2","B1","B2","C1","C2"],
+  english: ["A1 · Beginner","A2 · Elementary","B1 · Intermediate","B2 · Upper-intermediate","C1 · Advanced","C2 · Proficient"],
+  russian: ["A1 · Начальный","A2 · Элементарный","B1 · Средний","B2 · Выше среднего","C1 · Продвинутый","C2 · В совершенстве"],
   coding: ["Boshlang‘ich","Asosiy","O‘rta","Yaxshi","Ilg‘or","Ekspert"],
   cyber: ["Boshlang‘ich","Asosiy","O‘rta","Yaxshi","Ilg‘or","Ekspert"],
 };
