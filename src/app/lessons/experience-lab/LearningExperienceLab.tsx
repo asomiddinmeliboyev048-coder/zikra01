@@ -39,7 +39,7 @@ export default function LearningExperienceLab() {
           </div>
           <p className="mt-6 text-xs font-black uppercase tracking-[.28em] text-violet-300">ZIKRA ARENA</p>
           <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">Bilimingni sinab ko‘r.</h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">Yo‘nalishni tanla va boshqa Zikra foydalanuvchisi bilan bilim du elida bellash.</p>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">Yo‘nalishni tanla va boshqa Zikra foydalanuvchisi bilan bilim duelida bellash.</p>
         </div>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
