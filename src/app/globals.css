@@ -643,7 +643,7 @@ body {
 /* Route enter: short directional slide + fade. Fixed widgets are portaled
    outside this wrapper, so transform never captures the viewport nav. */
 @keyframes zikra-route-enter {
-  from { opacity: 0; transform: translate3d(18px, 0, 0); }
+  from { opacity: 0; transform: translate3d(var(--route-enter-x, 18px), 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 .zikra-page-transition {
