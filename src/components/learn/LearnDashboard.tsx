@@ -56,7 +56,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
       return payload.plan ? { ...payload.plan, trackId: payload.plan.track_id, skillName: payload.plan.skill_name, currentLevel: payload.plan.current_level, targetLevel: payload.plan.target_level, dailyMinutes: payload.plan.daily_minutes, learningStyle: payload.plan.learning_style, targetDate: payload.plan.target_date ?? "", interests: payload.plan.interests ?? [] } as LearningPlanInput & { updated_at?: string } : null;
     })).then((plans) => {
       if (!alive) return;
-      const saved = plans.filter(Boolean).sort((a, b) => Date.parse(b?.updated_at ?? "") - Date.parse(a?.updated_at ?? ""))[0] ?? null;
+      const saved = plans.filter((item): item is NonNullable<typeof item> => Boolean(item)).sort((a, b) => Date.parse(b.updated_at ?? "") - Date.parse(a.updated_at ?? ""))[0] ?? null;
       setActivePlan(saved);
       if (!saved) setWizardOpen(true);
     }).catch(() => { if (alive) setWizardOpen(true); }).finally(() => { if (alive) setPlanLoading(false); });
