@@ -40,7 +40,8 @@ export default function Template({ children }: { children: React.ReactNode }) {
     const dx = touch.clientX - start.x;
     const dy = touch.clientY - start.y;
     if (Math.abs(dx) < 76 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-    event.preventDefault();\n    const current = routeIndex(pathname);
+    event.preventDefault();
+    const current = routeIndex(pathname);
     if (current < 0) return;
     const next = dx < 0 ? current + 1 : current - 1;
     if (next < 0 || next >= SWIPE_ROUTES.length) return;
