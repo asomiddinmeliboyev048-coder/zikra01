@@ -96,6 +96,8 @@ declare
   uid uuid := auth.uid();
   award_id bigint;
   total_xp integer;
+  daily_count integer;
+  today_start timestamptz := ((now() at time zone 'Asia/Tashkent')::date::timestamp at time zone 'Asia/Tashkent');
   safe_xp integer := greatest(1, least(50, coalesce(p_xp,10)));
 begin
   if uid is null then raise exception 'auth required'; end if;
@@ -110,6 +112,13 @@ begin
   values(uid) on conflict(user_id) do nothing;
   insert into public.profiles(id)
   values(uid) on conflict(id) do nothing;
+
+  select count(*) into daily_count from public.learning_practice_awards
+    where user_id=uid and activity_type=p_activity_type and created_at >= today_start;
+  if daily_count >= 5 then
+    select coalesce(xp,0) into total_xp from public.profiles where id=uid;
+    return jsonb_build_object('awarded',false,'xp',0,'total_xp',coalesce(total_xp,0),'daily_limit',true);
+  end if;
 
   insert into public.learning_practice_awards(user_id,track_id,activity_type,item_key,xp_awarded)
   values(uid,p_track_id,p_activity_type,btrim(p_item_key),safe_xp)
