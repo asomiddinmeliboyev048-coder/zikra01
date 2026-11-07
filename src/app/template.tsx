@@ -26,7 +26,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
   function onTouchStart(event: React.TouchEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement;
     const ignored = Boolean(target.closest(
-      'input,textarea,select,button,a,[role="button"],[contenteditable="true"],[data-swipe-ignore],[data-horizontal-scroll],.hide-scrollbar'
+      'input,textarea,select,[contenteditable="true"],[data-swipe-ignore],[data-horizontal-scroll],.hide-scrollbar'
     ));
     const touch = event.touches[0];
     touchStart.current = { x: touch.clientX, y: touch.clientY, ignored };
@@ -40,7 +40,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
     const dx = touch.clientX - start.x;
     const dy = touch.clientY - start.y;
     if (Math.abs(dx) < 76 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-    const current = routeIndex(pathname);
+    event.preventDefault();\n    const current = routeIndex(pathname);
     if (current < 0) return;
     const next = dx < 0 ? current + 1 : current - 1;
     if (next < 0 || next >= SWIPE_ROUTES.length) return;
@@ -53,7 +53,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="zikra-page-transition" data-direction={direction} style={{ "--route-enter-x": direction === "left" ? "18px" : "-18px" } as React.CSSProperties} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="zikra-page-transition" data-direction={direction} style={{ "--route-enter-x": direction === "left" ? "18px" : "-18px", touchAction: "pan-y" } as React.CSSProperties} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {children}
     </div>
   );
