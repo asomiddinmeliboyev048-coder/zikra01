@@ -39,7 +39,9 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const queueRef = useRef<any>(null);
   const roomRef = useRef<any>(null);
   const matchRef = useRef(false);
-  const gameStarted = useRef(false);\n  const rewardSent = useRef(false);\n  const [gameXP, setGameXP] = useState(0);
+  const gameStarted = useRef(false);
+  const rewardSent = useRef(false);
+  const [gameXP, setGameXP] = useState(0);
   const lastWordAt = useRef(0);
   const bank = useMemo(() => Array.from(new Set([...(languageWords[gameLanguage] || languageWords.en), ...(gameLanguage === "en" ? (defaults[skill] || defaults["Ingliz tili"]) : []), ...vocabulary.map(norm).filter(w => w.length >= 2)])), [skill, vocabulary, gameLanguage]);
   const validWord = (value: string) => gameLanguage === "ru" ? /^[а-яё]+$/i.test(value) : gameLanguage === "uz" ? /^[a-zʻʼ’']+$/i.test(value) : /^[a-z]+$/i.test(value);
@@ -51,7 +53,16 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     joinedAt: Date.now(),
     skill
   });
-  const finish = useCallback((result: boolean) => {\n    setWon(result); setStage("result"); setTyping(false);\n    if (result && !rewardSent.current) {\n      rewardSent.current = true;\n      const trackId = skill === "Rus tili" ? "russian" : skill === "Dasturlash" ? "coding" : skill === "Kiberxavfsizlik" ? "cyber" : "english";\n      void fetch("/api/learning/activity", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trackId, skillName: skill, activityType: "game", itemKey: "word-duel-" + Date.now(), score: 100, details: { game: "word-duel", words: words.length }, completed: true }) })\n        .then((response) => response.json()).then((payload) => { if (payload?.reward?.awarded) setGameXP(payload.reward.xp); })\n        .catch((error) => console.error("[word-duel-xp]", error));\n    }\n  }, [skill, words.length]);
+  const finish = useCallback((result: boolean) => {
+    setWon(result); setStage("result"); setTyping(false);
+    if (result && !rewardSent.current) {
+      rewardSent.current = true;
+      const trackId = skill === "Rus tili" ? "russian" : skill === "Dasturlash" ? "coding" : skill === "Kiberxavfsizlik" ? "cyber" : "english";
+      void fetch("/api/learning/activity", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trackId, skillName: skill, activityType: "game", itemKey: "word-duel-" + Date.now(), score: 100, details: { game: "word-duel", words: words.length }, completed: true }) })
+        .then((response) => response.json()).then((payload) => { if (payload?.reward?.awarded) setGameXP(payload.reward.xp); })
+        .catch((error) => console.error("[word-duel-xp]", error));
+    }
+  }, [skill, words.length]);
   const stopChannels = useCallback(async () => {
     if (queueRef.current) { await supabase.removeChannel(queueRef.current); queueRef.current = null; }
     if (roomRef.current) { await supabase.removeChannel(roomRef.current); roomRef.current = null; }
