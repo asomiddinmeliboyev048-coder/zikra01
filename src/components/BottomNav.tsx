@@ -19,7 +19,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
     { href: "/videos", label: "Video", icon: VideoIcon },
     { href: "/reels", label: "Reels", icon: ReelsIcon },
     { href: "/chat", label: "Suhbat", icon: ChatIcon },
-    { href: "/lessons", label: "Rivojlanish", icon: LearnIcon },
+    { href: "/learn", label: "Rivojlanish", icon: LearnIcon },
   ];
 
   return (
