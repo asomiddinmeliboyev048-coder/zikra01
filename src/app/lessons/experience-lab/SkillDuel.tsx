@@ -39,7 +39,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const matchRef = useRef(false);
   const gameStarted = useRef(false);
   const lastWordAt = useRef(0);
-  const bank = useMemo(() => Array.from(new Set([...(languageWords[gameLanguage] || languageWords.en), ...(gameLanguage === "en" ? (defaults[skill] || defaults["Ingliz tili"]) : []), ...vocabulary.map(norm).filter(w => w.length >= 2)])), [skill, vocabulary, gameLanguage]);\n  const validWord = (value: string) => gameLanguage === "ru" ? /^[а-яё]+$/i.test(value) : gameLanguage === "uz" ? /^[a-zʻʼ’'\`]+$/i.test(value) : /^[a-z]+$/i.test(value);\n  const languageLabel = gameLanguage === "ru" ? "Русский" : gameLanguage === "uz" ? "O‘zbekcha" : "English";
+  const bank = useMemo(() => Array.from(new Set([...(languageWords[gameLanguage] || languageWords.en), ...(gameLanguage === "en" ? (defaults[skill] || defaults["Ingliz tili"]) : []), ...vocabulary.map(norm).filter(w => w.length >= 2)])), [skill, vocabulary, gameLanguage]);\n  const validWord = (value: string) => gameLanguage === "ru" ? /^[а-яё]+$/i.test(value) : gameLanguage === "uz" ? /^[a-zʻʼ’']+$/i.test(value) : /^[a-z]+$/i.test(value);\n  const languageLabel = gameLanguage === "ru" ? "Русский" : gameLanguage === "uz" ? "O‘zbekcha" : "English";
   const profileLabel = (user: any): Player => ({
     id: user.id,
     name: String(user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.username || user.email?.split("@")[0] || "Zikra foydalanuvchisi").slice(0, 48),
