@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Search, Volume2, Mic, Swords, Target, Trophy, Clock3, Flame, ChevronRight, CheckCircle2, Play, Headphones, PenLine, ArrowLeft, CalendarDays, Sparkles, Send } from "lucide-react";
 import type { LearningPlanInput } from "./LearningOnboarding";
 import type { AssessmentTrack } from "./assessment-bank";
@@ -52,7 +52,26 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const [writingSaved, setWritingSaved] = useState(false);
   const [listeningDone, setListeningDone] = useState(false);
   const [celebration, setCelebration] = useState(false);
+
   const [rewardXP, setRewardXP] = useState(0);
+  const tabTouch = useRef<{x:number;y:number;ignored:boolean}|null>(null);
+  const tabOrder = ["home","vocab","practice","games","stats"];
+  const beginTabSwipe = (event: React.TouchEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    const ignored = Boolean(target.closest('input,textarea,select,button,a,[data-swipe-ignore],[data-horizontal-scroll],.hide-scrollbar'));
+    const touch = event.touches[0];
+    tabTouch.current = {x:touch.clientX,y:touch.clientY,ignored};
+  };
+  const endTabSwipe = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = tabTouch.current; tabTouch.current = null;
+    if (!start || start.ignored) return;
+    const touch = event.changedTouches[0], dx = touch.clientX-start.x, dy = touch.clientY-start.y;
+    if (Math.abs(dx)<70 || Math.abs(dx)<Math.abs(dy)*1.3) return;
+    event.stopPropagation();
+    const current = tabOrder.indexOf(tab);
+    const next = Math.max(0,Math.min(tabOrder.length-1,current+(dx<0?1:-1)));
+    if (next!==current) { setTab(tabOrder[next]); setPracticeMode(null); }
+  };
 
   const meta = languageMeta[plan.trackId];
   const words = useMemo(() => meta.sample.slice(0, 5), [meta.sample]);
@@ -153,7 +172,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     { id: "writing" as const, icon: PenLine, title: "Yozish mashqi", desc: "Mavzu bo‘yicha fikringizni yozib, mashqni yakunlang." },
   ];
 
-  return <div className="learning-hub min-h-[100dvh] bg-[#0d1016] px-3 pb-[max(110px,calc(88px+env(safe-area-inset-bottom)))] pt-4 text-slate-100 sm:px-6 sm:pt-6 lg:px-10">
+  return <div className="learning-hub min-h-[100dvh] bg-[#0d1016] px-3 pb-[max(110px,calc(88px+env(safe-area-inset-bottom)))] pt-4 text-slate-100 sm:px-6 sm:pt-6 lg:px-10" onTouchStart={beginTabSwipe} onTouchEnd={endTabSwipe}>
     <div className="mx-auto max-w-[1380px]">
       <header className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-2xl font-black text-[#078777] shadow">Z</span><div className="min-w-0"><b className="block truncate text-lg sm:text-xl">Zikra <span className="text-[#078777]">Rivojlanish</span></b><p className="text-xs text-slate-500">Shaxsiy bilim makoningiz</p></div></div>
