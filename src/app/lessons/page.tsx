@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/queries";
+import Navbar from "@/components/Navbar";
 import LearningExperienceLab from "./experience-lab/LearningExperienceLab";
 
 export const metadata: Metadata = { title: "Rivojlanish | Zikra" };
@@ -12,5 +13,5 @@ export default async function LessonsPage() {
 
   // Rivojlanish — mustaqil, to‘liq ekranli o‘quv muhiti.
   // Umumiy navbar, profil va bildirishnoma bu yerda takrorlanmaydi.
-  return <main className="min-h-[100dvh] w-full"><LearningExperienceLab /></main>;
+  return <><Navbar /><main className="min-h-[100dvh] w-full"><LearningExperienceLab /></main></>;
 }
