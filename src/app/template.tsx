@@ -53,7 +53,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="zikra-page-transition" data-direction={direction} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="zikra-page-transition" data-direction={direction} style={{ "--route-enter-x": direction === "left" ? "18px" : "-18px" } as React.CSSProperties} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {children}
     </div>
   );
