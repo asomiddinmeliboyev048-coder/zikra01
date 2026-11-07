@@ -40,8 +40,7 @@ export default function AssessmentFlow({ track, plan, onClose }: Props) {
     finally { setSaving(false); }
   };
 
-  if (stage === "result" && result) {
-    if (stage === "practical") {
+  if (stage === "practical") {
     return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#f4f8f7] px-4 py-6 text-[#102321] sm:px-8 sm:py-10">
       <div className="mx-auto max-w-3xl">
         <button onClick={() => setStage("quiz")} className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-[#102321]"><ArrowLeft size={17}/> Testga qaytish</button>
@@ -107,7 +106,6 @@ export default function AssessmentFlow({ track, plan, onClose }: Props) {
         </section>
       </div>
     </main>;
-  }
 
   if (stage === "evidence") {
     return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#f4f8f7] px-4 py-6 text-[#102321] sm:px-8 sm:py-10">
