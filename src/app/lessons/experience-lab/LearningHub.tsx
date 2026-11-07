@@ -244,7 +244,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
           <div className="pointer-events-none absolute -left-12 -top-12 h-40 w-40 rounded-full bg-violet-500/20 blur-3xl"/>
           <div className="relative mx-auto mb-3 h-28 w-28 animate-bounce"><img src="/zikra-mascot.webp" alt="Zikra mushukchasi" className="h-full w-full object-contain"/></div>
           <p className="text-xs font-black tracking-[.22em] text-emerald-300">ZIKRA · YUTUQ</p>
-          <h2 id="zikra-success-title" className="mt-2 text-2xl font-black text-white">{celebrationMessage || (plan.trackId === "english" ? "Amazing work!" : plan.trackId === "russian" ? "Отличная работа!" : "Ajoyib natija!")}</h2>
+          <h2 id="zikra-success-title" className="mt-2 text-2xl font-black text-white">{plan.trackId === "english" ? "You did it!" : plan.trackId === "russian" ? "Вы справились!" : "Ajoyib natija!"}</h2>
           <p className="mt-2 text-sm text-slate-300">{celebrationMessage ? celebrationMessage : (plan.trackId === "english" ? "You completed the exercise successfully!" : plan.trackId === "russian" ? "Вы успешно выполнили упражнение!" : "Siz mashqni muvaffaqiyatli bajardingiz!")}</p>
           <p className="mt-1 text-xs text-slate-400">{celebrationTranslation || (plan.trackId === "english" || plan.trackId === "russian" ? "Tarjimasi: Mashqni muvaffaqiyatli bajardingiz!" : "Har bir kichik qadam katta natijaga olib boradi.")}</p>
           <div className="my-5 inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-5 py-3 text-lg font-black text-amber-300"><Sparkles size={19}/> +{rewardXP} XP</div>
