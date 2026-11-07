@@ -648,8 +648,8 @@ body {
 }
 .zikra-page-transition {
   min-height: 100%;
-  animation: zikra-route-enter 260ms cubic-bezier(.22, 1, .36, 1) both;
-  will-change: transform, opacity;
+  animation: zikra-route-enter 260ms cubic-bezier(.22, 1, .36, 1);
+  will-change: opacity;
 }
 @media (prefers-reduced-motion: reduce) {
   .zikra-page-transition { animation: none; will-change: auto; }
