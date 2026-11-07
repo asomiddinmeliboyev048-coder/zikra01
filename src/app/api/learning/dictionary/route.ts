@@ -24,7 +24,7 @@ async function translate(word: string, source: "en" | "ru") {
   if (!response.ok) return "";
   const payload = await response.json();
   const value = payload?.responseData?.translatedText;
-  if (typeof value !== "string" || !value.trim() || value.toLowerCase() === word.toLowerCase()) return "";
+  if (payload?.responseStatus !== 200 || typeof value !== "string" || !value.trim() || value.toLowerCase() === word.toLowerCase() || /please select|invalid language|quota exceeded/i.test(value)) return "";
   return value.replace(/&amp;/g, "&").replace(/&#39;/g, "'");
 }
 
