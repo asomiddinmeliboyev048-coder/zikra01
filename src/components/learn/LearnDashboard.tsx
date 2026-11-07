@@ -92,30 +92,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#f3f7f6] text-[#172b27] dark:bg-[#071512] dark:text-[#e7f1ed]">
-      <div className="mx-auto grid max-w-[1600px] gap-4 px-3 py-4 sm:px-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-5 lg:px-7 lg:py-6">
-        <aside className="hidden lg:flex lg:flex-col">
-          <div className="sticky top-24 flex max-h-[calc(100vh-112px)] flex-col rounded-[26px] border border-white bg-white/90 p-4 shadow-[0_12px_40px_-30px_rgba(17,75,61,.35)] dark:border-white/10 dark:bg-[#10231e]">
-            <Link href="/learn" className="mb-7 flex items-center gap-3 px-2 pt-1">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-xl font-black text-white shadow-lg shadow-emerald-900/15">Z</span>
-              <span className="text-xl font-black tracking-tight">Zikra<span className="text-emerald-600">.</span></span>
-            </Link>
-            <p className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.18em] text-slate-400">O‘rganish markazi</p>
-            <nav className="space-y-1">
-              {navItems.map(({ label, href, icon: Icon }, index) => (
-                <Link key={label} href={href} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition ${index === 0 ? "bg-[#dff2ee] text-[#087d70] dark:bg-emerald-400/10 dark:text-emerald-300" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5"}`}>
-                  <Icon size={17} strokeWidth={2.1} />{label}
-                </Link>
-              ))}
-            </nav>
-            <div className="mt-auto overflow-hidden rounded-2xl bg-gradient-to-br from-[#0b7d70] to-[#07594f] p-4 text-white">
-              <div className="mb-3 grid h-9 w-9 place-items-center rounded-xl bg-white/15"><Sparkles size={18}/></div>
-              <p className="text-sm font-extrabold">Har kuni ozgina o‘sish.</p>
-              <p className="mt-1 text-[11px] leading-5 text-white/75">Kichik qadamlar katta natijalarga olib boradi.</p>
-              <Link href="/lessons" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-white">Mashqlarni ochish <ChevronRight size={14}/></Link>
-            </div>
-          </div>
-        </aside>
-
+      <div className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-5 lg:space-y-5 lg:px-7 lg:py-6">
         <main className="min-w-0 space-y-4 lg:space-y-5">
           <header className="flex flex-col gap-4 rounded-[24px] border border-white bg-white/90 p-4 shadow-[0_12px_40px_-30px_rgba(17,75,61,.3)] dark:border-white/10 dark:bg-[#10231e] sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
