@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Award, Bell, BookOpen, CheckCircle2, ChevronLeft, ChevronRight,
@@ -9,6 +9,8 @@ import {
   Users, Video, Map as MapIcon, type LucideIcon,
 } from "lucide-react";
 import LearningGamesHub from "@/components/learn/LearningGamesHub";
+import LearningOnboarding, { type LearningPlanInput } from "@/app/lessons/experience-lab/LearningOnboarding";
+import AssessmentFlow from "@/app/lessons/experience-lab/AssessmentFlow";
 
 type Course = { id: string; title: string; thumbnail_url: string | null; duration: number | null; skill_name: string | null; created_at: string; };
 type Props = {
@@ -40,6 +42,10 @@ function formatDuration(seconds: number | null) {
 }
 
 export default function LearnDashboard({ profile, courses, skills, lessonStats }: Props) {
+  const [planLoading, setPlanLoading] = useState(true);
+  const [activePlan, setActivePlan] = useState<LearningPlanInput | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Barchasi");
   const [monthOffset, setMonthOffset] = useState(0);
@@ -49,6 +55,23 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
     const matchesCategory = category === "Barchasi" || (course.skill_name ?? "").toLowerCase().includes(category.toLowerCase());
     return matchesQuery && matchesCategory;
   }), [courses, query, category]);
+
+  useEffect(() => {
+    let alive = true;
+    const tracks = ["english", "russian", "coding", "cyber"];
+    Promise.all(tracks.map(async (track) => {
+      const response = await fetch(`/api/learning/plan?track=${track}`, { cache: "no-store" });
+      if (!response.ok) return null;
+      const payload = await response.json();
+      return payload.plan ? { ...payload.plan, trackId: payload.plan.track_id, skillName: payload.plan.skill_name, currentLevel: payload.plan.current_level, targetLevel: payload.plan.target_level, dailyMinutes: payload.plan.daily_minutes, learningStyle: payload.plan.learning_style } as LearningPlanInput & { updated_at?: string } : null;
+    })).then((plans) => {
+      if (!alive) return;
+      const saved = plans.filter(Boolean).sort((a, b) => Date.parse(b?.updated_at ?? "") - Date.parse(a?.updated_at ?? ""))[0] ?? null;
+      setActivePlan(saved);
+      if (!saved) setWizardOpen(true);
+    }).catch(() => { if (alive) setWizardOpen(true); }).finally(() => { if (alive) setPlanLoading(false); });
+    return () => { alive = false; };
+  }, []);
 
   const date = new Date();
   date.setDate(1);
@@ -62,6 +85,10 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
     { id: "course", title: "Yangi video dars ko‘rish", detail: "Bilimingga yana bir qadam qo‘sh" },
     { id: "mission", title: "Bugungi mashqni bajarish", detail: "Rivojlanish bo‘limidagi missiyani och" },
   ];
+
+  if (planLoading) return <div className="grid min-h-[70vh] place-items-center bg-[#f3f7f6] px-5 dark:bg-[#071512]"><div className="text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600"/><p className="mt-4 text-sm font-bold text-slate-500">Shaxsiy o‘quv yo‘lingiz tekshirilmoqda…</p></div></div>;
+  if (wizardOpen) return <LearningOnboarding userName={profile.full_name} onStart={(track, nextPlan) => { setActivePlan(nextPlan); setWizardOpen(false); setAssessmentOpen(true); }} />;
+  if (assessmentOpen && activePlan) return <AssessmentFlow track={activePlan.trackId} plan={activePlan} onClose={() => setAssessmentOpen(false)} />;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#f3f7f6] text-[#172b27] dark:bg-[#071512] dark:text-[#e7f1ed]">
@@ -121,16 +148,18 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
             <img src="/zikra-mascot.webp" alt="Zikra Learn mushukcha maskoti" className="pointer-events-none absolute -bottom-4 right-2 z-0 h-[94%] max-w-[43%] object-contain object-bottom drop-shadow-[0_14px_20px_rgba(0,0,0,.2)] sm:right-8 sm:h-[112%] sm:max-w-[34%]" />
           </section>
 
-          <section className="overflow-hidden rounded-[24px] border border-emerald-100 bg-gradient-to-r from-white via-[#f2fbf7] to-[#e3f6ef] p-5 shadow-sm dark:border-emerald-300/10 dark:from-[#10231e] dark:via-[#102b25] dark:to-[#123b31] sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-7">
-            <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"><Target size={13}/> Shaxsiy rivojlanish</span>
-              <h2 className="mt-3 text-xl font-black sm:text-2xl">Yo‘l xaritangizni yarating</h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Aniq bir maqsadingiz — bir qadam. Ko‘nikma, hozirgi daraja va maqsadingizni belgilang. Zikra siz uchun shaxsiy o‘quv yo‘lini tayyorlaydi.</p>
+          <section className="relative overflow-hidden rounded-[24px] border border-emerald-100 bg-gradient-to-r from-white via-[#f2fbf7] to-[#e3f6ef] p-5 shadow-sm dark:border-emerald-300/10 dark:from-[#10231e] dark:via-[#102b25] dark:to-[#123b31] sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-7">
+            <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-emerald-300/20 blur-3xl"/>
+            <div className="relative max-w-2xl">
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"><Target size={13}/> Sizning shaxsiy yo‘lingiz</span>
+              <h2 className="mt-3 text-xl font-black sm:text-2xl">{activePlan?.skillName ?? "Shaxsiy rivojlanish"}</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{activePlan ? `${activePlan.currentLevel} → ${activePlan.targetLevel} · Kuniga ${activePlan.dailyMinutes} daqiqa · Maqsad: ${activePlan.purpose}` : "Yo‘l xaritangizni yarating."}</p>
+              <p className="mt-2 text-xs font-semibold text-emerald-800 dark:text-emerald-200">Aniq bir maqsadingiz — bir qadam.</p>
             </div>
-            <div className="mt-4 flex shrink-0 flex-col items-stretch gap-2 sm:mt-0"><Link href="/lessons" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c]"><MapIcon size={17}/> Yo‘l xaritasi <ChevronRight size={17}/></Link><Link href="/lessons" className="text-center text-[10px] font-bold text-emerald-800 underline decoration-emerald-300 underline-offset-4 dark:text-emerald-200">Aniq bir maqsadingiz — bir qadam</Link></div>
+            <button onClick={() => setWizardOpen(true)} className="relative mt-4 inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c] sm:mt-0"><MapIcon size={17}/> Yo‘l xaritasini tahrirlash <ChevronRight size={17}/></button>
           </section>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
+          <div className="grid gap-4 ">
             <section className="grid gap-4 sm:grid-cols-2">
               <article className="rounded-[22px] border border-white bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#10231e]">
                 <div className="flex items-center justify-between"><p className="text-sm font-extrabold">Faollik</p><span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">Bugungi holat</span></div>
@@ -154,18 +183,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
               </article>
             </section>
 
-            <aside className="rounded-[22px] border border-white bg-white p-5 text-center shadow-sm dark:border-white/10 dark:bg-[#10231e]">
-              <div className="mx-auto grid h-[82px] w-[82px] place-items-center overflow-hidden rounded-full bg-gradient-to-br from-emerald-100 to-teal-50 text-2xl font-black text-emerald-800 ring-4 ring-emerald-50 dark:from-emerald-400/15 dark:to-teal-400/10 dark:text-emerald-200 dark:ring-white/5">
-                {profile.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover"/> : initials(profile.full_name)}
-              </div>
-              <h2 className="mt-3 font-extrabold">{profile.full_name}</h2>
-              <p className="mt-1 text-xs text-slate-400">{profile.username ? `@${profile.username}` : "Zikra o‘quvchisi"}{profile.city ? ` · ${profile.city}` : ""}</p>
-              <div className="mx-auto mt-4 flex max-w-[250px] justify-center gap-2">
-                <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">{profile.level}</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">{profile.xp} XP</span>
-              </div>
-              <Link href={`/profile/${profile.id}`} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-700/20 py-2.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-400/10">Profilni ko‘rish <ChevronRight size={14}/></Link>
-            </aside>
+
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(270px,.85fr)]">
