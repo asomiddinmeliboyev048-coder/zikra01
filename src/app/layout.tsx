@@ -6,6 +6,7 @@ import PinGate from "@/components/auth/PinGate";
 import AuthListener from "@/components/auth/AuthListener";
 import NavProgress from "@/components/NavProgress";
 import RoutePrefetcher from "@/components/RoutePrefetcher";
+import SwipePageNavigation from "@/components/SwipePageNavigation";
 import LanguageRuntime from "@/components/LanguageRuntime";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -67,7 +68,7 @@ export default function RootLayout({
         <NavProgress />
         <RoutePrefetcher />
         <LanguageRuntime />
-        {children}
+        <SwipePageNavigation>{children}</SwipePageNavigation>
         <PWAInstall />
         <AuthListener />
         <PinGate />
