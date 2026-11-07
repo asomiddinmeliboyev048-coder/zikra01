@@ -53,7 +53,9 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const [listeningDone, setListeningDone] = useState(false);
   const [celebration, setCelebration] = useState(false);
 
-  const [rewardXP, setRewardXP] = useState(0);\n  const [celebrationMessage, setCelebrationMessage] = useState("");\n  const [celebrationTranslation, setCelebrationTranslation] = useState("");
+  const [rewardXP, setRewardXP] = useState(0);
+  const [celebrationMessage, setCelebrationMessage] = useState("");
+  const [celebrationTranslation, setCelebrationTranslation] = useState("");
   const tabTouch = useRef<{x:number;y:number;ignored:boolean}|null>(null);
   const tabOrder = ["home","vocab","practice","games","stats"];
   const beginTabSwipe = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -74,7 +76,10 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   };
 
   const meta = languageMeta[plan.trackId];
-  const completedStages = activities.filter((item) => ["listening", "speaking", "writing", "game"].includes(item.activity_type) && (item.score ?? 0) >= 45).length;\n  const wordStage = completedStages % 3;\n  const wordOffset = wordStage * 5;\n  const words = useMemo(() => meta.sample.slice(wordOffset, wordOffset + 5), [meta.sample, wordOffset]);
+  const completedStages = activities.filter((item) => ["listening", "speaking", "writing", "game"].includes(item.activity_type) && (item.score ?? 0) >= 45).length;
+  const wordStage = completedStages % 3;
+  const wordOffset = wordStage * 5;
+  const words = useMemo(() => meta.sample.slice(wordOffset, wordOffset + 5), [meta.sample, wordOffset]);
   const date = plan.targetDate ? new Date(plan.targetDate + "T12:00:00").toLocaleDateString("uz-UZ") : "Belgilanmagan";
   const logActivity = async (activityType: string, itemKey: string, score?: number, details: Record<string, unknown> = {}, completed = false) => {
     try {
