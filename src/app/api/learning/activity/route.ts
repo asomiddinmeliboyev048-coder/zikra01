@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   }
   let reward: { awarded: boolean; xp: number; total_xp: number } | null = null;
   if (completed) {
-    if (!["listening", "speaking", "writing", "game", "lesson"].includes(type) || !itemKey) {
+    if (!["vocabulary", "listening", "speaking", "writing", "diagnostic", "game", "lesson"].includes(type) || !itemKey) {
       return NextResponse.json({ error: "Bu faoliyat uchun XP berib bo‘lmaydi." }, { status: 400 });
     }
     const { data: rewardData, error: rewardError } = await supabase.rpc("learning_complete_practice", {
