@@ -69,6 +69,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     if (!start || start.ignored) return;
     const touch = event.changedTouches[0], dx = touch.clientX-start.x, dy = touch.clientY-start.y;
     if (Math.abs(dx)<70 || Math.abs(dx)<Math.abs(dy)*1.3) return;
+    event.preventDefault();
     event.stopPropagation();
     const current = tabOrder.indexOf(tab);
     const next = Math.max(0,Math.min(tabOrder.length-1,current+(dx<0?1:-1)));
