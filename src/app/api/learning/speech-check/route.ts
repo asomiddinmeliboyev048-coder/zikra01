@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         signal: AbortSignal.timeout(15000),
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text:
-            "You are a supportive language practice coach. Compare the expected phrase with the browser speech-recognition transcript. This is transcript matching, not acoustic phonetic analysis. Return ONLY valid JSON with keys score (integer 0-100), passed (boolean; true at 65+), feedback (one short sentence in the learner language), praise (short congratulation in the learner language), praiseUz (Uzbek translation). Learner language: " + trackId + ". Expected: " + JSON.stringify(expected) + ". Recognized: " + JSON.stringify(transcript)
+            "You are a supportive language practice coach. Compare the expected phrase with the browser speech-recognition transcript. This is transcript matching, not acoustic phonetic analysis. Return ONLY valid JSON with keys score (integer 0-100), passed (boolean; true at 65+), feedback (one short sentence in the learner language), praise (short congratulation in the learner language), praiseUz (Uzbek translation). Learner language: " + (trackId === "russian" ? "Russian" : "English") + ". Expected: " + JSON.stringify(expected) + ". Recognized: " + JSON.stringify(transcript)
           }] }],
           generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
         }),
