@@ -23,7 +23,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
   ];
 
   return (
-    <nav className="zikra-bottom-nav fixed inset-x-2 bottom-2 z-40 flex overflow-hidden rounded-2xl border border-white/80 bg-white/80 pb-[env(safe-area-inset-bottom)] shadow-[0_20px_48px_-22px_rgba(8,63,59,0.5)] backdrop-blur-2xl md:hidden dark:border-white/10 dark:bg-[#0d2420]/[0.88]">
+    <nav className="zikra-bottom-nav fixed inset-x-0 bottom-0 z-50 flex overflow-hidden rounded-t-[22px] border-t border-white/[0.08] bg-[#101114]/[0.97] pb-[calc(env(safe-area-inset-bottom)+6px)] shadow-[0_-14px_40px_-24px_rgba(0,0,0,0.85)] backdrop-blur-2xl md:hidden">
       {items.map((item) => {
         const active = item.href.startsWith("/profile")
           ? pathname.startsWith("/profile")
@@ -34,8 +34,8 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             key={item.href}
             href={item.href}
             className={cn(
-              "group relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 transition-all duration-300",
-              active ? "text-brand-700 dark:text-brand-300" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              "group relative flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5 pb-1 pt-2.5 transition-all duration-300",
+              active ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"
             )}
           >
             {/* Aktiv indikator (yuqori chiziqcha) */}
@@ -48,9 +48,9 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             {/* Ikonka + aktiv fon */}
             <span
               className={cn(
-                "flex h-8 w-12 items-center justify-center rounded-xl transition-all duration-300",
+                "flex h-8 w-11 items-center justify-center rounded-xl transition-all duration-300",
                 active
-                  ? "-translate-y-0.5 bg-brand-50 shadow-[0_8px_18px_-12px_rgba(11,155,136,0.65)] dark:bg-brand/15"
+                  ? "-translate-y-0.5 bg-white/[0.07] shadow-[0_8px_18px_-12px_rgba(11,155,136,0.65)]"
                   : "group-active:scale-95 group-active:bg-gray-100 dark:group-active:bg-white/5"
               )}
             >
@@ -58,7 +58,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             </span>
             <span
               className={cn(
-                "text-[10px] tracking-[-0.01em] transition-all duration-300",
+                "max-w-full truncate text-[10px] tracking-[-0.01em] transition-all duration-300",
                 active ? "font-bold" : "font-medium"
               )}
             >
