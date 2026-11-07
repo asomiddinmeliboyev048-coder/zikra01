@@ -97,7 +97,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const finishPractice = async (activityType: string, itemKey: string, score = 100, details: Record<string, unknown> = {}) => {
     const payload = await logActivity(activityType, `${itemKey}:${todayKey()}:${completedStages + 1}`, score, details, true);
     if (payload?.reward?.awarded) { setRewardXP(payload.reward.xp); if (details.evaluator !== "gemini") { setCelebrationMessage(""); setCelebrationTranslation(""); } setCelebration(true); }
-    else if (payload?.reward && !payload.reward.awarded) setStatus("Bu mashq uchun XP avval berilgan.");
+    else if (payload?.reward && !payload.reward.awarded) setStatus(payload.reward.daily_limit ? "Bugungi ushbu mashq uchun XP limiti tugadi." : "Bu mashq uchun XP avval berilgan.");
   };
 
   useEffect(() => {
