@@ -81,7 +81,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const completedStages = activities.filter((item) => ["listening", "speaking", "writing", "game"].includes(item.activity_type) && (item.score ?? 0) >= 45).length;
   const wordStage = completedStages % 3;
   const wordOffset = wordStage * 5;
-  const words = useMemo(() => meta.sample.slice(wordOffset, wordOffset + 5), [meta.sample, wordOffset]);
+  const words = useMemo(() => meta.sample.slice(wordOffset, wordOffset + 5), [meta.sample, wordOffset]);\n  const currentDoneCount = words.filter((word) => done.includes(word)).length;
   const date = plan.targetDate ? new Date(plan.targetDate + "T12:00:00").toLocaleDateString("uz-UZ") : "Belgilanmagan";
   const logActivity = async (activityType: string, itemKey: string, score?: number, details: Record<string, unknown> = {}, completed = false) => {
     try {
