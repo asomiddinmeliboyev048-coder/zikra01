@@ -1,31 +1,177 @@
 "use client";
-import {useEffect,useState} from "react";
-import {BookOpen,Search,Volume2,Mic,Swords,Target,Trophy,Clock3,Flame,ChevronRight,CheckCircle2,Play,Headphones,PenLine} from "lucide-react";
-import type {LearningPlanInput} from "./LearningOnboarding";
-import type {AssessmentTrack} from "./assessment-bank";
-type Assessment={score:number;total:number;level:string;practical_passed:boolean;assessed_at:string}|null;
-type Props={plan:LearningPlanInput;assessment:Assessment;onEdit:()=>void;onAssess:()=>void;onDuel:(track:AssessmentTrack)=>void};
-const tracks:Record<AssessmentTrack,string>={english:"Ingliz tili",russian:"Rus tili",coding:"Dasturlash",cyber:"Kiberxavfsizlik"};
-const daily=[["achieve","erishmoq"],["improve","yaxshilamoq"],["although","garchi"],["reliable","ishonchli"],["opportunity","imkoniyat"],["confident","o‘ziga ishongan"],["environment","atrof-muhit"],["experience","tajriba"],["decision","qaror"],["challenge","qiyinchilik"]];
-export default function LearningHub({plan,assessment,onEdit,onAssess,onDuel}:Props){
- const [tab,setTab]=useState("home"),[query,setQuery]=useState(""),[result,setResult]=useState<any>(null),[error,setError]=useState(""),[loading,setLoading]=useState(false),[done,setDone]=useState<string[]>([]),[spoken,setSpoken]=useState(""),[status,setStatus]=useState("");
- const today=new Date().toISOString().slice(0,10);
- const words=Array.from({length:5},(_,i)=>daily[(Math.floor(Date.now()/86400000)+i)%daily.length]);
- useEffect(()=>{try{setDone(JSON.parse(localStorage.getItem("zikra-words-"+today)||"[]"))}catch{}},[today]);
- async function search(e:React.FormEvent){e.preventDefault();if(!query.trim())return;setLoading(true);setError("");setResult(null);try{const r=await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/"+encodeURIComponent(query.trim()));if(!r.ok)throw new Error("So‘z topilmadi. Imlo xatosini tekshiring.");const d=(await r.json())[0];setResult({word:d.word,phonetic:d.phonetic||"",meanings:(d.meanings||[]).flatMap((m:any)=>m.definitions||[]).slice(0,5).map((x:any)=>x.definition),audio:d.phonetics?.find((x:any)=>x.audio)?.audio||""})}catch(x){setError(x instanceof Error?x.message:"Lug‘atga ulanib bo‘lmadi.")}finally{setLoading(false)}}
- function speak(){if(result?.audio){new Audio(result.audio.startsWith("//")?"https:"+result.audio:result.audio).play().catch(()=>setStatus("Audio ijro etilmadi."));return}const u=new SpeechSynthesisUtterance(result.word);u.lang="en-US";speechSynthesis.speak(u)}
- function testVoice(){const w=window as any,C=w.SpeechRecognition||w.webkitSpeechRecognition;if(!C){setStatus("Brauzer nutqni avtomatik tekshirishni qo‘llamaydi. Ovoz chiqarib takrorlang.");return}const rec=new C();rec.lang="en-US";rec.onresult=(e:any)=>{const v=e.results[0][0].transcript;setSpoken(v);setStatus(v.toLowerCase().includes(result.word.toLowerCase())?"Ajoyib! So‘z tanildi.":"Yana bir bor urinib ko‘ring.")};rec.onerror=()=>setStatus("Mikrofon ruxsatini tekshiring.");setStatus("Tinglayapman…");rec.start()}
- function toggle(w:string){const n=done.includes(w)?done.filter(x=>x!==w):[...done,w];setDone(n);try{localStorage.setItem("zikra-words-"+today,JSON.stringify(n))}catch{}}
- const date=plan.targetDate?new Date(plan.targetDate+"T12:00:00").toLocaleDateString("uz-UZ"):"Belgilanmagan";
- return <div className="min-h-[100dvh] bg-[radial-gradient(ellipse_at_8%_0%,#e9eaff,transparent_36%),radial-gradient(ellipse_at_95%_30%,#dff8ef,transparent_34%),#f7faf9] px-3 pb-10 pt-5 text-[#122522] sm:px-6 lg:px-10"><div className="mx-auto max-w-[1380px]">
- <header className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-white text-2xl font-black text-[#078777] shadow">Z</span><div><b className="text-xl">Zikra <span className="text-[#078777]">Learn</span></b><p className="text-xs text-slate-500">Shaxsiy bilim makoningiz</p></div></div><span className="rounded-full border border-white bg-white/75 px-4 py-2 text-[10px] font-black tracking-widest text-[#087d70]">YOUR LEARNING JOURNEY</span></header>
- <div className="mt-7 grid gap-4 xl:grid-cols-[1.3fr_.7fr]"><section className="relative overflow-hidden rounded-[30px] border border-white bg-white/85 p-6 shadow-xl sm:p-8"><div className="absolute -right-12 -top-16 h-56 w-56 rounded-full bg-emerald-100 blur-3xl"/><div className="relative"><p className="text-[10px] font-black tracking-[.2em] text-[#078777]">SIZNING SHAXSIY YO‘LINGIZ</p><h1 className="mt-3 text-3xl font-black sm:text-4xl">{plan.skillName} bo‘yicha rivojlanish</h1><p className="mt-2 text-sm text-slate-500">{tracks[plan.trackId]} · {plan.dailyMinutes} daqiqa/kun · Maqsad: {date}</p><div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">{assessment?assessment.level:"Diagnostika kutilmoqda"}</span><span className="rounded-full bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700">{plan.learningStyle==="mixed"?"Aralash usul":plan.learningStyle==="video"?"Video dars":plan.learningStyle==="practice"?"Amaliyot":"O‘qish"}</span></div><div className="mt-6 flex flex-wrap gap-3"><button onClick={onAssess} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-[#087d70] px-5 text-sm font-bold text-white"><Target size={17}/>{assessment?"Qayta diagnostika":"Darajani aniqlash"}</button><button onClick={onEdit} className="min-h-12 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold">Yo‘l xaritasini tahrirlash</button></div></div></section>
- <div className="grid grid-cols-2 gap-3">{[[Flame,"Kunlik ritm",plan.dailyMinutes+" daq."],[Trophy,"Diagnostika",assessment?assessment.score+"/"+assessment.total:"—"],[Clock3,"Maqsad sanasi",date],[CheckCircle2,"Bugungi so‘zlar",done.length+"/5"]].map(([I,l,v]:any)=><div key={l} className="rounded-[24px] border border-white bg-white/85 p-4 shadow-sm"><I size={20} className="text-[#0b9b88]"/><p className="mt-3 text-xs text-slate-500">{l}</p><b className="mt-1 block break-words text-lg font-black">{v}</b></div>)}</div></div>
- <nav className="mt-7 flex gap-2 overflow-x-auto rounded-2xl border border-white bg-white/75 p-2">{[["home","Umumiy",Target],["vocab","Lug‘at",BookOpen],["practice","Mashqlar",PenLine],["games","O‘yinlar",Swords],["stats","Natijalar",Trophy]].map(([id,label,I]:any)=><button key={id} onClick={()=>setTab(id)} className={"flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-bold "+(tab===id?"bg-[#087d70] text-white":"text-slate-500 hover:bg-emerald-50")}><I size={16}/>{label}</button>)}</nav>
- {tab==="home"&&<div className="mt-6 grid gap-5 lg:grid-cols-2"><section className="rounded-[28px] border border-white bg-white/90 p-5 sm:p-7"><p className="text-[10px] font-black tracking-widest text-[#078777]">BUGUNGI REJA</p><h2 className="mt-1 text-2xl font-black">Har kuni 5 ta yangi so‘z</h2><div className="mt-5 space-y-3">{words.map(([w,m])=><button key={w} onClick={()=>toggle(w)} className="flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-[#fbfdfc] p-3 text-left"><span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{done.includes(w)?<CheckCircle2/>:<BookOpen/>}</span><span className="flex-1"><b className="block text-sm">{w}</b><small className="text-slate-500">{m}</small></span><small className="font-bold text-emerald-700">{done.includes(w)?"Yodlandi":"Belgilash"}</small></button>)}</div><p className="mt-3 text-xs text-slate-400">Belgilash shaxsiy kundalik odatni qayd etadi.</p></section><section className="rounded-[28px] border border-white bg-gradient-to-br from-[#f1f7ff] to-[#effaf5] p-6"><h2 className="text-2xl font-black">Keyingi qadam</h2><p className="mt-2 text-sm leading-6 text-slate-500">Lug‘at, talaffuz mashqlari va duel orqali bilimni mustahkamlang.</p><div className="mt-6 space-y-3">{[["Lug‘atni ochish",BookOpen,"vocab"],["Talaffuzni mashq qilish",Mic,"practice"],["O‘yinlarni ko‘rish",Swords,"games"]].map(([l,I,t]:any)=><button key={t} onClick={()=>setTab(t)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-white bg-white px-4 text-sm font-bold text-slate-700"><I size={17} className="text-emerald-700"/>{l}<ChevronRight className="ml-auto"/></button>)}</div></section></div>}
- {tab==="vocab"&&<section className="mt-6 rounded-[28px] border border-white bg-white/90 p-5 shadow-sm sm:p-8"><div className="flex items-center gap-3"><BookOpen className="text-sky-600" size={28}/><div><h2 className="text-2xl font-black">Inglizcha lug‘at</h2><p className="text-sm text-slate-500">So‘zni qidiring, ma’nosini ko‘ring va talaffuzini tinglang.</p></div></div><form onSubmit={search} className="mt-6 flex gap-2"><div className="relative min-w-0 flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Inglizcha so‘zni kiriting..." className="h-14 w-full rounded-2xl border border-slate-200 bg-[#f9fbfa] pl-11 pr-4 text-sm outline-none focus:border-emerald-600"/></div><button disabled={loading||!query.trim()} className="rounded-2xl bg-[#087d70] px-5 text-sm font-bold text-white disabled:opacity-50">{loading?"Qidirilmoqda":"Qidirish"}</button></form>{error&&<p className="mt-4 text-sm text-rose-600">{error}</p>}{result&&<article className="mt-5 rounded-3xl border border-emerald-100 bg-[#f2fbf7] p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-3xl font-black">{result.word}</h3><p className="text-sm text-slate-500">{result.phonetic}</p></div><button onClick={speak} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#087d70] px-4 text-sm font-bold text-white"><Volume2/> Aytilishi</button></div><ol className="mt-5 list-decimal space-y-2 pl-5 text-sm text-slate-700">{result.meanings.map((m:string,i:number)=><li key={i}>{m}</li>)}</ol><div className="mt-5 flex flex-wrap gap-2"><button onClick={testVoice} className="inline-flex min-h-11 items-center gap-2 rounded-xl border bg-white px-4 text-sm font-bold"><Mic/> Siz ham sinab ko‘ring</button><button onClick={()=>{setResult(null);setStatus("");setSpoken("")}} className="rounded-xl border bg-white px-4 text-sm font-bold">Keyinroq urinib ko‘raman</button></div>{spoken&&<p className="mt-3 text-sm">Siz aytdingiz: {spoken}</p>}{status&&<p role="status" className="mt-2 text-sm font-semibold text-emerald-700">{status}</p>}</article>}<p className="mt-4 text-xs text-slate-400">Lug‘at ma’lumotlari Dictionary API orqali olinadi. Talaffuzni avtomatik tekshirish brauzer imkoniyatiga bog‘liq.</p></section>}
- {tab==="practice"&&<div className="mt-6 grid gap-4 md:grid-cols-2">{[[Headphones,"Tinglab o‘rganish","So‘z talaffuzini tinglang va takrorlang."],[Mic,"Speaking mashqi","Mikrofon orqali so‘zni aytib ko‘ring."],[PenLine,"Yozish mashqi","Yangi so‘zlarni gaplarda ishlating."],[Target,"Bilim diagnostikasi","Kuchli va mustahkamlash kerak bo‘lgan mavzularni ko‘ring."]].map(([I,l,d]:any)=><button key={l} onClick={l==="Bilim diagnostikasi"?onAssess:()=>setTab("vocab")} className="rounded-[26px] border border-white bg-white p-6 text-left shadow-sm hover:-translate-y-1"><I size={25} className="text-emerald-700"/><b className="mt-4 block text-lg">{l}</b><p className="mt-2 text-sm text-slate-500">{d}</p><span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-emerald-700">Mashqni boshlash <ChevronRight size={15}/></span></button>)}</div>}
- {tab==="games"&&<div className="mt-6 grid gap-4 lg:grid-cols-2">{["So‘nggi harf","Do‘st bilan duel"].map(l=><button key={l} onClick={()=>onDuel(plan.trackId)} className="rounded-[28px] border border-white bg-gradient-to-br from-violet-100 to-emerald-50 p-7 text-left shadow-sm hover:-translate-y-1"><Swords size={28} className="text-violet-700"/><b className="mt-5 block text-xl">{l}</b><p className="mt-2 text-sm text-slate-600">Mos raqib toping va bilim doirasida bellashing.</p><span className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#087d70] px-4 py-3 text-xs font-black text-white">O‘ynash <Play size={14}/></span></button>)}</div>}
- {tab==="stats"&&<section className="mt-6 rounded-[28px] border border-white bg-white p-6"><h2 className="text-2xl font-black">O‘sish ko‘rsatkichlari</h2><div className="mt-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl bg-emerald-50 p-4"><Trophy className="text-emerald-700"/><p className="mt-2 text-xs text-slate-500">Diagnostika bali</p><b className="text-2xl">{assessment?assessment.score+"/"+assessment.total:"—"}</b></div><div className="rounded-2xl bg-violet-50 p-4"><CheckCircle2 className="text-violet-700"/><p className="mt-2 text-xs text-slate-500">Bugungi so‘zlar</p><b className="text-2xl">{done.length}/5</b></div><div className="rounded-2xl bg-sky-50 p-4"><Clock3 className="text-sky-700"/><p className="mt-2 text-xs text-slate-500">Kunlik reja</p><b className="text-2xl">{plan.dailyMinutes} daq.</b></div></div><p className="mt-5 text-xs leading-5 text-slate-400">{assessment?"Oxirgi tekshiruv: "+new Date(assessment.assessed_at).toLocaleDateString("uz-UZ")+". Amaliy topshiriq: "+(assessment.practical_passed?"bajarilgan":"yana mashq kerak")+".":"Batafsil natijalar uchun diagnostikani bajaring."} Kunlik mavzu kesimidagi tarix va professional speech scoring keyingi bosqichda alohida progress xizmatlari bilan ulanadi.</p></section>}
- </div></div>;
+
+import { useEffect, useMemo, useState } from "react";
+import { BookOpen, Search, Volume2, Mic, Swords, Target, Trophy, Clock3, Flame, ChevronRight, CheckCircle2, Play, Headphones, PenLine, ArrowLeft, CalendarDays, Sparkles, Send } from "lucide-react";
+import type { LearningPlanInput } from "./LearningOnboarding";
+import type { AssessmentTrack } from "./assessment-bank";
+
+type Activity = { id: string; track_id: string; skill_name: string; activity_type: string; item_key: string | null; score: number | null; duration_seconds: number; completed_at: string; details: Record<string, unknown> };
+type Assessment = { score: number; total: number; level: string; practical_passed: boolean; assessed_at: string } | null;
+type Props = { plan: LearningPlanInput; assessment: Assessment; onEdit: () => void; onAssess: () => void; onDuel: (track: AssessmentTrack) => void };
+type PracticeMode = "listening" | "speaking" | "writing" | null;
+
+const tracks: Record<AssessmentTrack, string> = { english: "Ingliz tili", russian: "Rus tili", coding: "Dasturlash", cyber: "Kiberxavfsizlik" };
+const languageMeta: Record<AssessmentTrack, { label: string; speech: string; sample: string[] }> = {
+  english: { label: "Inglizcha", speech: "en-US", sample: ["achieve", "improve", "although", "reliable", "opportunity", "confident", "environment", "experience", "decision", "challenge"] },
+  russian: { label: "Ruscha", speech: "ru-RU", sample: ["возможность", "уверенность", "развитие", "окружающая среда", "опыт", "решение", "достижение", "навык", "обучение", "цель"] },
+  coding: { label: "Dasturlash", speech: "en-US", sample: ["variable", "function", "array", "component", "database", "algorithm", "security", "network", "interface", "testing"] },
+  cyber: { label: "Kiberxavfsizlik", speech: "en-US", sample: ["authentication", "encryption", "firewall", "phishing", "vulnerability", "network", "access", "session", "incident", "security"] },
+};
+const translations: Record<AssessmentTrack, string[]> = {
+  english: ["erishmoq", "yaxshilamoq", "garchi", "ishonchli", "imkoniyat", "o‘ziga ishongan", "atrof-muhit", "tajriba", "qaror", "qiyinchilik"],
+  russian: ["imkoniyat", "ishonch", "rivojlanish", "atrof-muhit", "tajriba", "qaror", "yutuq", "ko‘nikma", "ta’lim", "maqsad"],
+  coding: ["o‘zgaruvchi", "funksiya", "massiv", "komponent", "ma’lumotlar bazasi", "algoritm", "xavfsizlik", "tarmoq", "interfeys", "sinov"],
+  cyber: ["autentifikatsiya", "shifrlash", "tarmoq ekrani", "fishing", "zaiflik", "tarmoq", "ruxsat", "sessiya", "hodisa", "xavfsizlik"],
+};
+const writingPrompts: Record<AssessmentTrack, string> = {
+  english: "Write 3–5 sentences about a skill you want to improve and why it matters to you.",
+  russian: "Напишите 3–5 предложений о навыке, который вы хотите развить, и почему он важен.",
+  coding: "Tanlagan texnologiyangizda kichik funksiya yozing va u nima qilishini izohlang.",
+  cyber: "Fishing xatini aniqlash uchun tekshiradigan 3 ta belgini yozing.",
+};
+const listeningPrompts: Record<AssessmentTrack, string> = {
+  english: "I practise a little every day because consistency helps me improve.",
+  russian: "Я занимаюсь каждый день, потому что постоянство помогает мне развиваться.",
+  coding: "A function receives input, processes data, and returns a result.",
+  cyber: "Use strong authentication and keep your software up to date.",
+};
+const todayKey = () => new Date().toLocaleDateString("en-CA");
+
+export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel }: Props) {
+  const [tab, setTab] = useState("home");
+  const [practiceMode, setPracticeMode] = useState<PracticeMode>(null);
+  const [query, setQuery] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState<string[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [spoken, setSpoken] = useState("");
+  const [status, setStatus] = useState("");
+  const [writingAnswer, setWritingAnswer] = useState("");
+  const [writingSaved, setWritingSaved] = useState(false);
+  const [listeningDone, setListeningDone] = useState(false);
+
+  const meta = languageMeta[plan.trackId];
+  const words = useMemo(() => meta.sample.slice(0, 5), [meta.sample]);
+  const date = plan.targetDate ? new Date(plan.targetDate + "T12:00:00").toLocaleDateString("uz-UZ") : "Belgilanmagan";
+  const logActivity = async (activityType: string, itemKey: string, score?: number, details: Record<string, unknown> = {}) => {
+    try {
+      const response = await fetch("/api/learning/activity", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trackId: plan.trackId, skillName: plan.skillName, activityType, itemKey, score, details }) });
+      if (!response.ok) throw new Error("Faoliyat saqlanmadi");
+      const history = await fetch("/api/learning/activity?track=" + plan.trackId, { cache: "no-store" });
+      if (history.ok) { const data = await history.json(); setActivities(data.activities || []); }
+    } catch (e) { console.error("[learning-activity]", e); }
+  };
+
+  useEffect(() => {
+    let alive = true;
+    try { setDone(JSON.parse(localStorage.getItem("zikra-words-" + todayKey()) || "[]")); } catch { setDone([]); }
+    fetch("/api/learning/activity?track=" + plan.trackId, { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (alive && data?.activities) setActivities(data.activities); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [plan.trackId]);
+
+  async function search(e: React.FormEvent) {
+    e.preventDefault();
+    if (!query.trim()) return;
+    setLoading(true); setError(""); setResult(null);
+    try {
+      const response = await fetch("/api/learning/dictionary?word=" + encodeURIComponent(query.trim()), { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Lug‘atga ulanib bo‘lmadi.");
+      setResult(data);
+    } catch (e) { setError(e instanceof Error ? e.message : "Lug‘atga ulanib bo‘lmadi."); }
+    finally { setLoading(false); }
+  }
+
+  function speak(text: string, lang = meta.speech) {
+    if (!("speechSynthesis" in window)) { setStatus("Bu brauzer ovozli o‘qishni qo‘llamaydi."); return; }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.88;
+    utterance.onend = () => setStatus("Tinglash yakunlandi.");
+    window.speechSynthesis.speak(utterance);
+    setStatus("Ovoz ijro etilmoqda…");
+  }
+
+  function testVoice() {
+    const w = window as any, Recognition = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!Recognition) { setStatus("Brauzeringiz nutqni avtomatik tanishni qo‘llamaydi. Chrome yoki Edge’da sinab ko‘ring."); return; }
+    const recognition = new Recognition();
+    recognition.lang = meta.speech;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event: any) => {
+      const value = event.results?.[0]?.[0]?.transcript || "";
+      setSpoken(value);
+      const expected = practiceMode === "speaking" ? listeningPrompts[plan.trackId] : (result?.word || "");
+      const score = value.trim().length ? Math.min(100, Math.round((value.trim().length / Math.max(expected.length, 1)) * 100)) : 0;
+      setStatus(value ? "Nutq tanildi. Talaffuzni eshitib, matn bilan solishtiring." : "Ovoz aniqlanmadi.");
+      void logActivity("speaking", expected.slice(0, 100), score, { transcript: value });
+    };
+    recognition.onerror = (event: any) => setStatus(event.error === "not-allowed" ? "Mikrofonga ruxsat bering." : "Ovoz aniqlanmadi. Qayta urinib ko‘ring.");
+    setStatus("Tinglayapman… Mikrofon orqali gapiring.");
+    recognition.start();
+  }
+
+  function toggleWord(word: string) {
+    const next = done.includes(word) ? done.filter(x => x !== word) : [...done, word];
+    setDone(next);
+    try { localStorage.setItem("zikra-words-" + todayKey(), JSON.stringify(next)); } catch {}
+    if (!done.includes(word)) void logActivity("vocabulary", word, 100, { markedLearned: true });
+  }
+
+  const dayStats = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(); day.setDate(day.getDate() - (6 - index));
+    const key = day.toLocaleDateString("en-CA");
+    const count = activities.filter(a => new Date(a.completed_at).toLocaleDateString("en-CA") === key).length;
+    return { label: day.toLocaleDateString("uz-UZ", { weekday: "short" }), date: key, count };
+  });
+  const practiceCards = [
+    { id: "listening" as const, icon: Headphones, title: "Tinglab o‘rganish", desc: "Matnni tinglang, qayta eshiting va eslab qoling." },
+    { id: "speaking" as const, icon: Mic, title: "Speaking mashqi", desc: "Mikrofonga gapiring va tanilgan matnni tekshiring." },
+    { id: "writing" as const, icon: PenLine, title: "Yozish mashqi", desc: "Mavzu bo‘yicha fikringizni yozib, mashqni yakunlang." },
+  ];
+
+  return <div className="min-h-[100dvh] bg-[radial-gradient(ellipse_at_8%_0%,#e9eaff,transparent_36%),radial-gradient(ellipse_at_95%_30%,#dff8ef,transparent_34%),#f7faf9] px-3 pb-[max(28px,env(safe-area-inset-bottom))] pt-4 text-[#122522] sm:px-6 sm:pt-6 lg:px-10">
+    <div className="mx-auto max-w-[1380px]">
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-2xl font-black text-[#078777] shadow">Z</span><div className="min-w-0"><b className="block truncate text-lg sm:text-xl">Zikra <span className="text-[#078777]">Rivojlanish</span></b><p className="text-xs text-slate-500">Shaxsiy bilim makoningiz</p></div></div>
+        <span className="hidden rounded-full border border-white bg-white/75 px-4 py-2 text-[10px] font-black tracking-widest text-[#087d70] sm:inline-flex">YOUR LEARNING JOURNEY</span>
+      </header>
+
+      <div className="mt-5 grid gap-3 xl:grid-cols-[1.3fr_.7fr]">
+        <section className="relative overflow-hidden rounded-[26px] border border-white bg-white/90 p-5 shadow-lg sm:rounded-[30px] sm:p-8">
+          <div className="absolute -right-12 -top-16 h-56 w-56 rounded-full bg-emerald-100 blur-3xl"/>
+          <div className="relative"><p className="text-[10px] font-black tracking-[.2em] text-[#078777]">SIZNING SHAXSIY YO‘LINGIZ</p><h1 className="mt-2 text-[clamp(1.6rem,5vw,2.6rem)] font-black leading-tight">{plan.skillName} bo‘yicha rivojlanish</h1><p className="mt-2 text-sm text-slate-500">{tracks[plan.trackId]} · {plan.dailyMinutes} daqiqa/kun · Maqsad: {date}</p><div className="mt-4 flex flex-wrap gap-2"><span className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">{assessment ? assessment.level : "Diagnostika kutilmoqda"}</span><span className="rounded-full bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700">{plan.learningStyle === "mixed" ? "Aralash usul" : plan.learningStyle === "video" ? "Video dars" : plan.learningStyle === "practice" ? "Amaliyot" : "O‘qish"}</span></div><div className="mt-5 flex flex-col gap-2 sm:flex-row"><button onClick={onAssess} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#087d70] px-5 text-sm font-bold text-white"><Target size={17}/>{assessment ? "Qayta diagnostika" : "Darajani aniqlash"}</button><button onClick={onEdit} className="min-h-12 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold">Yo‘l xaritasini tahrirlash</button></div></div>
+        </section>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">{[[Flame,"Kunlik ritm",plan.dailyMinutes+" daq."],[Trophy,"Diagnostika",assessment ? assessment.score+"/"+assessment.total : "—"],[Clock3,"Maqsad sanasi",date],[CheckCircle2,"Bugungi so‘zlar",done.length+"/5"]].map(([Icon,label,value]:any)=><div key={label} className="min-w-0 rounded-[20px] border border-white bg-white/90 p-3 shadow-sm sm:rounded-[24px] sm:p-4"><Icon size={19} className="text-[#0b9b88]"/><p className="mt-2 text-[11px] text-slate-500 sm:mt-3 sm:text-xs">{label}</p><b className="mt-1 block break-words text-base font-black sm:text-lg">{value}</b></div>)}</div>
+      </div>
+
+      <nav aria-label="Rivojlanish bo‘limlari" className="mt-5 flex gap-1 overflow-x-auto rounded-2xl border border-white bg-white/85 p-1.5 shadow-sm sm:mt-7 sm:gap-2 sm:p-2">{[["home","Umumiy",Target],["vocab","Lug‘at",BookOpen],["practice","Mashqlar",PenLine],["games","O‘yinlar",Swords],["stats","Natijalar",Trophy]].map(([id,label,Icon]:any)=><button key={id} onClick={()=>{setTab(id);setPracticeMode(null)}} className={"flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold sm:min-h-11 sm:gap-2 sm:px-4 sm:text-sm "+(tab===id?"bg-[#087d70] text-white":"text-slate-500 hover:bg-emerald-50")}><Icon size={15}/>{label}</button>)}</nav>
+
+      {tab === "home" && <div className="mt-4 grid gap-4 lg:mt-6 lg:grid-cols-2">
+        <section className="rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:rounded-[28px] sm:p-7"><p className="text-[10px] font-black tracking-widest text-[#078777]">BUGUNGI REJA</p><h2 className="mt-1 text-xl font-black sm:text-2xl">Har kuni 5 ta yangi {plan.trackId === "russian" ? "so‘z" : "atama"}</h2><div className="mt-4 space-y-2">{words.map((word,i)=><button key={word} onClick={()=>toggleWord(word)} className="flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-slate-100 bg-[#fbfdfc] p-3 text-left"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{done.includes(word)?<CheckCircle2 size={19}/>:<BookOpen size={19}/>}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{word}</b><small className="text-xs text-slate-500">{translations[plan.trackId][i]}</small></span><small className="shrink-0 font-bold text-emerald-700">{done.includes(word)?"Yodlandi":"Belgilash"}</small></button>)}</div></section>
+        <section className="rounded-[24px] border border-white bg-gradient-to-br from-[#f1f7ff] to-[#effaf5] p-5 sm:rounded-[28px] sm:p-7"><h2 className="text-xl font-black sm:text-2xl">Keyingi qadam</h2><p className="mt-2 text-sm leading-6 text-slate-500">Tanlagan ko‘nikmangiz bo‘yicha mashq qiling, bilimni mustahkamlang va natijangizni kuzating.</p><div className="mt-5 space-y-2">{[["Lug‘atni ochish",BookOpen,"vocab"],["Mashqlarni boshlash",Mic,"practice"],["O‘yinlarni ko‘rish",Swords,"games"]].map(([label,Icon,id]:any)=><button key={id} onClick={()=>setTab(id)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-white bg-white px-4 text-sm font-bold text-slate-700"><Icon size={17} className="text-emerald-700"/>{label}<ChevronRight className="ml-auto"/></button>)}</div></section>
+      </div>}
+
+      {tab === "vocab" && <section className="mt-4 rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:mt-6 sm:rounded-[28px] sm:p-8"><div className="flex items-center gap-3"><BookOpen className="shrink-0 text-sky-600" size={26}/><div className="min-w-0"><h2 className="text-xl font-black sm:text-2xl">{meta.label} lug‘ati</h2><p className="text-xs text-slate-500 sm:text-sm">So‘zni qidiring, ma’nosini ko‘ring va talaffuzini tinglang.</p></div></div><form onSubmit={search} className="mt-5 flex flex-col gap-2 sm:flex-row"><div className="relative min-w-0 flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={plan.trackId === "russian" ? "Ruscha so‘zni kiriting..." : "Inglizcha so‘zni kiriting..."} className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f9fbfa] pl-11 pr-4 text-base outline-none focus:border-emerald-600 sm:h-14 sm:text-sm"/></div><button disabled={loading||!query.trim()} className="min-h-12 rounded-2xl bg-[#087d70] px-5 text-sm font-bold text-white disabled:opacity-50">{loading?"Qidirilmoqda…":"Qidirish"}</button></form>{error&&<p role="alert" className="mt-4 text-sm text-rose-600">{error}</p>}{result&&<article className="mt-5 rounded-3xl border border-emerald-100 bg-[#f2fbf7] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-2xl font-black sm:text-3xl">{result.word}</h3><p className="text-sm text-slate-500">{result.phonetic}</p></div><button onClick={()=>result.audio?new Audio(result.audio.startsWith("//")?"https:"+result.audio:result.audio).play().catch(()=>speak(result.word)):speak(result.word)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#087d70] px-4 text-sm font-bold text-white"><Volume2 size={18}/> Aytilishi</button></div><ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-700">{result.meanings.map((m:any,i:number)=><li key={i}><span className="font-semibold text-slate-500">{m.partOfSpeech}</span> {m.definition}{m.example&&<p className="mt-1 text-xs italic text-slate-500">“{m.example}”</p>}</li>)}</ol><button onClick={()=>void logActivity("vocabulary",result.word,100,{lookedUp:true})} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 text-sm font-bold text-emerald-800"><CheckCircle2 size={16}/> O‘rgandim</button></article>}<p className="mt-4 text-xs text-slate-400">Lug‘at server orqali olinadi. Ovozli o‘qish brauzer imkoniyatiga bog‘liq.</p></section>}
+
+      {tab === "practice" && !practiceMode && <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 xl:grid-cols-3">{practiceCards.map(({id,icon:Icon,title,desc})=><button key={id} onClick={()=>{setPracticeMode(id);setStatus("");setSpoken("");setWritingAnswer("");setWritingSaved(false);setListeningDone(false)}} className="min-h-[190px] rounded-[24px] border border-white bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:rounded-[26px] sm:p-6"><Icon size={25} className="text-emerald-700"/><b className="mt-4 block text-lg">{title}</b><p className="mt-2 text-sm leading-6 text-slate-500">{desc}</p><span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-emerald-700">Mashqni boshlash <ChevronRight size={15}/></span></button>)}<button onClick={onAssess} className="min-h-[190px] rounded-[24px] border border-white bg-gradient-to-br from-emerald-50 to-sky-50 p-5 text-left sm:rounded-[26px] sm:p-6"><Target size={25} className="text-emerald-700"/><b className="mt-4 block text-lg">Bilim diagnostikasi</b><p className="mt-2 text-sm leading-6 text-slate-500">Bilimingizni tekshiring va kuchli hamda rivojlantirish kerak bo‘lgan mavzularni aniqlang.</p><span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-emerald-700">Diagnostikani boshlash <ChevronRight size={15}/></span></button></div>}
+
+      {tab === "practice" && practiceMode && <section className="mt-4 rounded-[24px] border border-white bg-white p-4 shadow-sm sm:mt-6 sm:rounded-[28px] sm:p-8"><button onClick={()=>setPracticeMode(null)} className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-slate-500"><ArrowLeft size={16}/> Mashqlarga qaytish</button>
+        {practiceMode === "listening" && <><Headphones size={28} className="text-emerald-700"/><h2 className="mt-3 text-2xl font-black">Tinglab o‘rganish</h2><p className="mt-2 text-sm text-slate-500">Matnni tinglang, keyin o‘zingiz qayta aytib ko‘ring.</p><blockquote className="mt-5 rounded-2xl bg-emerald-50 p-4 text-base leading-7 text-slate-800">{listeningPrompts[plan.trackId]}</blockquote><button onClick={()=>speak(listeningPrompts[plan.trackId])} className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#087d70] px-5 font-bold text-white"><Play size={17}/> Tinglash</button><button onClick={()=>{setListeningDone(true);void logActivity("listening","daily-listening",100)}} className="ml-2 mt-4 min-h-12 rounded-xl border px-5 font-bold">Bajardim</button>{listeningDone&&<p className="mt-3 text-sm font-semibold text-emerald-700">Mashq kundalik tarixingizga qo‘shildi.</p>}</>}
+        {practiceMode === "speaking" && <><Mic size={28} className="text-emerald-700"/><h2 className="mt-3 text-2xl font-black">Speaking mashqi</h2><p className="mt-2 text-sm text-slate-500">Gapni avval tinglang, keyin mikrofon orqali takrorlang.</p><blockquote className="mt-5 rounded-2xl bg-sky-50 p-4 text-base leading-7 text-slate-800">{listeningPrompts[plan.trackId]}</blockquote><div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>speak(listeningPrompts[plan.trackId])} className="inline-flex min-h-12 items-center gap-2 rounded-xl border px-4 font-bold"><Volume2 size={17}/> Namunani tinglash</button><button onClick={testVoice} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#087d70] px-4 font-bold text-white"><Mic size={17}/> Gapirishni boshlash</button></div>{spoken&&<p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm">Tanilgan nutq: <b>{spoken}</b></p>}{status&&<p role="status" className="mt-3 text-sm font-semibold text-emerald-700">{status}</p>}<p className="mt-3 text-xs text-slate-400">Brauzer nutqni matnga aylantiradi; bu professional fonetik talaffuz bahosi emas.</p></>}
+        {practiceMode === "writing" && <><PenLine size={28} className="text-emerald-700"/><h2 className="mt-3 text-2xl font-black">Yozish mashqi</h2><p className="mt-2 text-sm text-slate-500">Mavzuga mos ravishda fikringizni yozing.</p><blockquote className="mt-5 rounded-2xl bg-violet-50 p-4 text-sm leading-7 text-slate-800">{writingPrompts[plan.trackId]}</blockquote><textarea value={writingAnswer} onChange={e=>{setWritingAnswer(e.target.value);setWritingSaved(false)}} rows={6} placeholder="Javobingizni shu yerga yozing…" className="mt-4 w-full rounded-2xl border border-slate-200 p-4 text-base outline-none focus:border-emerald-600"/><div className="mt-2 flex items-center justify-between gap-3"><span className="text-xs text-slate-400">{writingAnswer.trim().split(/\s+/).filter(Boolean).length} ta so‘z</span><button disabled={writingAnswer.trim().length<20||writingSaved} onClick={()=>{const score=Math.min(100,Math.round(writingAnswer.trim().split(/\s+/).filter(Boolean).length/35*100));setWritingSaved(true);void logActivity("writing",writingPrompts[plan.trackId],score,{responseLength:writingAnswer.length})}} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#087d70] px-5 font-bold text-white disabled:opacity-40"><Send size={16}/> Mashqni saqlash</button></div>{writingSaved&&<p className="mt-3 text-sm font-semibold text-emerald-700">Yozish mashqi saqlandi. To‘liq grammatik baholash uchun keyingi bosqichda AI tekshiruvini ulash mumkin.</p>}</>}
+      </section>}
+
+      {tab === "games" && <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2"><button onClick={()=>onDuel(plan.trackId)} className="rounded-[24px] border border-white bg-gradient-to-br from-violet-100 to-emerald-50 p-5 text-left shadow-sm sm:rounded-[28px] sm:p-7"><Swords size={28} className="text-violet-700"/><b className="mt-4 block text-xl">So‘nggi harf</b><p className="mt-2 text-sm text-slate-600">Tanlangan yo‘nalish va o‘yin tilida raqib bilan bellashing.</p><span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#087d70] px-4 py-3 text-xs font-black text-white">O‘ynash <Play size={14}/></span></button><button onClick={()=>onDuel(plan.trackId)} className="rounded-[24px] border border-white bg-gradient-to-br from-sky-50 to-violet-100 p-5 text-left shadow-sm sm:rounded-[28px] sm:p-7"><Sparkles size={28} className="text-sky-700"/><b className="mt-4 block text-xl">Bilim dueli</b><p className="mt-2 text-sm text-slate-600">Bilim va tezkor fikrlash bo‘yicha 1 ga 1 o‘yin.</p><span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#087d70] px-4 py-3 text-xs font-black text-white">O‘ynash <Play size={14}/></span></button></div>}
+
+      {tab === "stats" && <div className="mt-4 space-y-4 sm:mt-6"><section className="rounded-[24px] border border-white bg-white p-4 sm:rounded-[28px] sm:p-7"><div className="flex items-center gap-2"><CalendarDays className="text-emerald-700"/><h2 className="text-xl font-black">Kunlik faollik</h2></div><div className="mt-5 grid grid-cols-7 gap-2">{dayStats.map(day=><div key={day.date} className="min-w-0 text-center"><div className="flex h-20 items-end justify-center rounded-xl bg-slate-50 p-1"><div className="w-full rounded-lg bg-emerald-500" style={{height:Math.max(6,Math.min(100,day.count*22))+"%"}}/></div><p className="mt-2 text-[10px] text-slate-500">{day.label}</p><b className="text-xs">{day.count}</b></div>)}</div></section><section className="rounded-[24px] border border-white bg-white p-4 sm:rounded-[28px] sm:p-7"><h2 className="text-xl font-black">O‘sish ko‘rsatkichlari</h2><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">{[[Trophy,"Diagnostika",assessment?assessment.score+"/"+assessment.total:"—"],[CheckCircle2,"Bugungi so‘zlar",done.length+"/5"],[Clock3,"Kunlik reja",plan.dailyMinutes+" daq."],[Flame,"Bajarilgan mashq",String(activities.length)]].map(([Icon,label,value]:any)=><div key={label} className="rounded-2xl bg-emerald-50 p-3"><Icon size={19} className="text-emerald-700"/><p className="mt-2 text-xs text-slate-500">{label}</p><b className="text-lg font-black">{value}</b></div>)}</div><h3 className="mt-6 font-bold">Oxirgi faoliyatlar</h3><div className="mt-3 space-y-2">{activities.slice(0,8).map(item=><div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3"><div className="min-w-0"><b className="block truncate text-sm">{item.item_key || item.activity_type}</b><small className="text-xs text-slate-500">{new Date(item.completed_at).toLocaleString("uz-UZ")}</small></div><span className="shrink-0 text-xs font-bold text-emerald-700">{item.score===null?"Bajarildi":Math.round(item.score)+"%"}</span></div>)}</div>{assessment&&<p className="mt-4 text-xs text-slate-500">Oxirgi diagnostika: {new Date(assessment.assessed_at).toLocaleDateString("uz-UZ")} · Amaliy topshiriq: {assessment.practical_passed?"bajarilgan":"yana mashq kerak"}.</p>}</section></div>}
+    </div>
+  </div>;
 }
