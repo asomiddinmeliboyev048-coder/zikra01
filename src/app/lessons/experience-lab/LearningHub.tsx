@@ -50,7 +50,8 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const [status, setStatus] = useState("");
   const [writingAnswer, setWritingAnswer] = useState("");
   const [writingSaved, setWritingSaved] = useState(false);
-  const [listeningDone, setListeningDone] = useState(false);\n  const [listeningHeard, setListeningHeard] = useState(false);
+  const [listeningDone, setListeningDone] = useState(false);
+  const [listeningHeard, setListeningHeard] = useState(false);
   const [celebration, setCelebration] = useState(false);
 
   const [rewardXP, setRewardXP] = useState(0);
