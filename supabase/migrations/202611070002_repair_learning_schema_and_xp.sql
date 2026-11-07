@@ -26,6 +26,10 @@ begin
   where table_schema='public' and table_name='learning_plans' and column_name='interests';
 
   if data_type = '_text' then
+    -- PostgreSQL cannot automatically cast an array DEFAULT to jsonb.
+    -- Drop it first, convert existing rows, then restore a jsonb default.
+    alter table public.learning_plans
+      alter column interests drop default;
     alter table public.learning_plans
       alter column interests type jsonb using to_jsonb(interests);
   elsif data_type is null then
