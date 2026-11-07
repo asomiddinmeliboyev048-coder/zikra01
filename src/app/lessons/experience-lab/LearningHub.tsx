@@ -60,7 +60,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const tabOrder = ["home","vocab","practice","games","stats"];
   const beginTabSwipe = (event: React.TouchEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
-    const ignored = Boolean(target.closest('input,textarea,select,button,a,[data-swipe-ignore],[data-horizontal-scroll],.hide-scrollbar'));
+    const ignored = Boolean(target.closest('input,textarea,select,[data-swipe-ignore],[data-horizontal-scroll],.hide-scrollbar'));
     const touch = event.touches[0];
     tabTouch.current = {x:touch.clientX,y:touch.clientY,ignored};
   };
