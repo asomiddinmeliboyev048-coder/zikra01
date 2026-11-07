@@ -655,14 +655,13 @@ body {
   .zikra-page-transition { animation: none; will-change: auto; }
 }
 
-/* The learning area follows the supplied mobile-app references:
-   charcoal surfaces, high-contrast type, compact rounded cards. */
+/* Learning Hub — bright, colorful, image-led mobile learning UI. */
 .learning-hub {
-  color: #f4f6fb !important;
+  color: #142522 !important;
   background:
-    radial-gradient(ellipse at 10% 0%, rgba(103, 80, 190, .16), transparent 34%),
-    radial-gradient(ellipse at 100% 22%, rgba(9, 151, 130, .12), transparent 32%),
-    #0d1016 !important;
+    radial-gradient(ellipse at 8% 0%, rgba(159, 132, 255, .16), transparent 34%),
+    radial-gradient(ellipse at 100% 20%, rgba(62, 214, 175, .18), transparent 34%),
+    linear-gradient(180deg, #f8fbfa 0%, #eef8f4 52%, #f7faf9 100%) !important;
 }
 .learning-hub .bg-white,
 .learning-hub .bg-white\/95,
@@ -670,79 +669,60 @@ body {
 .learning-hub .bg-white\/85,
 .learning-hub .bg-white\/75,
 .learning-hub .bg-\[\#fbfdfc\] {
-  background-color: #191d25 !important;
-  background-image: none !important;
+  background-color: rgba(255,255,255,.94) !important;
+  background-image: none;
 }
 .learning-hub .bg-\[\#f9fbfa\],
 .learning-hub .bg-slate-50,
-.learning-hub .bg-gray-50 {
-  background-color: #12161e !important;
-}
-.learning-hub .bg-emerald-50,
-.learning-hub .bg-emerald-100,
-.learning-hub .bg-violet-50,
-.learning-hub .bg-sky-50,
-.learning-hub .bg-\[\#f2fbf7\] {
-  background-color: #20202f !important;
-}
-.learning-hub .bg-gradient-to-br {
-  background-image: linear-gradient(135deg, #1b202a, #172720) !important;
-}
-.learning-hub .text-\[\#122522\],
+.learning-hub .bg-gray-50 { background-color: #f4f8f7 !important; }
+.learning-hub .bg-emerald-50 { background-color: #e7faf2 !important; }
+.learning-hub .bg-violet-50 { background-color: #f1ebff !important; }
+.learning-hub .bg-sky-50 { background-color: #eaf6ff !important; }
+.learning-hub .bg-gradient-to-br { background-image: linear-gradient(135deg,#f0eaff,#e5fbf2) !important; }
 .learning-hub .text-slate-800,
 .learning-hub .text-slate-700,
-.learning-hub .text-gray-900 {
-  color: #f4f6fb !important;
-}
-.learning-hub .text-slate-600,
+.learning-hub .text-gray-900 { color: #172b27 !important; }
+.learning-hub .text-slate-600 { color: #536a65 !important; }
 .learning-hub .text-slate-500,
-.learning-hub .text-slate-400 {
-  color: #9aa4b5 !important;
-}
-.learning-hub .border-white,
+.learning-hub .text-slate-400 { color: #718580 !important; }
+.learning-hub .border-white { border-color: rgba(255,255,255,.92) !important; }
 .learning-hub .border-slate-100,
-.learning-hub .border-slate-200,
-.learning-hub .border-emerald-100,
-.learning-hub .border-emerald-200 {
-  border-color: rgba(255,255,255,.08) !important;
-}
+.learning-hub .border-slate-200 { border-color: #e5efec !important; }
 .learning-hub input,
 .learning-hub textarea {
-  color: #f4f6fb !important;
-  background: #11151d !important;
-  border-color: rgba(255,255,255,.12) !important;
+  color: #172b27 !important;
+  background: #f8fbfa !important;
+  border-color: #dce9e5 !important;
 }
 .learning-hub input::placeholder,
-.learning-hub textarea::placeholder {
-  color: #778195 !important;
-}
-.learning-hub button {
-  -webkit-tap-highlight-color: transparent;
-}
-.learning-hub button:active {
-  transform: scale(.985);
-}
+.learning-hub textarea::placeholder { color: #91a29d !important; }
+.learning-hub button { -webkit-tap-highlight-color: transparent; }
+.learning-hub button:active { transform: scale(.985); }
 .learning-hub .shadow-lg,
 .learning-hub .shadow-md,
 .learning-hub .shadow-sm {
-  box-shadow: 0 14px 34px -24px rgba(0,0,0,.8) !important;
+  box-shadow: 0 16px 38px -27px rgba(18,76,65,.32) !important;
 }
 .learning-hub nav[aria-label="Rivojlanish bo‘limlari"] {
-  position: sticky;
-  top: 8px;
-  z-index: 20;
-  border-color: rgba(255,255,255,.07) !important;
-  background: rgba(23,27,35,.92) !important;
+  position: sticky; top: 8px; z-index: 20;
+  border-color: rgba(255,255,255,.92) !important;
+  background: rgba(255,255,255,.88) !important;
   backdrop-filter: blur(18px);
 }
-.learning-hub nav[aria-label="Rivojlanish bo‘limlari"] button {
-  color: #a8b0bf;
-}
+.learning-hub nav[aria-label="Rivojlanish bo‘limlari"] button { color: #637a74; }
 .learning-hub nav[aria-label="Rivojlanish bo‘limlari"] button[class*="bg-\\[\\#087d70\\]"] {
-  color: white !important;
-  background: #087d70 !important;
+  color: white !important; background: #087d70 !important;
 }
-
+.learning-hub .learning-screen-transition {
+  animation: zikra-learning-slide 320ms cubic-bezier(.22,1,.36,1) both;
+  will-change: transform, opacity;
+}
+.learning-hub .learning-screen-transition[data-direction="left"] { --learning-enter-x: 34px; }
+.learning-hub .learning-screen-transition[data-direction="right"] { --learning-enter-x: -34px; }
+@keyframes zikra-learning-slide {
+  from { opacity: .45; transform: translate3d(var(--learning-enter-x, 24px),0,0); }
+  to { opacity: 1; transform: translate3d(0,0,0); }
+}
 
 @keyframes zikra-success-pop {
   0% { opacity: 0; transform: translateY(22px) scale(.92); filter: blur(5px); }
