@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Brain, Check, Clock3, Headphones, LockKeyhole, Puzzle, RotateCcw, Sparkles, Swords, Volume2, X } from "lucide-react";
+import { BookOpen, Brain, Check, Clock3, Headphones, LockKeyhole, RotateCcw, Sparkles, Swords, Volume2, X } from "lucide-react";
 import SkillDuel from "@/app/lessons/experience-lab/SkillDuel";
 import type { AssessmentTrack } from "@/app/lessons/experience-lab/assessment-bank";
 
@@ -71,6 +71,13 @@ export default function LearningGamesHub() {
     return () => { alive = false; };
   }, []);
 
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("zikra-vocabulary-later") || "[]");
+      if (Array.isArray(saved)) setSavedLater(saved.filter((word): word is string => typeof word === "string"));
+    } catch {}
+  }, []);
+
   const track = plan?.track_id ?? "english";
   const title = tracks.find((item) => item.id === track)?.title ?? "Ingliz tili";
   const listenSet = track === "russian" ? listeningQuestions.russian : listeningQuestions.english;
@@ -127,6 +134,10 @@ export default function LearningGamesHub() {
     setSavedLater(next);
     try { localStorage.setItem("zikra-vocabulary-later", JSON.stringify(next)); } catch {}
   };
+  useEffect(() => {
+    if (activeGame === "daily") void lookupVocabulary("improve");
+  }, [activeGame]);
+
   const closeGame = () => { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); setActiveGame(null); };
 
   return <section className="rounded-[24px] border border-white bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#10231e] sm:p-6">
