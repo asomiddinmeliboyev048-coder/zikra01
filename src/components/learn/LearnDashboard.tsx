@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Award, Bell, BookOpen, CheckCircle2, ChevronLeft, ChevronRight,
-  CircleHelp, Compass, Flame, GraduationCap, LayoutDashboard,
-  Mail, Play, Search, Settings, Sparkles, Target, TrendingUp,
-  Users, Video, Map as MapIcon, type LucideIcon,
+  CircleHelp, Compass, Flame, GraduationCap,
+  Play, Search, Sparkles, Target, TrendingUp,
+  Video, Map as MapIcon,
 } from "lucide-react";
 import LearningGamesHub from "@/components/learn/LearningGamesHub";
 import LearningOnboarding, { type LearningPlanInput } from "@/app/lessons/experience-lab/LearningOnboarding";
@@ -19,16 +19,6 @@ type Props = {
   skills: string[];
   lessonStats: { upcoming: number; completed: number; };
 };
-
-const navItems: { label: string; href: string; icon: LucideIcon }[] = [
-  { label: "Dashboard", href: "/learn", icon: LayoutDashboard },
-  { label: "Mening kurslarim", href: "/videos", icon: GraduationCap },
-  { label: "Yo‘l xaritasi", href: "/lessons", icon: Target },
-  { label: "Video darslar", href: "/videos", icon: Video },
-  { label: "Xabarlar", href: "/chat", icon: Mail },
-  { label: "Hamjamiyat", href: "/discovery", icon: Users },
-  { label: "Sozlamalar", href: "/settings", icon: Settings },
-];
 
 const categories = ["Barchasi", "Dasturlash", "Kiberxavfsizlik", "Dizayn", "Biznes", "Tillar"];
 
@@ -81,7 +71,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
   const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const today = new Date();
   const tasks = [
-    { id: "profile", title: "Profil ma’lumotlarini tekshirish", detail: "O‘zing haqingda qisqacha ma’lumot qo‘sh" },
+    { id: "vocabulary", title: "Bugungi 10 ta yangi so‘zni yodlash", detail: "Shaxsiy lug‘atingizni boyiting" },
     { id: "course", title: "Yangi video dars ko‘rish", detail: "Bilimingga yana bir qadam qo‘sh" },
     { id: "mission", title: "Bugungi mashqni bajarish", detail: "Rivojlanish bo‘limidagi missiyani och" },
   ];
@@ -198,7 +188,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
               <section className="rounded-[22px] border border-white bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#10231e] sm:p-5">
                 <div className="flex items-center justify-between"><h2 className="text-sm font-black">Bugungi vazifalar</h2><span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">{doneTasks.length}/{tasks.length}</span></div>
                 <div className="mt-3 space-y-2">{tasks.map((task) => {const done=doneTasks.includes(task.id);return <button key={task.id} onClick={() => setDoneTasks((old) => done ? old.filter((id) => id !== task.id) : [...old,task.id])} className="flex w-full items-start gap-3 rounded-xl bg-slate-50 p-3 text-left transition hover:bg-emerald-50 dark:bg-white/[.035] dark:hover:bg-emerald-400/5"><span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border ${done?"border-emerald-600 bg-emerald-600 text-white":"border-slate-300 text-transparent dark:border-slate-600"}`}><CheckCircle2 size={13}/></span><span className="min-w-0"><b className={`block text-[11px] ${done?"text-slate-400 line-through":""}`}>{task.title}</b><small className="mt-1 block text-[9px] leading-4 text-slate-400">{task.detail}</small></span></button>;})}</div>
-                <Link href="/lessons" className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">Mashqlar va missiyalar <ChevronRight size={13}/></Link>
+                <button onClick={() => setAssessmentOpen(true)} className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">Mashqlar va missiyalar <ChevronRight size={13}/></button>
               </section>
             </aside>
           </div>
@@ -213,7 +203,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
 
           <section className="grid gap-3 sm:grid-cols-3">
             <Link href="/videos" className="flex items-center gap-3 rounded-2xl border border-white bg-white p-4 shadow-sm transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[#10231e]"><span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300"><Video size={19}/></span><span><b className="block text-xs">Video darslar</b><small className="text-[10px] text-slate-400">Yangi bilimlarni o‘rgan</small></span><ChevronRight className="ml-auto text-slate-400" size={16}/></Link>
-            <Link href="/lessons" className="flex items-center gap-3 rounded-2xl border border-white bg-white p-4 shadow-sm transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[#10231e]"><span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-50 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300"><Target size={19}/></span><span><b className="block text-xs">Amaliy mashqlar</b><small className="text-[10px] text-slate-400">Ko‘nikmalaringni sinab ko‘r</small></span><ChevronRight className="ml-auto text-slate-400" size={16}/></Link>
+            <button onClick={() => setAssessmentOpen(true)} className="flex items-center gap-3 rounded-2xl border border-white bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[#10231e]"><span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-50 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300"><Target size={19}/></span><span><b className="block text-xs">Amaliy mashqlar</b><small className="text-[10px] text-slate-400">Ko‘nikmalaringni sinab ko‘r</small></span><ChevronRight className="ml-auto text-slate-400" size={16}/></button>
             <Link href="/discovery" className="flex items-center gap-3 rounded-2xl border border-white bg-white p-4 shadow-sm transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-[#10231e]"><span className="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300"><Compass size={19}/></span><span><b className="block text-xs">Hamjamiyat</b><small className="text-[10px] text-slate-400">Birgalikda rivojlan</small></span><ChevronRight className="ml-auto text-slate-400" size={16}/></Link>
           </section>
           <footer className="flex flex-wrap items-center justify-between gap-2 px-1 pb-6 text-[10px] text-slate-400"><span>© {new Date().getFullYear()} Zikra Learn</span><span className="inline-flex items-center gap-1"><CircleHelp size={12}/> Yordam kerakmi? <Link href="/chat" className="font-bold text-emerald-700 dark:text-emerald-300">Biz bilan bog‘lan</Link></span></footer>
