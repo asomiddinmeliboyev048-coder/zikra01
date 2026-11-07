@@ -634,3 +634,111 @@ body {
     transition: none;
   }
 }
+
+
+/* ============================================================
+   ZIKRA APP NAVIGATION + LEARNING HUB — mobile-first dark UI
+   ============================================================ */
+
+/* Route enter: short directional slide + fade. Fixed widgets are portaled
+   outside this wrapper, so transform never captures the viewport nav. */
+@keyframes zikra-route-enter {
+  from { opacity: 0; transform: translate3d(18px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.zikra-page-transition {
+  min-height: 100%;
+  animation: zikra-route-enter 260ms cubic-bezier(.22, 1, .36, 1) both;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zikra-page-transition { animation: none; will-change: auto; }
+}
+
+/* The learning area follows the supplied mobile-app references:
+   charcoal surfaces, high-contrast type, compact rounded cards. */
+.learning-hub {
+  color: #f4f6fb !important;
+  background:
+    radial-gradient(ellipse at 10% 0%, rgba(103, 80, 190, .16), transparent 34%),
+    radial-gradient(ellipse at 100% 22%, rgba(9, 151, 130, .12), transparent 32%),
+    #0d1016 !important;
+}
+.learning-hub .bg-white,
+.learning-hub .bg-white\/95,
+.learning-hub .bg-white\/90,
+.learning-hub .bg-white\/85,
+.learning-hub .bg-white\/75,
+.learning-hub .bg-\[\#fbfdfc\] {
+  background-color: #191d25 !important;
+  background-image: none !important;
+}
+.learning-hub .bg-\[\#f9fbfa\],
+.learning-hub .bg-slate-50,
+.learning-hub .bg-gray-50 {
+  background-color: #12161e !important;
+}
+.learning-hub .bg-emerald-50,
+.learning-hub .bg-emerald-100,
+.learning-hub .bg-violet-50,
+.learning-hub .bg-sky-50,
+.learning-hub .bg-\[\#f2fbf7\] {
+  background-color: #20202f !important;
+}
+.learning-hub .bg-gradient-to-br {
+  background-image: linear-gradient(135deg, #1b202a, #172720) !important;
+}
+.learning-hub .text-\[\#122522\],
+.learning-hub .text-slate-800,
+.learning-hub .text-slate-700,
+.learning-hub .text-gray-900 {
+  color: #f4f6fb !important;
+}
+.learning-hub .text-slate-600,
+.learning-hub .text-slate-500,
+.learning-hub .text-slate-400 {
+  color: #9aa4b5 !important;
+}
+.learning-hub .border-white,
+.learning-hub .border-slate-100,
+.learning-hub .border-slate-200,
+.learning-hub .border-emerald-100,
+.learning-hub .border-emerald-200 {
+  border-color: rgba(255,255,255,.08) !important;
+}
+.learning-hub input,
+.learning-hub textarea {
+  color: #f4f6fb !important;
+  background: #11151d !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+.learning-hub input::placeholder,
+.learning-hub textarea::placeholder {
+  color: #778195 !important;
+}
+.learning-hub button {
+  -webkit-tap-highlight-color: transparent;
+}
+.learning-hub button:active {
+  transform: scale(.985);
+}
+.learning-hub .shadow-lg,
+.learning-hub .shadow-md,
+.learning-hub .shadow-sm {
+  box-shadow: 0 14px 34px -24px rgba(0,0,0,.8) !important;
+}
+.learning-hub nav[aria-label="Rivojlanish bo‘limlari"] {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  border-color: rgba(255,255,255,.07) !important;
+  background: rgba(23,27,35,.92) !important;
+  backdrop-filter: blur(18px);
+}
+.learning-hub nav[aria-label="Rivojlanish bo‘limlari"] button {
+  color: #a8b0bf;
+}
+.learning-hub nav[aria-label="Rivojlanish bo‘limlari"] button[class*="bg-\\[\\#087d70\\]"] {
+  color: white !important;
+  background: #087d70 !important;
+}
