@@ -12,16 +12,16 @@ type PracticeMode = "listening" | "speaking" | "writing" | null;
 
 const tracks: Record<AssessmentTrack, string> = { english: "Ingliz tili", russian: "Rus tili", coding: "Dasturlash", cyber: "Kiberxavfsizlik" };
 const languageMeta: Record<AssessmentTrack, { label: string; speech: string; sample: string[] }> = {
-  english: { label: "Inglizcha", speech: "en-US", sample: ["achieve", "improve", "although", "reliable", "opportunity", "confident", "environment", "experience", "decision", "challenge"] },
-  russian: { label: "Ruscha", speech: "ru-RU", sample: ["возможность", "уверенность", "развитие", "окружающая среда", "опыт", "решение", "достижение", "навык", "обучение", "цель"] },
-  coding: { label: "Dasturlash", speech: "en-US", sample: ["variable", "function", "array", "component", "database", "algorithm", "security", "network", "interface", "testing"] },
-  cyber: { label: "Kiberxavfsizlik", speech: "en-US", sample: ["authentication", "encryption", "firewall", "phishing", "vulnerability", "network", "access", "session", "incident", "security"] },
+  english: { label: "Inglizcha", speech: "en-US", sample: ["achieve", "improve", "although", "reliable", "opportunity", "confident", "environment", "experience", "decision", "challenge", "curious", "discover", "journey", "patient", "success"] },
+  russian: { label: "Ruscha", speech: "ru-RU", sample: ["возможность", "уверенность", "развитие", "окружающая среда", "опыт", "решение", "достижение", "навык", "обучение", "цель", "любопытство", "открывать", "путешествие", "терпеливый", "успех"] },
+  coding: { label: "Dasturlash", speech: "en-US", sample: ["variable", "function", "array", "component", "database", "algorithm", "security", "network", "interface", "testing", "repository", "deployment", "debugging", "framework", "commit"] },
+  cyber: { label: "Kiberxavfsizlik", speech: "en-US", sample: ["authentication", "encryption", "firewall", "phishing", "vulnerability", "network", "access", "session", "incident", "security", "malware", "encryption key", "breach", "monitoring", "patch"] },
 };
 const translations: Record<AssessmentTrack, string[]> = {
-  english: ["erishmoq", "yaxshilamoq", "garchi", "ishonchli", "imkoniyat", "o‘ziga ishongan", "atrof-muhit", "tajriba", "qaror", "qiyinchilik"],
-  russian: ["imkoniyat", "ishonch", "rivojlanish", "atrof-muhit", "tajriba", "qaror", "yutuq", "ko‘nikma", "ta’lim", "maqsad"],
-  coding: ["o‘zgaruvchi", "funksiya", "massiv", "komponent", "ma’lumotlar bazasi", "algoritm", "xavfsizlik", "tarmoq", "interfeys", "sinov"],
-  cyber: ["autentifikatsiya", "shifrlash", "tarmoq ekrani", "fishing", "zaiflik", "tarmoq", "ruxsat", "sessiya", "hodisa", "xavfsizlik"],
+  english: ["erishmoq", "yaxshilamoq", "garchi", "ishonchli", "imkoniyat", "o‘ziga ishongan", "atrof-muhit", "tajriba", "qaror", "qiyinchilik", "qiziquvchan", "kashf qilmoq", "sayohat", "sabrli", "muvaffaqiyat"],
+  russian: ["imkoniyat", "ishonch", "rivojlanish", "atrof-muhit", "tajriba", "qaror", "yutuq", "ko‘nikma", "ta’lim", "maqsad", "qiziquvchanlik", "ochmoq", "sayohat", "sabrli", "muvaffaqiyat"],
+  coding: ["o‘zgaruvchi", "funksiya", "massiv", "komponent", "ma’lumotlar bazasi", "algoritm", "xavfsizlik", "tarmoq", "interfeys", "sinov", "kod ombori", "ishga joylash", "xatoni tuzatish", "freymvork", "o‘zgarishlar to‘plami"],
+  cyber: ["autentifikatsiya", "shifrlash", "tarmoq ekrani", "fishing", "zaiflik", "tarmoq", "ruxsat", "sessiya", "hodisa", "xavfsizlik", "zararli dastur", "shifrlash kaliti", "ma’lumotlar buzilishi", "kuzatuv", "xavfsizlik yangilanishi"],
 };
 const writingPrompts: Record<AssessmentTrack, string> = {
   english: "Write 3–5 sentences about a skill you want to improve and why it matters to you.",
@@ -74,7 +74,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   };
 
   const meta = languageMeta[plan.trackId];
-  const words = useMemo(() => meta.sample.slice(0, 5), [meta.sample]);
+  const completedStages = activities.filter((item) => ["listening", "speaking", "writing", "game"].includes(item.activity_type) && (item.score ?? 0) >= 45).length;\n  const wordStage = completedStages % 3;\n  const wordOffset = wordStage * 5;\n  const words = useMemo(() => meta.sample.slice(wordOffset, wordOffset + 5), [meta.sample, wordOffset]);
   const date = plan.targetDate ? new Date(plan.targetDate + "T12:00:00").toLocaleDateString("uz-UZ") : "Belgilanmagan";
   const logActivity = async (activityType: string, itemKey: string, score?: number, details: Record<string, unknown> = {}, completed = false) => {
     try {
@@ -190,7 +190,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
       <nav aria-label="Rivojlanish bo‘limlari" className="mt-5 flex gap-1 overflow-x-auto rounded-2xl border border-white bg-white/85 p-1.5 shadow-sm sm:mt-7 sm:gap-2 sm:p-2">{[["home","Umumiy",Target],["vocab","Lug‘at",BookOpen],["practice","Mashqlar",PenLine],["games","O‘yinlar",Swords],["stats","Natijalar",Trophy]].map(([id,label,Icon]:any)=><button key={id} onClick={()=>{setTab(id);setPracticeMode(null)}} className={"flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold sm:min-h-11 sm:gap-2 sm:px-4 sm:text-sm "+(tab===id?"bg-[#087d70] text-white":"text-slate-500 hover:bg-emerald-50")}><Icon size={15}/>{label}</button>)}</nav>
 
       {tab === "home" && <div className="mt-4 grid gap-4 lg:mt-6 lg:grid-cols-2">
-        <section className="rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:rounded-[28px] sm:p-7"><p className="text-[10px] font-black tracking-widest text-[#078777]">BUGUNGI REJA</p><h2 className="mt-1 text-xl font-black sm:text-2xl">Har kuni 5 ta yangi {plan.trackId === "russian" ? "so‘z" : "atama"}</h2><div className="mt-4 space-y-2">{words.map((word,i)=><button key={word} onClick={()=>toggleWord(word)} className="flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-slate-100 bg-[#fbfdfc] p-3 text-left"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{done.includes(word)?<CheckCircle2 size={19}/>:<BookOpen size={19}/>}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{word}</b><small className="text-xs text-slate-500">{translations[plan.trackId][i]}</small></span><small className="shrink-0 font-bold text-emerald-700">{done.includes(word)?"Yodlandi":"Belgilash"}</small></button>)}</div></section>
+        <section className="rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:rounded-[28px] sm:p-7"><p className="text-[10px] font-black tracking-widest text-[#078777]">BUGUNGI REJA</p><h2 className="mt-1 text-xl font-black sm:text-2xl">Har kuni 5 ta yangi {plan.trackId === "russian" ? "so‘z" : "atama"}</h2><div className="mt-4 space-y-2">{words.map((word,i)=><button key={word} onClick={()=>toggleWord(word)} className="flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-slate-100 bg-[#fbfdfc] p-3 text-left"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{done.includes(word)?<CheckCircle2 size={19}/>:<BookOpen size={19}/>}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{word}</b><small className="text-xs text-slate-500">{translations[plan.trackId][wordOffset+i]}</small></span><small className="shrink-0 font-bold text-emerald-700">{done.includes(word)?"Yodlandi":"Belgilash"}</small></button>)}</div></section>
         <section className="rounded-[24px] border border-white bg-gradient-to-br from-[#f1f7ff] to-[#effaf5] p-5 sm:rounded-[28px] sm:p-7"><h2 className="text-xl font-black sm:text-2xl">Keyingi qadam</h2><p className="mt-2 text-sm leading-6 text-slate-500">Tanlagan ko‘nikmangiz bo‘yicha mashq qiling, bilimni mustahkamlang va natijangizni kuzating.</p><div className="mt-5 space-y-2">{[["Lug‘atni ochish",BookOpen,"vocab"],["Mashqlarni boshlash",Mic,"practice"],["O‘yinlarni ko‘rish",Swords,"games"]].map(([label,Icon,id]:any)=><button key={id} onClick={()=>setTab(id)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-white bg-white px-4 text-sm font-bold text-slate-700"><Icon size={17} className="text-emerald-700"/>{label}<ChevronRight className="ml-auto"/></button>)}</div></section>
       </div>}
 
