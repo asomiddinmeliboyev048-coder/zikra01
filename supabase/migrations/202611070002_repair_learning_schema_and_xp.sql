@@ -71,7 +71,7 @@ create table if not exists public.learning_practice_awards (
   id bigint generated always as identity primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
   track_id text not null check (track_id in ('english','russian','coding','cyber')),
-  activity_type text not null check (activity_type in ('listening','speaking','writing','game','lesson')),
+  activity_type text not null check (activity_type in ('vocabulary','listening','speaking','writing','diagnostic','game','lesson')),
   item_key text not null,
   xp_awarded integer not null check (xp_awarded between 1 and 50),
   created_at timestamptz not null default now(),
@@ -100,7 +100,7 @@ declare
 begin
   if uid is null then raise exception 'auth required'; end if;
   if p_track_id not in ('english','russian','coding','cyber')
-     or p_activity_type not in ('listening','speaking','writing','game','lesson')
+     or p_activity_type not in ('vocabulary','listening','speaking','writing','diagnostic','game','lesson')
      or p_item_key is null or length(btrim(p_item_key)) = 0
      or length(p_item_key) > 120 then
     raise exception 'invalid practice completion';
