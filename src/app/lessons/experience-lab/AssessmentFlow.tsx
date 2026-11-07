@@ -108,6 +108,7 @@ export default function AssessmentFlow({ track, plan, onClose }: Props) {
       </div>
     </main>;
   }
+  }
 
   if (stage === "evidence") {
     return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#f4f8f7] px-4 py-6 text-[#102321] sm:px-8 sm:py-10">
