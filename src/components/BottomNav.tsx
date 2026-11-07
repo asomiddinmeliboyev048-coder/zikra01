@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export default function BottomNav({ profileId }: { profileId: string; unread?: number }) {
   const pathname = usePathname();
 
-  const items = [
+  if (pathname.startsWith("/lessons")) return null;\n\n  const items = [
     { href: "/discovery", label: "Kashf", icon: DiscoverIcon },
     { href: "/videos", label: "Video", icon: VideoIcon },
     { href: "/reels", label: "Reels", icon: ReelsIcon },
