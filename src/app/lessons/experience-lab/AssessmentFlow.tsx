@@ -35,7 +35,12 @@ export default function AssessmentFlow({ track, plan, onClose }: Props) {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Natijani saqlab bo‘lmadi.");
-      setResult(payload.assessment);\n      await fetch("/api/learning/activity", {\n        method: "POST", headers: { "Content-Type": "application/json" },\n        body: JSON.stringify({ trackId: track, skillName: plan.skillName, activityType: "diagnostic", itemKey: "assessment-" + track + "-" + payload.assessment.assessed_at, score: Math.round((payload.assessment.score / payload.assessment.total) * 100), details: { level: payload.assessment.level, practicalPassed: payload.assessment.practical_passed }, completed: true }),\n      }).catch((activityError) => console.error("[assessment-xp]", activityError));\n      setStage("result");
+      setResult(payload.assessment);
+      await fetch("/api/learning/activity", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackId: track, skillName: plan.skillName, activityType: "diagnostic", itemKey: "assessment-" + track + "-" + payload.assessment.assessed_at, score: Math.round((payload.assessment.score / payload.assessment.total) * 100), details: { level: payload.assessment.level, practicalPassed: payload.assessment.practical_passed }, completed: true }),
+      }).catch((activityError) => console.error("[assessment-xp]", activityError));
+      setStage("result");
     } catch (e) { setError(e instanceof Error ? e.message : "Tarmoq xatosi. Qayta urinib ko‘ring."); }
     finally { setSaving(false); }
   };
