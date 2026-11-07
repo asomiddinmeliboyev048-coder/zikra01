@@ -40,6 +40,8 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const roomRef = useRef<any>(null);
   const matchRef = useRef(false);
   const gameStarted = useRef(false);
+  const rewardSent = useRef(false);
+  const [gameXP, setGameXP] = useState(0);
   const lastWordAt = useRef(0);
   const bank = useMemo(() => Array.from(new Set([...(languageWords[gameLanguage] || languageWords.en), ...(gameLanguage === "en" ? (defaults[skill] || defaults["Ingliz tili"]) : []), ...vocabulary.map(norm).filter(w => w.length >= 2)])), [skill, vocabulary, gameLanguage]);
   const validWord = (value: string) => gameLanguage === "ru" ? /^[а-яё]+$/i.test(value) : gameLanguage === "uz" ? /^[a-zʻʼ’']+$/i.test(value) : /^[a-z]+$/i.test(value);
@@ -51,7 +53,16 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     joinedAt: Date.now(),
     skill
   });
-  const finish = useCallback((result: boolean) => { setWon(result); setStage("result"); setTyping(false); }, []);
+  const finish = useCallback((result: boolean) => {
+    setWon(result); setStage("result"); setTyping(false);
+    if (result && !rewardSent.current) {
+      rewardSent.current = true;
+      const trackId = skill === "Rus tili" ? "russian" : skill === "Dasturlash" ? "coding" : skill === "Kiberxavfsizlik" ? "cyber" : "english";
+      void fetch("/api/learning/activity", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trackId, skillName: skill, activityType: "game", itemKey: "word-duel-" + Date.now(), score: 100, details: { game: "word-duel", words: words.length }, completed: true }) })
+        .then((response) => response.json()).then((payload) => { if (payload?.reward?.awarded) setGameXP(payload.reward.xp); })
+        .catch((error) => console.error("[word-duel-xp]", error));
+    }
+  }, [skill, words.length]);
   const stopChannels = useCallback(async () => {
     if (queueRef.current) { await supabase.removeChannel(queueRef.current); queueRef.current = null; }
     if (roomRef.current) { await supabase.removeChannel(roomRef.current); roomRef.current = null; }
@@ -60,7 +71,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   useEffect(() => () => { void stopChannels(); }, [stopChannels]);
   const start = useCallback(async () => {
     await stopChannels();
-    matchRef.current = false; gameStarted.current = false; lastWordAt.current = 0;
+    matchRef.current = false; gameStarted.current = false; rewardSent.current = false; setGameXP(0); lastWordAt.current = 0;
     setOpponent(null); setWords([]); setChat([]); setEntry(""); setTyping(false); setMessage("Hisob tekshirilmoqda…");
     setQueueSeconds(15); setRemaining(15); setTotal(60); setTurn(""); setStage("search"); setOnline(false);
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -196,7 +207,7 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
           <form onSubmit={sendChat} className="mt-2 flex gap-2"><input value={chatEntry} onChange={e=>setChatEntry(e.target.value)} placeholder="Raqibga xabar yozish…" className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm"/><button type="submit" className="rounded-xl border px-3" aria-label="Chat xabarini yuborish"><Send size={16}/></button></form><p role="status" className="mt-1 truncate text-xs text-slate-500">{message}</p>
         </div>
       </section>}
-      {stage==="result"&&<section className={card+" text-center"}><Trophy size={44} className="mx-auto text-amber-500"/><h1 className="mt-5 text-3xl font-black">{won?"G‘alaba!":"Bu safar raqib yutdi"}</h1><p className="mt-2 text-slate-500">{opponent?opponent.name:"Bot"} bilan duel yakunlandi.</p><p className="mt-4 text-4xl font-black text-emerald-700">{words.length} <small className="text-sm">so‘z</small></p><div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><button onClick={()=>void start()} className="rounded-xl bg-emerald-700 px-6 py-3 font-black text-white">Qayta o‘ynash</button><button onClick={()=>{void stopChannels();onClose();}} className="rounded-xl border px-6 py-3 font-bold">O‘quv markaziga</button></div></section>}
+      {stage==="result"&&<section className={card+" text-center"}><Trophy size={44} className="mx-auto text-amber-500"/><h1 className="mt-5 text-3xl font-black">{won?"G‘alaba!":"Bu safar raqib yutdi"}</h1><p className="mt-2 text-slate-500">{opponent?opponent.name:"Bot"} bilan duel yakunlandi.</p><p className="mt-4 text-4xl font-black text-emerald-700">{words.length} <small className="text-sm">so‘z</small></p>{won&&gameXP>0&&<p className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 font-black text-amber-700">✨ +{gameXP} XP</p>}<div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><button onClick={()=>void start()} className="rounded-xl bg-emerald-700 px-6 py-3 font-black text-white">Qayta o‘ynash</button><button onClick={()=>{void stopChannels();onClose();}} className="rounded-xl border px-6 py-3 font-bold">O‘quv markaziga</button></div></section>}
     </main>
   </div>;
 }

@@ -2,41 +2,85 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+type DictionaryEntry = {
+  word?: string;
+  phonetic?: string;
+  phonetics?: Array<{ text?: string; audio?: string }>;
+  meanings?: Array<{
+    partOfSpeech?: string;
+    definitions?: Array<{ definition?: string; example?: string }>;
+  }>;
+};
+
+async function translate(word: string, source: "en" | "ru") {
+  const url = new URL("https://api.mymemory.translated.net/get");
+  url.searchParams.set("q", word);
+  url.searchParams.set("langpair", source + "|uz");
+  const response = await fetch(url, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(7000),
+    cache: "no-store",
+  });
+  if (!response.ok) return "";
+  const payload = await response.json();
+  const value = payload?.responseData?.translatedText;
+  if (payload?.responseStatus !== 200 || typeof value !== "string" || !value.trim() || value.toLowerCase() === word.toLowerCase() || /please select|invalid language|quota exceeded/i.test(value)) return "";
+  return value.replace(/&amp;/g, "&").replace(/&#39;/g, "'");
+}
+
+async function lookupEnglish(word: string) {
+  const response = await fetch(
+    `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
+    { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(7000), cache: "no-store" }
+  );
+  if (!response.ok) return null;
+  const entries = await response.json();
+  return Array.isArray(entries) ? (entries[0] as DictionaryEntry | undefined) || null : null;
+}
+
 export async function GET(request: Request) {
-  const word = new URL(request.url).searchParams.get("word")?.trim();
-  if (!word || word.length > 80 || !/^[a-zA-Z][a-zA-Z' -]*$/.test(word)) {
-    return NextResponse.json({ error: "Inglizcha so‘zni to‘g‘ri kiriting." }, { status: 400 });
+  const params = new URL(request.url).searchParams;
+  const word = params.get("word")?.trim();
+  const requested = params.get("from");
+  const source: "en" | "ru" = requested === "ru" || (requested !== "en" && /[а-яё]/i.test(word || "")) ? "ru" : "en";
+
+  if (!word || word.length > 80 || !/^[a-zA-Zа-яА-ЯёЁ'’ʻʼ -]+$/.test(word)) {
+    return NextResponse.json({ error: "So‘zni to‘g‘ri kiriting." }, { status: 400 });
   }
 
-  try {
-    const response = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
-      { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000), cache: "force-cache", next: { revalidate: 3600 } }
-    );
-    if (response.status === 404) {
-      return NextResponse.json({ error: "Bu so‘z lug‘atdan topilmadi. Imlo yozilishini tekshiring." }, { status: 404 });
-    }
-    if (!response.ok) {
-      return NextResponse.json({ error: "Lug‘at xizmati hozir javob bermayapti. Birozdan keyin urinib ko‘ring." }, { status: 502 });
-    }
-    const entries = await response.json();
-    const entry = Array.isArray(entries) ? entries[0] : null;
-    if (!entry) return NextResponse.json({ error: "So‘z bo‘yicha ma’lumot topilmadi." }, { status: 404 });
+  const [translation, entry] = await Promise.all([
+    translate(word, source).catch((error) => {
+      console.warn("[learning-dictionary] translation provider unavailable", error);
+      return "";
+    }),
+    source === "en" ? lookupEnglish(word).catch((error) => {
+      console.warn("[learning-dictionary] dictionary provider unavailable", error);
+      return null;
+    }) : Promise.resolve(null),
+  ]);
 
+  const meanings = (entry?.meanings || [])
+    .flatMap((meaning) => (meaning.definitions || []).map((definition) => ({
+      partOfSpeech: meaning.partOfSpeech || "",
+      definition: definition.definition || "",
+      example: definition.example || "",
+    })))
+    .filter((item) => item.definition)
+    .slice(0, 6);
+
+  if (!translation && !meanings.length && !entry?.phonetic) {
     return NextResponse.json({
-      word: entry.word || word,
-      phonetic: entry.phonetic || entry.phonetics?.find((item: any) => item.text)?.text || "",
-      meanings: (entry.meanings || []).flatMap((meaning: any) =>
-        (meaning.definitions || []).map((definition: any) => ({
-          partOfSpeech: meaning.partOfSpeech || "",
-          definition: definition.definition || "",
-          example: definition.example || ""
-        }))
-      ).filter((item: any) => item.definition).slice(0, 6),
-      audio: entry.phonetics?.find((item: any) => item.audio)?.audio || ""
-    }, { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" } });
-  } catch (error) {
-    console.error("[learning-dictionary]", error);
-    return NextResponse.json({ error: "Lug‘at serveriga ulanib bo‘lmadi. Internet aloqasini tekshirib, qayta urinib ko‘ring." }, { status: 502 });
+      error: "Tarjima yoki lug‘at xizmati hozir javob bermayapti. Birozdan keyin qayta urinib ko‘ring.",
+    }, { status: 502 });
   }
+
+  return NextResponse.json({
+    word: entry?.word || word,
+    translation,
+    sourceLanguage: source,
+    targetLanguage: "uz",
+    phonetic: entry?.phonetic || entry?.phonetics?.find((item) => item.text)?.text || "",
+    meanings,
+    audio: entry?.phonetics?.find((item) => item.audio)?.audio || "",
+  }, { headers: { "Cache-Control": "private, max-age=900, stale-while-revalidate=3600" } });
 }
