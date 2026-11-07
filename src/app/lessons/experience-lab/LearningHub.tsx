@@ -39,6 +39,7 @@ const todayKey = () => new Date().toLocaleDateString("en-CA");
 
 export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel }: Props) {
   const [tab, setTab] = useState("home");
+  const [tabDirection, setTabDirection] = useState<"left" | "right">("left");
   const [practiceMode, setPracticeMode] = useState<PracticeMode>(null);
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<any>(null);
@@ -59,6 +60,13 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const [celebrationTranslation, setCelebrationTranslation] = useState("");
   const tabTouch = useRef<{x:number;y:number;ignored:boolean}|null>(null);
   const tabOrder = ["home","vocab","practice","games","stats"];
+  const selectTab = (nextTab: string) => {
+    const currentIndex = tabOrder.indexOf(tab);
+    const nextIndex = tabOrder.indexOf(nextTab);
+    setTabDirection(nextIndex >= currentIndex ? "left" : "right");
+    setTab(nextTab);
+    setPracticeMode(null);
+  };
   const beginTabSwipe = (event: React.TouchEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
     const ignored = Boolean(target.closest('input,textarea,select,[data-swipe-ignore],[data-horizontal-scroll],.hide-scrollbar'));
@@ -74,7 +82,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     event.stopPropagation();
     const current = tabOrder.indexOf(tab);
     const next = Math.max(0,Math.min(tabOrder.length-1,current+(dx<0?1:-1)));
-    if (next!==current) { setTab(tabOrder[next]); setPracticeMode(null); }
+    if (next!==current) { setTabDirection(next > current ? "left" : "right"); setTab(tabOrder[next]); setPracticeMode(null); }
   };
 
   const meta = languageMeta[plan.trackId];
@@ -191,7 +199,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     { id: "writing" as const, icon: PenLine, title: "Yozish mashqi", desc: "Mavzu bo‘yicha fikringizni yozib, mashqni yakunlang." },
   ];
 
-  return <div className="learning-hub min-h-[100dvh] bg-[#0d1016] px-3 pb-[max(110px,calc(88px+env(safe-area-inset-bottom)))] pt-4 text-slate-100 sm:px-6 sm:pt-6 lg:px-10" onTouchStart={beginTabSwipe} onTouchEnd={endTabSwipe} style={{ touchAction: "pan-y" }}>
+  return <div className="learning-hub min-h-[100dvh] bg-[#f4f8f7] px-3 pb-[max(110px,calc(88px+env(safe-area-inset-bottom)))] pt-4 text-slate-900 sm:px-6 sm:pt-6 lg:px-10" onTouchStart={beginTabSwipe} onTouchEnd={endTabSwipe} style={{ touchAction: "pan-y" }}>
     <div className="mx-auto max-w-[1380px]">
       <header className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-2xl font-black text-[#078777] shadow">Z</span><div className="min-w-0"><b className="block truncate text-lg sm:text-xl">Zikra <span className="text-[#078777]">Rivojlanish</span></b><p className="text-xs text-slate-500">Shaxsiy bilim makoningiz</p></div></div>
@@ -206,8 +214,9 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
         <div className="grid grid-cols-2 gap-2 sm:gap-3">{[[Flame,"Kunlik ritm",plan.dailyMinutes+" daq."],[Trophy,"Diagnostika",assessment ? assessment.score+"/"+assessment.total : "—"],[Clock3,"Maqsad sanasi",date],[CheckCircle2,"Bugungi so‘zlar",currentDoneCount+"/5"]].map(([Icon,label,value]:any)=><div key={label} className="min-w-0 rounded-[20px] border border-white bg-white/90 p-3 shadow-sm sm:rounded-[24px] sm:p-4"><Icon size={19} className="text-[#0b9b88]"/><p className="mt-2 text-[11px] text-slate-500 sm:mt-3 sm:text-xs">{label}</p><b className="mt-1 block break-words text-base font-black sm:text-lg">{value}</b></div>)}</div>
       </div>
 
-      <nav aria-label="Rivojlanish bo‘limlari" className="mt-5 hidden gap-1 overflow-x-auto rounded-2xl border border-white bg-white/85 p-1.5 shadow-sm sm:mt-7 sm:flex sm:gap-2 sm:p-2">{[["home","Umumiy",Target],["vocab","Lug‘at",BookOpen],["practice","Mashqlar",PenLine],["games","O‘yinlar",Swords],["stats","Natijalar",Trophy]].map(([id,label,Icon]:any)=><button key={id} onClick={()=>{setTab(id);setPracticeMode(null)}} className={"flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold sm:min-h-11 sm:gap-2 sm:px-4 sm:text-sm "+(tab===id?"bg-[#087d70] text-white":"text-slate-500 hover:bg-emerald-50")}><Icon size={15}/>{label}</button>)}</nav>
+      <nav aria-label="Rivojlanish bo‘limlari" className="mt-5 hidden gap-1 overflow-x-auto rounded-2xl border border-white bg-white/85 p-1.5 shadow-sm sm:mt-7 sm:flex sm:gap-2 sm:p-2">{[["home","Umumiy",Target],["vocab","Lug‘at",BookOpen],["practice","Mashqlar",PenLine],["games","O‘yinlar",Swords],["stats","Natijalar",Trophy]].map(([id,label,Icon]:any)=><button key={id} onClick={()=>selectTab(id)} className={"flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold sm:min-h-11 sm:gap-2 sm:px-4 sm:text-sm "+(tab===id?"bg-[#087d70] text-white":"text-slate-500 hover:bg-emerald-50")}><Icon size={15}/>{label}</button>)}</nav>
 
+      <div key={tab} className="learning-screen-transition" data-direction={tabDirection}>
       {tab === "home" && <div className="mt-4 grid gap-4 lg:mt-6 lg:grid-cols-2">
         <section className="rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:rounded-[28px] sm:p-7"><p className="text-[10px] font-black tracking-widest text-[#078777]">BUGUNGI REJA</p><h2 className="mt-1 text-xl font-black sm:text-2xl">Har kuni 5 ta yangi {plan.trackId === "russian" ? "so‘z" : "atama"}</h2><div className="mt-4 space-y-2">{words.map((word,i)=><button key={word} onClick={()=>toggleWord(word)} className="flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-slate-100 bg-[#fbfdfc] p-3 text-left"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{done.includes(word)?<CheckCircle2 size={19}/>:<BookOpen size={19}/>}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{word}</b><small className="text-xs text-slate-500">{translations[plan.trackId][wordOffset+i]}</small></span><small className="shrink-0 font-bold text-emerald-700">{done.includes(word)?"Yodlandi":"Belgilash"}</small></button>)}</div></section>
         <section className="rounded-[24px] border border-white bg-gradient-to-br from-[#f1f7ff] to-[#effaf5] p-5 sm:rounded-[28px] sm:p-7"><h2 className="text-xl font-black sm:text-2xl">Keyingi qadam</h2><p className="mt-2 text-sm leading-6 text-slate-500">Tanlagan ko‘nikmangiz bo‘yicha mashq qiling, bilimni mustahkamlang va natijangizni kuzating.</p><div className="mt-5 space-y-2">{[["Lug‘atni ochish",BookOpen,"vocab"],["Mashqlarni boshlash",Mic,"practice"],["O‘yinlarni ko‘rish",Swords,"games"]].map(([label,Icon,id]:any)=><button key={id} onClick={()=>setTab(id)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-white bg-white px-4 text-sm font-bold text-slate-700"><Icon size={17} className="text-emerald-700"/>{label}<ChevronRight className="ml-auto"/></button>)}</div></section>
@@ -225,32 +234,33 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
 
       {tab === "games" && <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2"><button onClick={()=>onDuel(plan.trackId)} className="rounded-[24px] border border-white bg-gradient-to-br from-violet-100 to-emerald-50 p-5 text-left shadow-sm sm:rounded-[28px] sm:p-7"><Swords size={28} className="text-violet-700"/><b className="mt-4 block text-xl">So‘nggi harf</b><p className="mt-2 text-sm text-slate-600">Tanlangan yo‘nalish va o‘yin tilida raqib bilan bellashing.</p><span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#087d70] px-4 py-3 text-xs font-black text-white">O‘ynash <Play size={14}/></span></button><button onClick={()=>onDuel(plan.trackId)} className="rounded-[24px] border border-white bg-gradient-to-br from-sky-50 to-violet-100 p-5 text-left shadow-sm sm:rounded-[28px] sm:p-7"><Sparkles size={28} className="text-sky-700"/><b className="mt-4 block text-xl">Bilim dueli</b><p className="mt-2 text-sm text-slate-600">Bilim va tezkor fikrlash bo‘yicha 1 ga 1 o‘yin.</p><span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#087d70] px-4 py-3 text-xs font-black text-white">O‘ynash <Play size={14}/></span></button></div>}
 
-      {tab === "stats" && <div className="mt-4 space-y-4 sm:mt-6"><section className="rounded-[24px] border border-white bg-white p-4 sm:rounded-[28px] sm:p-7"><div className="flex items-center gap-2"><CalendarDays className="text-emerald-700"/><h2 className="text-xl font-black">Kunlik faollik</h2></div><div className="mt-5 grid grid-cols-7 gap-2">{dayStats.map(day=><div key={day.date} className="min-w-0 text-center"><div className="flex h-20 items-end justify-center rounded-xl bg-slate-50 p-1"><div className="w-full rounded-lg bg-emerald-500" style={{height:Math.max(6,Math.min(100,day.count*22))+"%"}}/></div><p className="mt-2 text-[10px] text-slate-500">{day.label}</p><b className="text-xs">{day.count}</b></div>)}</div></section><section className="rounded-[24px] border border-white bg-white p-4 sm:rounded-[28px] sm:p-7"><h2 className="text-xl font-black">O‘sish ko‘rsatkichlari</h2><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">{[[Trophy,"Diagnostika",assessment?assessment.score+"/"+assessment.total:"—"],[CheckCircle2,"Bugungi so‘zlar",currentDoneCount+"/5"],[Clock3,"Kunlik reja",plan.dailyMinutes+" daq."],[Flame,"Bajarilgan mashq",String(activities.length)]].map(([Icon,label,value]:any)=><div key={label} className="rounded-2xl bg-emerald-50 p-3"><Icon size={19} className="text-emerald-700"/><p className="mt-2 text-xs text-slate-500">{label}</p><b className="text-lg font-black">{value}</b></div>)}</div><h3 className="mt-6 font-bold">Oxirgi faoliyatlar</h3><div className="mt-3 space-y-2">{activities.slice(0,8).map(item=><div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3"><div className="min-w-0"><b className="block truncate text-sm">{item.item_key || item.activity_type}</b><small className="text-xs text-slate-500">{new Date(item.completed_at).toLocaleString("uz-UZ")}</small></div><span className="shrink-0 text-xs font-bold text-emerald-700">{item.score===null?"Bajarildi":Math.round(item.score)+"%"}</span></div>)}</div>{assessment&&<p className="mt-4 text-xs text-slate-500">Oxirgi diagnostika: {new Date(assessment.assessed_at).toLocaleDateString("uz-UZ")} · Amaliy topshiriq: {assessment.practical_passed?"bajarilgan":"yana mashq kerak"}.</p>}</section></div>}
-      <nav aria-label="O‘quv navigatsiyasi" className="fixed inset-x-0 bottom-0 z-[80] grid grid-cols-5 border-t border-white/[0.08] bg-[#090b0f]/[0.97] px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 shadow-[0_-12px_36px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl sm:hidden">
+      {tab === "stats" && <div className="mt-4 space-y-4 sm:mt-6"><section className="overflow-hidden rounded-[26px] border border-white bg-gradient-to-r from-violet-100 via-white to-emerald-100 p-5 shadow-sm sm:rounded-[30px] sm:p-7"><div className="flex items-center justify-between gap-4"><div><p className="text-[10px] font-black tracking-[.2em] text-violet-700">ZIKRA · HAFTALIK NATIJA</p><h2 className="mt-2 text-2xl font-black text-slate-900 sm:text-3xl">Reyting va natijalar</h2><p className="mt-2 text-sm text-slate-600">Har kuni o‘rgangan bilimlaringiz sizni yuqoriga olib chiqadi.</p></div><img src="/zikra-mascot.webp" alt="Zikra mushukchasi" className="h-24 w-24 shrink-0 object-contain sm:h-32 sm:w-32"/></div><div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-2xl bg-white/90 p-3"><span className="text-xs text-slate-500">Bajarilgan mashqlar</span><b className="mt-1 block text-2xl font-black text-slate-900">{activities.length}</b></div><div className="rounded-2xl bg-white/90 p-3"><span className="text-xs text-slate-500">Bugun o‘rganilgan so‘zlar</span><b className="mt-1 block text-2xl font-black text-slate-900">{currentDoneCount}/5</b></div></div></section><section className="rounded-[24px] border border-white bg-white p-4 sm:rounded-[28px] sm:p-7"><div className="flex items-center gap-2"><CalendarDays className="text-emerald-700"/><h2 className="text-xl font-black">Haftalik faollik</h2></div><div className="mt-5 grid grid-cols-7 gap-2">{dayStats.map(day=><div key={day.date} className="min-w-0 text-center"><div className="flex h-20 items-end justify-center rounded-xl bg-slate-50 p-1"><div className="w-full rounded-lg bg-emerald-500" style={{height:Math.max(6,Math.min(100,day.count*22))+"%"}}/></div><p className="mt-2 text-[10px] text-slate-500">{day.label}</p><b className="text-xs">{day.count}</b></div>)}</div></section><section className="rounded-[24px] border border-white bg-white p-4 sm:rounded-[28px] sm:p-7"><h2 className="text-xl font-black">O‘sish ko‘rsatkichlari</h2><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">{[[Trophy,"Diagnostika",assessment?assessment.score+"/"+assessment.total:"—"],[CheckCircle2,"Bugungi so‘zlar",currentDoneCount+"/5"],[Clock3,"Kunlik reja",plan.dailyMinutes+" daq."],[Flame,"Bajarilgan mashq",String(activities.length)]].map(([Icon,label,value]:any)=><div key={label} className="rounded-2xl bg-emerald-50 p-3"><Icon size={19} className="text-emerald-700"/><p className="mt-2 text-xs text-slate-500">{label}</p><b className="text-lg font-black">{value}</b></div>)}</div><h3 className="mt-6 font-bold">Oxirgi faoliyatlar</h3><div className="mt-3 space-y-2">{activities.slice(0,8).map(item=><div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3"><div className="min-w-0"><b className="block truncate text-sm">{item.item_key || item.activity_type}</b><small className="text-xs text-slate-500">{new Date(item.completed_at).toLocaleString("uz-UZ")}</small></div><span className="shrink-0 text-xs font-bold text-emerald-700">{item.score===null?"Bajarildi":Math.round(item.score)+"%"}</span></div>)}</div>{assessment&&<p className="mt-4 text-xs text-slate-500">Oxirgi diagnostika: {new Date(assessment.assessed_at).toLocaleDateString("uz-UZ")} · Amaliy topshiriq: {assessment.practical_passed?"bajarilgan":"yana mashq kerak"}.</p>}</section></div>}
+      </div>
+      <nav aria-label="O‘quv navigatsiyasi" className="fixed inset-x-0 bottom-0 z-[80] grid grid-cols-5 border-t border-slate-200 bg-white/95 px-2 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 shadow-[0_-12px_36px_-20px_rgba(15,65,55,.24)] backdrop-blur-xl sm:hidden">
         {[
           ["home","Asosiy",Home],
           ["vocab","O‘rganish",BookOpen],
-          ["practice","Missiya",Flag],
+          ["stats","Reyting",Trophy],
           ["games","O‘yinlar",Swords],
-          ["stats","Profil",UserRound],
+          ["stats","Reyting",Trophy],
         ].map(([id,label,Icon]:any)=>{
           const active=tab===id;
-          return <button key={id} onClick={()=>{setTab(id);setPracticeMode(null)}} className={"flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-[10px] transition "+(active?"text-fuchsia-400":"text-slate-500")}>
-            <span className={"grid h-8 w-10 place-items-center rounded-xl "+(active?"bg-fuchsia-400/10":"")}><Icon size={21} strokeWidth={active?2.6:2}/></span>
+          return <button key={id} onClick={()=>{setTab(id);setPracticeMode(null)}} className={"flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl py-1.5 text-[10px] transition "+(active?"text-[#087d70]":"text-slate-500")}>
+            <span className={"grid h-8 w-10 place-items-center rounded-xl "+(active?"bg-emerald-50":"")}><Icon size={21} strokeWidth={active?2.6:2}/></span>
             <span className={active?"font-black":"font-medium"}>{label}</span>
           </button>;
         })}
       </nav>
       {celebration && <div className="fixed inset-0 z-[160] grid place-items-center bg-black/75 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="zikra-success-title">
-        <div className="zikra-success-pop relative w-full max-w-sm overflow-hidden rounded-[30px] border border-white/10 bg-[#171a22] p-6 text-center shadow-2xl">
+        <div className="zikra-success-pop relative w-full max-w-sm overflow-hidden rounded-[30px] border border-white/10 bg-white p-6 text-center shadow-2xl">
           <div className="pointer-events-none absolute -left-12 -top-12 h-40 w-40 rounded-full bg-violet-500/20 blur-3xl"/>
           <div className="relative mx-auto mb-3 h-28 w-28 animate-bounce"><img src="/zikra-mascot.webp" alt="Zikra mushukchasi" className="h-full w-full object-contain"/></div>
-          <p className="text-xs font-black tracking-[.22em] text-emerald-300">ZIKRA · YUTUQ</p>
-          <h2 id="zikra-success-title" className="mt-2 text-2xl font-black text-white">{plan.trackId === "english" ? "You did it!" : plan.trackId === "russian" ? "Вы справились!" : "Ajoyib natija!"}</h2>
-          <p className="mt-2 text-sm text-slate-300">{celebrationMessage ? celebrationMessage : (plan.trackId === "english" ? "You completed the exercise successfully!" : plan.trackId === "russian" ? "Вы успешно выполнили упражнение!" : "Siz mashqni muvaffaqiyatli bajardingiz!")}</p>
-          <p className="mt-1 text-xs text-slate-400">{celebrationTranslation || (plan.trackId === "english" || plan.trackId === "russian" ? "Tarjimasi: Mashqni muvaffaqiyatli bajardingiz!" : "Har bir kichik qadam katta natijaga olib boradi.")}</p>
-          <div className="my-5 inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-5 py-3 text-lg font-black text-amber-300"><Sparkles size={19}/> +{rewardXP} XP</div>
-          <p className="mb-5 text-xs text-slate-400">Mushukcha siz bilan faxrlanadi! Keyingi mashqda yangi bilimlar kutmoqda 🐾</p>
+          <p className="text-xs font-black tracking-[.22em] text-emerald-700">ZIKRA · YUTUQ</p>
+          <h2 id="zikra-success-title" className="mt-2 text-2xl font-black text-slate-900">{plan.trackId === "english" ? "You did it!" : plan.trackId === "russian" ? "Вы справились!" : "Ajoyib natija!"}</h2>
+          <p className="mt-2 text-sm text-slate-600">{celebrationMessage ? celebrationMessage : (plan.trackId === "english" ? "You completed the exercise successfully!" : plan.trackId === "russian" ? "Вы успешно выполнили упражнение!" : "Siz mashqni muvaffaqiyatli bajardingiz!")}</p>
+          <p className="mt-1 text-xs text-slate-500">{celebrationTranslation || (plan.trackId === "english" || plan.trackId === "russian" ? "Tarjimasi: Mashqni muvaffaqiyatli bajardingiz!" : "Har bir kichik qadam katta natijaga olib boradi.")}</p>
+          <div className="my-5 inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-5 py-3 text-lg font-black text-amber-600"><Sparkles size={19}/> +{rewardXP} XP</div>
+          <p className="mb-5 text-xs text-slate-500">Mushukcha siz bilan faxrlanadi! Keyingi mashqda yangi bilimlar kutmoqda 🐾</p>
           <button onClick={()=>{setCelebration(false);setStatus("Keyingi mashqqa tayyorsiz!");}} className="min-h-12 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 text-sm font-black text-white">Davom etish</button>
         </div>
       </div>}
