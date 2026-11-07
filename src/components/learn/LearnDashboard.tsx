@@ -77,7 +77,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
   ];
 
   if (planLoading) return <div className="grid min-h-[70vh] place-items-center bg-[#f3f7f6] px-5 dark:bg-[#071512]"><div className="text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600"/><p className="mt-4 text-sm font-bold text-slate-500">Shaxsiy o‘quv yo‘lingiz tekshirilmoqda…</p></div></div>;
-  if (wizardOpen) return <LearningOnboarding userName={profile.full_name} onStart={(_, nextPlan) => { setActivePlan(nextPlan); setWizardOpen(false); setAssessmentOpen(true); }} />;
+  if (wizardOpen) return <LearningOnboarding userName={profile.full_name} onStart={(_, nextPlan) => { setActivePlan(nextPlan); setWizardOpen(false); setAssessmentOpen(false); }} />;
   if (assessmentOpen && activePlan) return <AssessmentFlow track={activePlan.trackId} plan={activePlan} onClose={() => setAssessmentOpen(false)} />;
 
   return (
@@ -123,7 +123,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{activePlan ? `${activePlan.currentLevel} → ${activePlan.targetLevel} · Kuniga ${activePlan.dailyMinutes} daqiqa · Maqsad: ${activePlan.purpose}` : "Yo‘l xaritangizni yarating."}</p>
               <p className="mt-2 text-xs font-semibold text-emerald-800 dark:text-emerald-200">Aniq bir maqsadingiz — bir qadam.</p>
             </div>
-            <button onClick={() => setWizardOpen(true)} className="relative mt-4 inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c] sm:mt-0"><MapIcon size={17}/> Yo‘l xaritasini tahrirlash <ChevronRight size={17}/></button>
+            <div className="relative mt-4 flex shrink-0 flex-col gap-2 sm:mt-0"><button onClick={() => setWizardOpen(true)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#087d70] px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-[#06665c]"><MapIcon size={17}/> Yo‘l xaritasini tahrirlash <ChevronRight size={17}/></button><button onClick={() => setAssessmentOpen(true)} className="text-center text-[10px] font-bold text-emerald-800 underline decoration-emerald-300 underline-offset-4 dark:text-emerald-200">Darajamni diagnostika qilish</button></div>
           </section>
 
           <div className="grid gap-4 ">
