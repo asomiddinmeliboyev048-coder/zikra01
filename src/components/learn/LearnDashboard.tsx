@@ -70,7 +70,8 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
   const firstDay = (date.getDay() + 6) % 7;
   const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const today = new Date();
-  const purposeLabel = ({ career: "Kasb va karyera", study: "O‘qish va ta’lim", certificate: "Sertifikat va imtihon", personal: "Shaxsiy rivojlanish" } as Record<string, string>)[activePlan?.purpose ?? ""] ?? activePlan?.purpose ?? "";\n  const tasks = [
+  const purposeLabel = ({ career: "Kasb va karyera", study: "O‘qish va ta’lim", certificate: "Sertifikat va imtihon", personal: "Shaxsiy rivojlanish" } as Record<string, string>)[activePlan?.purpose ?? ""] ?? activePlan?.purpose ?? "";
+  const tasks = [
     { id: "vocabulary", title: activePlan?.trackId === "russian" ? "Bugungi 10 ta ruscha so‘z" : activePlan?.trackId === "english" ? "Bugungi 10 ta inglizcha so‘z" : "Bugungi 10 ta yangi termin", detail: "Shaxsiy lug‘atingizni boyiting" },
     { id: "course", title: `${activePlan?.skillName ?? "Ko‘nikma"} bo‘yicha video dars`, detail: "Tanlagan yo‘nalishingizni rivojlantiring" },
     { id: "mission", title: `${activePlan?.skillName ?? "Ko‘nikma"} bo‘yicha amaliy mashq`, detail: "Bilimingizni amalda mustahkamlang" },
