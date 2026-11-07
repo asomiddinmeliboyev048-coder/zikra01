@@ -137,7 +137,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     { id: "writing" as const, icon: PenLine, title: "Yozish mashqi", desc: "Mavzu bo‘yicha fikringizni yozib, mashqni yakunlang." },
   ];
 
-  return <div className="min-h-[100dvh] bg-[radial-gradient(ellipse_at_8%_0%,#e9eaff,transparent_36%),radial-gradient(ellipse_at_95%_30%,#dff8ef,transparent_34%),#f7faf9] px-3 pb-[max(28px,env(safe-area-inset-bottom))] pt-4 text-[#122522] sm:px-6 sm:pt-6 lg:px-10">
+  return <div className="learning-hub min-h-[100dvh] bg-[#0d1016] px-3 pb-[max(110px,calc(88px+env(safe-area-inset-bottom)))] pt-4 text-slate-100 sm:px-6 sm:pt-6 lg:px-10">
     <div className="mx-auto max-w-[1380px]">
       <header className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-2xl font-black text-[#078777] shadow">Z</span><div className="min-w-0"><b className="block truncate text-lg sm:text-xl">Zikra <span className="text-[#078777]">Rivojlanish</span></b><p className="text-xs text-slate-500">Shaxsiy bilim makoningiz</p></div></div>
