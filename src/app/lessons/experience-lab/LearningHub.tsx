@@ -241,7 +241,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
         })}
       </nav>
       {celebration && <div className="fixed inset-0 z-[160] grid place-items-center bg-black/75 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="zikra-success-title">
-        <div className="relative w-full max-w-sm overflow-hidden rounded-[30px] border border-white/10 bg-[#171a22] p-6 text-center shadow-2xl">
+        <div className="zikra-success-pop relative w-full max-w-sm overflow-hidden rounded-[30px] border border-white/10 bg-[#171a22] p-6 text-center shadow-2xl">
           <div className="pointer-events-none absolute -left-12 -top-12 h-40 w-40 rounded-full bg-violet-500/20 blur-3xl"/>
           <div className="relative mx-auto mb-3 h-28 w-28 animate-bounce"><img src="/zikra-mascot.webp" alt="Zikra mushukchasi" className="h-full w-full object-contain"/></div>
           <p className="text-xs font-black tracking-[.22em] text-emerald-300">ZIKRA · YUTUQ</p>
