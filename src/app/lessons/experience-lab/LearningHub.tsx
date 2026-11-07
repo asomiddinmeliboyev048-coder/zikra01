@@ -53,7 +53,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
   const [listeningDone, setListeningDone] = useState(false);
   const [celebration, setCelebration] = useState(false);
 
-  const [rewardXP, setRewardXP] = useState(0);
+  const [rewardXP, setRewardXP] = useState(0);\n  const [celebrationMessage, setCelebrationMessage] = useState("");\n  const [celebrationTranslation, setCelebrationTranslation] = useState("");
   const tabTouch = useRef<{x:number;y:number;ignored:boolean}|null>(null);
   const tabOrder = ["home","vocab","practice","games","stats"];
   const beginTabSwipe = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -135,18 +135,29 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     recognition.lang = meta.speech;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-    recognition.onresult = (event: any) => {
+    recognition.onresult = async (event: any) => {
       const value = event.results?.[0]?.[0]?.transcript || "";
       setSpoken(value);
       const expected = practiceMode === "speaking" ? listeningPrompts[plan.trackId] : (result?.word || "");
-      const score = value.trim().length ? Math.min(100, Math.round((value.trim().length / Math.max(expected.length, 1)) * 100)) : 0;
-      setStatus(value ? "Nutq tanildi. Talaffuzni eshitib, matn bilan solishtiring." : "Ovoz aniqlanmadi.");
-      const expectedWords = expected.toLocaleLowerCase().match(/[\p{L}]+/gu) || [];
-      const heardWords = value.toLocaleLowerCase().match(/[\p{L}]+/gu) || [];
-      const matched = expectedWords.filter((word) => heardWords.some((heard) => heard === word || heard.startsWith(word.slice(0, Math.max(3, word.length - 2))))).length;
-      const accuracy = expectedWords.length ? Math.round((matched / expectedWords.length) * 100) : 0;
-      if (accuracy >= 45) { setStatus("Juda yaxshi! Nutqingiz namunaga mos keldi."); void finishPractice("speaking", expected.slice(0, 100), accuracy, { transcript: value, matchedWords: matched, expectedWords: expectedWords.length }); }
-      else setStatus("Yaxshi urinish! Namunani yana tinglab, biroz sekinroq takrorlang.");
+      if (!value.trim() || !expected.trim()) { setStatus("Ovoz aniqlanmadi. Qayta urinib ko‘ring."); return; }
+      setStatus("AI nutqingizni tekshirmoqda…");
+      try {
+        const response = await fetch("/api/learning/speech-check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expected, transcript: value, trackId: plan.trackId }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "AI tekshiruvi bajarilmadi.");
+        setStatus(payload.feedback || "Tekshiruv yakunlandi.");
+        if (payload.passed) {
+          setCelebrationMessage(payload.praise || "Well done!");
+          setCelebrationTranslation(payload.praiseUz || "Ajoyib ish!");
+          await finishPractice("speaking", expected.slice(0, 100), payload.score, { transcript: value, evaluator: "gemini", feedback: payload.feedback });
+        }
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : "AI tekshiruvi bajarilmadi.");
+      }
     };
     recognition.onerror = (event: any) => setStatus(event.error === "not-allowed" ? "Mikrofonga ruxsat bering." : "Ovoz aniqlanmadi. Qayta urinib ko‘ring.");
     setStatus("Tinglayapman… Mikrofon orqali gapiring.");
@@ -212,9 +223,9 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
           <div className="pointer-events-none absolute -left-12 -top-12 h-40 w-40 rounded-full bg-violet-500/20 blur-3xl"/>
           <div className="relative mx-auto mb-3 h-28 w-28 animate-bounce"><img src="/zikra-mascot.webp" alt="Zikra mushukchasi" className="h-full w-full object-contain"/></div>
           <p className="text-xs font-black tracking-[.22em] text-emerald-300">ZIKRA · YUTUQ</p>
-          <h2 id="zikra-success-title" className="mt-2 text-2xl font-black text-white">{plan.trackId === "english" ? "Amazing work!" : plan.trackId === "russian" ? "Отличная работа!" : "Ajoyib natija!"}</h2>
-          <p className="mt-2 text-sm text-slate-300">{plan.trackId === "english" ? "You completed the exercise successfully!" : plan.trackId === "russian" ? "Вы успешно выполнили упражнение!" : "Siz mashqni muvaffaqiyatli bajardingiz!"}</p>
-          <p className="mt-1 text-xs text-slate-400">{plan.trackId === "english" ? "Tarjimasi: Mashqni muvaffaqiyatli bajardingiz!" : plan.trackId === "russian" ? "Tarjimasi: Mashqni muvaffaqiyatli bajardingiz!" : "Har bir kichik qadam katta natijaga olib boradi."}</p>
+          <h2 id="zikra-success-title" className="mt-2 text-2xl font-black text-white">{celebrationMessage || (plan.trackId === "english" ? "Amazing work!" : plan.trackId === "russian" ? "Отличная работа!" : "Ajoyib natija!")}</h2>
+          <p className="mt-2 text-sm text-slate-300">{celebrationMessage ? celebrationMessage : (plan.trackId === "english" ? "You completed the exercise successfully!" : plan.trackId === "russian" ? "Вы успешно выполнили упражнение!" : "Siz mashqni muvaffaqiyatli bajardingiz!")}</p>
+          <p className="mt-1 text-xs text-slate-400">{celebrationTranslation || (plan.trackId === "english" || plan.trackId === "russian" ? "Tarjimasi: Mashqni muvaffaqiyatli bajardingiz!" : "Har bir kichik qadam katta natijaga olib boradi.")}</p>
           <div className="my-5 inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-5 py-3 text-lg font-black text-amber-300"><Sparkles size={19}/> +{rewardXP} XP</div>
           <p className="mb-5 text-xs text-slate-400">Mushukcha siz bilan faxrlanadi! Keyingi mashqda yangi bilimlar kutmoqda 🐾</p>
           <button onClick={()=>{setCelebration(false);setStatus("Keyingi mashqqa tayyorsiz!");}} className="min-h-12 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 text-sm font-black text-white">Davom etish</button>
