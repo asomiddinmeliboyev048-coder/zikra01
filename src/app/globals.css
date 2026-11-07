@@ -742,3 +742,14 @@ body {
   color: white !important;
   background: #087d70 !important;
 }
+
+
+@keyframes zikra-success-pop {
+  0% { opacity: 0; transform: translateY(22px) scale(.92); filter: blur(5px); }
+  70% { opacity: 1; transform: translateY(-3px) scale(1.015); filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.zikra-success-pop { animation: zikra-success-pop 520ms cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .zikra-success-pop { animation: none; }
+}
