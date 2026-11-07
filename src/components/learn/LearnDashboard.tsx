@@ -53,7 +53,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
       const response = await fetch(`/api/learning/plan?track=${track}`, { cache: "no-store" });
       if (!response.ok) return null;
       const payload = await response.json();
-      return payload.plan ? { ...payload.plan, trackId: payload.plan.track_id, skillName: payload.plan.skill_name, currentLevel: payload.plan.current_level, targetLevel: payload.plan.target_level, dailyMinutes: payload.plan.daily_minutes, learningStyle: payload.plan.learning_style } as LearningPlanInput & { updated_at?: string } : null;
+      return payload.plan ? { ...payload.plan, trackId: payload.plan.track_id, skillName: payload.plan.skill_name, currentLevel: payload.plan.current_level, targetLevel: payload.plan.target_level, dailyMinutes: payload.plan.daily_minutes, learningStyle: payload.plan.learning_style, targetDate: payload.plan.target_date ?? "", interests: payload.plan.interests ?? [] } as LearningPlanInput & { updated_at?: string } : null;
     })).then((plans) => {
       if (!alive) return;
       const saved = plans.filter(Boolean).sort((a, b) => Date.parse(b?.updated_at ?? "") - Date.parse(a?.updated_at ?? ""))[0] ?? null;
@@ -77,7 +77,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
   ];
 
   if (planLoading) return <div className="grid min-h-[70vh] place-items-center bg-[#f3f7f6] px-5 dark:bg-[#071512]"><div className="text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600"/><p className="mt-4 text-sm font-bold text-slate-500">Shaxsiy o‘quv yo‘lingiz tekshirilmoqda…</p></div></div>;
-  if (wizardOpen) return <LearningOnboarding userName={profile.full_name} onStart={(track, nextPlan) => { setActivePlan(nextPlan); setWizardOpen(false); setAssessmentOpen(true); }} />;
+  if (wizardOpen) return <LearningOnboarding userName={profile.full_name} onStart={(_, nextPlan) => { setActivePlan(nextPlan); setWizardOpen(false); setAssessmentOpen(true); }} />;
   if (assessmentOpen && activePlan) return <AssessmentFlow track={activePlan.trackId} plan={activePlan} onClose={() => setAssessmentOpen(false)} />;
 
   return (
