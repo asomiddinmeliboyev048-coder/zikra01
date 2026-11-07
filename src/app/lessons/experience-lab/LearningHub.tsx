@@ -173,7 +173,7 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     const next = done.includes(word) ? done.filter(x => x !== word) : [...done, word];
     setDone(next);
     try { localStorage.setItem("zikra-words-" + todayKey(), JSON.stringify(next)); } catch {}
-    if (!done.includes(word)) void logActivity("vocabulary", word, 100, { markedLearned: true });
+    if (!done.includes(word)) void finishPractice("vocabulary", word, 100, { markedLearned: true });
   }
 
   const dayStats = Array.from({ length: 7 }, (_, index) => {
