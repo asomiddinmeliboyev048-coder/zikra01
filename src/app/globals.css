@@ -751,3 +751,31 @@ body {
 .zikra-chat-silver aside,.zikra-chat-silver aside>div{border-color:rgba(148,163,184,.28)!important}.zikra-chat-silver aside a:hover{background-color:rgba(203,213,225,.28)!important}
 .zikra-chat-silver .chat-wallpaper{background-color:#e8ecf1!important;background-image:radial-gradient(38rem 34rem at 100% 0%,rgba(148,163,184,.2),transparent 58%),radial-gradient(34rem 30rem at 0% 100%,rgba(203,213,225,.26),transparent 58%)!important}.dark .zikra-chat-silver .chat-wallpaper{background-color:#171d27!important;background-image:radial-gradient(38rem 34rem at 100% 0%,rgba(148,163,184,.13),transparent 58%),radial-gradient(34rem 30rem at 0% 100%,rgba(71,85,105,.15),transparent 58%)!important}
 .zikra-chat-silver .bg-brand{background:linear-gradient(145deg,#dce2e9,#aeb8c6)!important;color:#202936!important}.dark .zikra-chat-silver .bg-brand{background:linear-gradient(145deg,#64748b,#475569)!important;color:#fff!important}
+
+/* Profile + notifications: Adaptive Silver finish */
+.zikra-profile-silver{color:#253041;background:radial-gradient(58rem 30rem at 95% 0%,rgba(203,213,225,.34),transparent 65%),linear-gradient(145deg,#f6f8fa,#e9edf2 52%,#f8fafc)}
+.dark .zikra-profile-silver{color:#e7edf5;background:radial-gradient(58rem 30rem at 95% 0%,rgba(148,163,184,.12),transparent 65%),linear-gradient(145deg,#151a22,#10151d 52%,#1b222d)}
+.zikra-profile-silver section.rounded-3xl,.zikra-profile-silver section.rounded-2xl,.zikra-profile-silver .rounded-3xl.border,.zikra-profile-silver .rounded-2xl.border{border-color:rgba(148,163,184,.24)!important;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(232,236,242,.9))!important;box-shadow:0 16px 38px -30px rgba(30,41,59,.42),inset 0 1px 0 rgba(255,255,255,.95)}
+.dark .zikra-profile-silver section.rounded-3xl,.dark .zikra-profile-silver section.rounded-2xl,.dark .zikra-profile-silver .rounded-3xl.border,.dark .zikra-profile-silver .rounded-2xl.border{border-color:rgba(203,213,225,.14)!important;background:linear-gradient(145deg,rgba(43,51,63,.95),rgba(27,33,43,.96))!important;box-shadow:0 18px 42px -30px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,255,255,.06)}
+.zikra-profile-cover{background:radial-gradient(28rem 10rem at 15% 10%,rgba(255,255,255,.82),transparent 70%),linear-gradient(112deg,#f8fafc 0%,#cbd3de 38%,#8995a5 72%,#e9edf2 100%);border-bottom:1px solid rgba(100,116,139,.22)}
+.dark .zikra-profile-cover{background:radial-gradient(28rem 10rem at 15% 10%,rgba(255,255,255,.12),transparent 70%),linear-gradient(112deg,#667386 0%,#3c4655 42%,#222a36 100%)}
+.zikra-profile-avatar-ring{background:linear-gradient(145deg,#fff 0%,#cbd5e1 30%,#64748b 62%,#eef2f7 100%);box-shadow:0 8px 24px -14px rgba(51,65,85,.65)}
+.dark .zikra-profile-avatar-ring{background:linear-gradient(145deg,#e2e8f0,#64748b 42%,#334155 75%,#cbd5e1)}
+.zikra-profile-silver .bg-success,.zikra-profile-silver .bg-brand{background:linear-gradient(145deg,#e8edf3,#aeb9c8)!important;color:#263140!important;border:1px solid rgba(255,255,255,.9)!important;box-shadow:inset 0 1px 0 #fff,0 8px 20px -14px rgba(51,65,85,.55)}
+.zikra-profile-silver .hover\\:bg-brand-700:hover{background:#aeb9c8!important}
+.zikra-profile-silver .bg-orange-50{background:#edf0f4!important}.zikra-profile-silver .text-orange-600{color:#64748b!important}
+.zikra-profile-silver .bg-gray-50,.zikra-profile-silver .bg-gray-50\\/60,.zikra-profile-silver .bg-gray-100{background:rgba(226,232,240,.58)!important}
+.dark .zikra-profile-silver .bg-gray-50,.dark .zikra-profile-silver .bg-gray-50\\/60,.dark .zikra-profile-silver .bg-gray-100{background:rgba(71,85,105,.24)!important}
+.zikra-profile-silver .text-brand{color:#526174!important}.dark .zikra-profile-silver .text-brand{color:#cbd5e1!important}
+.zikra-profile-silver .rounded-full.bg-gray-900{background:linear-gradient(145deg,#64748b,#334155)!important}
+.zikra-profile-silver .rounded-full.bg-gray-100{background:#e2e8f0!important}
+.zikra-notifications-silver{color:#253041;background:radial-gradient(50rem 28rem at 100% 0%,rgba(203,213,225,.3),transparent 65%),linear-gradient(145deg,#f6f8fa,#e9edf2 55%,#f8fafc)}
+.dark .zikra-notifications-silver{color:#e7edf5;background:radial-gradient(50rem 28rem at 100% 0%,rgba(148,163,184,.12),transparent 65%),linear-gradient(145deg,#151a22,#10151d 55%,#1b222d)}
+.zikra-notifications-list>div>div:first-child{border-color:rgba(148,163,184,.2)}
+.zikra-notifications-list li> a>div,.zikra-notifications-list li>div>div{border-color:rgba(148,163,184,.28)!important;box-shadow:0 10px 24px -22px rgba(30,41,59,.55),inset 0 1px 0 rgba(255,255,255,.85)}
+.zikra-notifications-list li> a>div{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(233,237,243,.9))!important}
+.dark .zikra-notifications-list li> a>div,.dark .zikra-notifications-list li>div>div{background:linear-gradient(145deg,rgba(48,57,70,.94),rgba(28,35,45,.96))!important;border-color:rgba(203,213,225,.15)!important}
+.zikra-notifications-list li p{color:#354153}.dark .zikra-notifications-list li p{color:#e2e8f0}
+.zikra-notifications-list li p.text-xs{color:#8793a3}.dark .zikra-notifications-list li p.text-xs{color:#9ca3af}
+.zikra-notifications-list .bg-brand{background:linear-gradient(145deg,#94a3b8,#64748b)!important}
+.zikra-silver-action{border-color:#aeb8c6!important;background:linear-gradient(145deg,#f8fafc,#d5dbe4)!important;color:#263140!important}
