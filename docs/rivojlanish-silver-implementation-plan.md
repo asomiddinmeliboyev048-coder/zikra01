@@ -38,6 +38,18 @@
 - Do not run database migrations as part of the visual redesign.
 - Preserve current user records and RLS policies.
 
+## Expanded application-wide Silver scope (added 2026-11-08)
+
+The Silver redesign now covers the wider product, not only Rivojlanish:
+- **Kashf etish:** discovery feed, category/filter chips, content cards, empty/loading states.
+- **Video:** video feed/cards, player chrome, playback controls, metadata and related content surfaces.
+- **Reels:** full-screen vertical viewer, action rail, progress indicators, comments and overlays.
+- **Chat:** conversation list, message bubbles, composer, attachments, unread/active states; preserve full-screen chat behavior.
+- **Learn:** lesson/course cards, learning navigation, practice and learning activity surfaces.
+- **Rivojlanish:** dashboard, hybrid path, missions, stats and achievements.
+
+Use the existing `dark` theme class and `zikra-theme` preference. Avoid a second theme state. Prefer shared semantic Silver tokens plus scoped page/component styles; do not globally override every emerald class blindly because status colors (success, warning, error) and media affordances must remain meaningful.
+
 ## Implementation sequence
 
 1. **Baseline and integration map**
@@ -46,7 +58,9 @@
 2. **Silver design tokens**
    - Add scoped silver surface, border, text, shadow, and focus tokens.
    - Support both light and dark themes through the existing theme mechanism.
-   - Keep changes scoped to Rivojlanish rather than recoloring the whole Zikra application.
+   - Establish shared Adaptive Silver design tokens for the whole authenticated app, while applying component-scoped styling to avoid unintended regressions.
+   - Recolor Kashf etish, Video, Reels, Chat, Learn, and Rivojlanish surfaces, cards, controls, navigation states, and interaction states.
+   - Preserve each section's distinct UX and media treatment; Silver means a consistent palette, not flattening every screen into identical layouts.
 3. **Dashboard shell**
    - Rebuild the Rivojlanish header, summary metrics, weekly progress, and responsive layout.
    - Reuse current plan, assessment, activity, and progress data sources.
@@ -76,3 +90,5 @@
 - `SkillDuel.tsx` blob SHA is identical on `main` and this branch; Duel remains untouched.
 - No database migrations or production data were changed.
 - Build/typecheck has not yet been run in a local checkout. The observed Vercel check was only its feedback-comments check, not a build result.
+
+- Scope clarification: user explicitly expanded the Silver visual redesign to Kashf etish, Video, Reels, Chat, and Learn in addition to Rivojlanish. Global palette changes must be intentional and regression-tested; existing global emerald styles are still in use outside the learning area.
