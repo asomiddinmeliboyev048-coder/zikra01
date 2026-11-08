@@ -37,6 +37,36 @@ const listeningPrompts: Record<AssessmentTrack, string> = {
   cyber: "Use strong authentication and keep your software up to date.",
 };
 const todayKey = () => new Date().toLocaleDateString("en-CA");
+const offlineDictionary: Record<string, { translation: string; definition: string; example: string }> = {
+  hello:{translation:"salom",definition:"A greeting used when meeting someone.",example:"Hello, how are you?"},
+  achieve:{translation:"erishmoq",definition:"To succeed in reaching a goal.",example:"You can achieve your goals with practice."},
+  improve:{translation:"yaxshilamoq",definition:"To make or become better.",example:"Daily practice helps you improve."},
+  although:{translation:"garchi",definition:"Used to introduce a contrast or unexpected fact.",example:"Although it was late, we continued."},
+  reliable:{translation:"ishonchli",definition:"Able to be trusted or depended on.",example:"This is a reliable source."},
+  opportunity:{translation:"imkoniyat",definition:"A situation that makes it possible to do something.",example:"This is a great opportunity."},
+  confident:{translation:"o‘ziga ishongan",definition:"Feeling sure about your abilities.",example:"She feels confident before the exam."},
+  environment:{translation:"atrof-muhit",definition:"The surroundings or conditions in which people live.",example:"We should protect the environment."},
+  experience:{translation:"tajriba",definition:"Knowledge or skill gained by doing something.",example:"Experience helps us learn."},
+  decision:{translation:"qaror",definition:"A choice made after thinking about something.",example:"It was a difficult decision."},
+  challenge:{translation:"qiyinchilik",definition:"A difficult task that tests someone's ability.",example:"Every challenge can teach us something."},
+  curious:{translation:"qiziquvchan",definition:"Eager to know or learn something.",example:"Curious people ask questions."},
+  discover:{translation:"kashf qilmoq",definition:"To find something for the first time.",example:"We discover new ideas every day."},
+  journey:{translation:"sayohat",definition:"An act of travelling from one place to another.",example:"Learning is a lifelong journey."},
+  patient:{translation:"sabrli",definition:"Able to wait calmly without becoming upset.",example:"Be patient with yourself."},
+  success:{translation:"muvaffaqiyat",definition:"The achievement of a desired result.",example:"Hard work can lead to success."},
+  apple:{translation:"olma",definition:"A round fruit with red, green, or yellow skin.",example:"I eat an apple every morning."},
+  book:{translation:"kitob",definition:"A set of written or printed pages bound together.",example:"This book is interesting."},
+  network:{translation:"tarmoq",definition:"A group of connected computers or people.",example:"The network is secure."},
+  security:{translation:"xavfsizlik",definition:"The state of being protected from danger or attack.",example:"Security matters online."},
+  authentication:{translation:"autentifikatsiya",definition:"The process of verifying a user's identity.",example:"Use multi-factor authentication."},
+  encryption:{translation:"shifrlash",definition:"The process of protecting information by converting it into code.",example:"Encryption protects private data."},
+  firewall:{translation:"tarmoqlararo ekran",definition:"A security system that controls incoming and outgoing network traffic.",example:"The firewall blocks suspicious traffic."},
+  phishing:{translation:"fishing hujumi",definition:"A scam that tricks people into revealing private information.",example:"Never click a suspicious phishing link."},
+  array:{translation:"massiv",definition:"A data structure that stores a collection of values.",example:"The array contains five numbers."},
+  function:{translation:"funksiya",definition:"A reusable block of code that performs a task.",example:"This function returns a result."},
+  computer:{translation:"kompyuter",definition:"An electronic device that processes and stores information.",example:"My computer is fast."},
+};
+
 
 export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel }: Props) {
   const [tab, setTab] = useState("home");
@@ -130,7 +160,15 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Lug‘atga ulanib bo‘lmadi.");
       setResult(data);
-    } catch (e) { setError(e instanceof Error ? e.message : "Lug‘atga ulanib bo‘lmadi."); }
+    } catch (e) {
+      const fallback = offlineDictionary[query.trim().toLowerCase()];
+      if (fallback && source === "en") {
+        setResult({ word: query.trim(), phonetic: "", translation: fallback.translation, meanings: [{ partOfSpeech: "meaning", definition: fallback.definition, example: fallback.example }], audio: "", source: "offline" });
+        setError("");
+      } else {
+        setError("Lug‘at serveriga ulanib bo‘lmadi. Internetni tekshiring yoki hozircha boshqa so‘z kiriting.");
+      }
+    }
     finally { setLoading(false); }
   }
 
