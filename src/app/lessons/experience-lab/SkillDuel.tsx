@@ -215,8 +215,8 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const silverPanel = "border border-white/70 bg-[linear-gradient(145deg,rgba(255,255,255,.94),rgba(215,222,232,.88))] shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_18px_44px_-30px_rgba(15,23,42,.5)]";
   const avatar = (player: Player | null, size = "h-16 w-16") => player?.avatar
     ? <span className={size + " relative block shrink-0 overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-slate-100 to-slate-400 text-slate-600 shadow-lg"}>
-        <img src={player.avatar} alt={player.name} referrerPolicy="no-referrer" onError={(event) => { event.currentTarget.style.display = "none"; }} className="h-full w-full object-cover" />
-        <span className="absolute inset-0 -z-0 grid place-items-center"><UserRound size={26}/></span>
+        <img src={player.avatar} alt={player.name} referrerPolicy="no-referrer" onError={(event) => { event.currentTarget.style.display = "none"; event.currentTarget.parentElement?.querySelector(".avatar-fallback")?.classList.remove("hidden"); }} className="h-full w-full object-cover" />
+        <span className="avatar-fallback absolute inset-0 hidden place-items-center"><UserRound size={26}/></span>
       </span>
     : <span className={size + " grid shrink-0 place-items-center rounded-full border-2 border-white bg-gradient-to-br from-slate-100 to-slate-400 text-slate-600 shadow-lg"}><UserRound size={26}/></span>;
   return createPortal(
