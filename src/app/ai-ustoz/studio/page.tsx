@@ -37,7 +37,14 @@ export default function AiTutorStudioPage() {
   const [error, setError] = useState("");
   const [scriptReady, setScriptReady] = useState(false);
   const viewerRef = useRef<ViewerElement | null>(null);
-  const avatar = useMemo(() => avatars.find((item) => item.id === avatarId) || avatars[0], [avatarId]);\n\n  useEffect(() => {\n    try {\n      const saved = window.localStorage.getItem("zikra-ai-ustoz-avatar");\n      if (saved === "teacher" || saved === "student") setAvatarId(saved);\n    } catch { /* storage may be unavailable */ }\n  }, []);
+  const avatar = useMemo(() => avatars.find((item) => item.id === avatarId) || avatars[0], [avatarId]);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("zikra-ai-ustoz-avatar");
+      if (saved === "teacher" || saved === "student") setAvatarId(saved);
+    } catch { /* storage may be unavailable */ }
+  }, []);
 
   useEffect(() => {
     if (!scriptReady) return;
