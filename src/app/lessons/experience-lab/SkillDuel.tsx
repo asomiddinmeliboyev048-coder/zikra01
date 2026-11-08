@@ -59,7 +59,12 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     setMounted(true);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    void supabase.auth.getUser().then(({ data: { user } }) => { if (user) setMe(profileLabel(user)); }).catch(() => {});
+    void supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+      const fallback = profileLabel(user);
+      const { data: profile } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle();
+      setMe({ ...fallback, name: profile?.full_name || fallback.name, avatar: profile?.avatar_url || fallback.avatar });
+    }).catch(() => {});
     return () => { document.body.style.overflow = previousOverflow; };
   }, [supabase]);
 
@@ -86,7 +91,10 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     setQueueSeconds(15); setRemaining(15); setTotal(60); setTurn(""); setStage("search"); setOnline(false);
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) { setMessage("Duel uchun Zikra hisobingizga kiring."); setStage("setup"); return; }
-    const self = profileLabel(user); setMe(self);
+    const fallbackSelf = profileLabel(user);
+    const { data: ownProfile } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle();
+    const self = { ...fallbackSelf, name: ownProfile?.full_name || fallbackSelf.name, avatar: ownProfile?.avatar_url || fallbackSelf.avatar };
+    setMe(self);
     const topic = "skill-duel-queue-" + norm(skill || "english") + "-" + gameLanguage;
     const channel = supabase.channel(topic, { config: { presence: { key: user.id }, broadcast: { self: false } } });
     queueRef.current = channel;
@@ -101,8 +109,10 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
       // Pair the two oldest queued accounts. Both clients derive the same pair and room.
       if (people.length >= 2 && people[0].id !== people[1].id && people.slice(0,2).some(p => p.id === user.id)) {
         const pair = people.slice(0,2);
-        const rival = pair.find(p => p.id !== user.id);
-        if (!rival) return;
+        const queuedRival = pair.find(p => p.id !== user.id);
+        if (!queuedRival) return;
+        const { data: rivalProfile } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", queuedRival.id).maybeSingle();
+        const rival = { ...queuedRival, name: rivalProfile?.full_name || queuedRival.name, avatar: rivalProfile?.avatar_url || queuedRival.avatar };
         matchRef.current = true; setOpponent(rival); setMessage("Raqib topildi! Duel ulanmoqda…");
         const roomId = pair.map(p => p.id).sort().join("-");
         const room = supabase.channel("skill-duel-room-" + roomId, { config: { broadcast: { self: false }, presence: { key: user.id } } });
