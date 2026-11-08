@@ -41,8 +41,9 @@ export default function PushManager({ userId }: { userId: string }) {
           { scope: "/firebase-cloud-messaging-push-scope" }
         );
 
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") return;
+        // Hech qachon mount vaqtida permission prompt ochmaymiz.
+        // Push token faqat foydalanuvchi oldin ruxsat bergan bo‘lsa olinadi.
+        if (Notification.permission !== "granted") return;
 
         const messaging = await getMessagingClient();
         if (!messaging) return;
