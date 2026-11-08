@@ -799,3 +799,12 @@ body {
 .learning-hub input,.learning-hub textarea{background:linear-gradient(145deg,#fff,#e9edf3)!important;border-color:#cbd5e1!important;color:#263140!important}
 .dark .learning-hub input,.dark .learning-hub textarea{background:linear-gradient(145deg,#303a49,#202936)!important;border-color:#475569!important;color:#f1f5f9!important}
 .learning-hub .shadow-lg,.learning-hub .shadow-md,.learning-hub .shadow-sm{box-shadow:0 16px 38px -27px rgba(30,41,59,.38)!important}
+
+
+/* Hikoya viewer to'liq ekran bo'lganda mobil navigatsiyani berkitish */
+.story-active .zikra-bottom-nav {
+  display: none !important;
+}
+.story-active body {
+  padding-bottom: 0 !important;
+}
