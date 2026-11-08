@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Check, CircleHelp, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";\nimport "./ai-tutor.css";
+import { ArrowLeft, Check, CircleHelp, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";
+import "./ai-tutor.css";
 
 type Track = "english" | "russian" | "coding" | "cyber";
 type Message = { role: "user" | "assistant"; content: string; id: string };
