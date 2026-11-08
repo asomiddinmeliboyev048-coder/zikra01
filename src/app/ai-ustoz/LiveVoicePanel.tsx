@@ -183,7 +183,8 @@ export default function LiveVoicePanel({ track, level }: Props) {
             processor.connect(silentGain);
             silentGain.connect(context.destination);
             setStatus("live");
-            setCaption("Ulandik! O‘zbekcha bemalol gapiring — Ziyo sizni tinglayapti.");
+            setCaption("Ulandik! Ziyo siz bilan salomlashmoqda…");
+            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni hozir boshlang. O‘zbek tilida qisqa, samimiy salomlashing va tanlangan ko‘nikma bo‘yicha darajamga mos bitta sodda savol bering. Tabiiy, hazilkash ohangda gapiring." }] }], turnComplete: true } }));
           }
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
