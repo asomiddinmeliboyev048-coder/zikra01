@@ -55,8 +55,15 @@ Suhbat jonli va tabiiy bo‘lsin: bir paytda bitta savol ber, javobni kut, foyda
     });
     const payload = await upstream.json();
     if (!upstream.ok) {
-      console.error("[zikra-gemini-live-token]", payload?.error?.message || upstream.status);
-      return NextResponse.json({ error: "Gemini Live token yaratilmadi. API kalit, loyiha va Live API ruxsatini tekshiring." }, { status: 502 });
+      const upstreamMessage = typeof payload?.error?.message === "string"
+        ? payload.error.message.slice(0, 500)
+        : "Google Gemini API so‘rovni rad etdi.";
+      console.error(`[zikra-gemini-live-token] HTTP ${upstream.status}: ${upstreamMessage}`);
+      // The Google error message is safe to expose; never return request headers or the API key.
+      return NextResponse.json(
+        { error: `Gemini API (${upstream.status}): ${upstreamMessage}` },
+        { status: 502 },
+      );
     }
     const token = payload?.name;
     if (typeof token !== "string" || !token.startsWith("auth_tokens/")) {
