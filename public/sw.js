@@ -1,137 +1,108 @@
-// Zikra — service worker v5 (lahzali yuklanish uchun optimallashtirilgan)
-//
-// STRATEGIYALAR (har xil resurs — har xil yondashuv):
-//
-//  1) /_next/static/* va shriftlar  → KESH-BIRINCHI (cache-first)
-//     Bu fayllar o'zgarmas (har build'da nomi/hash o'zgaradi), shuning uchun
-//     keshdan darhol beriladi → yuklanish ~0 sekund.
-//
-//  2) Rasm / ikonka / avatar / thumbnail → STALE-WHILE-REVALIDATE
-//     Keshdagi nusxa DARHOL ko'rsatiladi (sekundning ulushi), orqa fonda
-//     yangisi yuklanib, kesh yangilanadi. Foydalanuvchi kutmaydi.
-//
-//  3) HTML sahifalar (navigatsiya) → TARMOQ-BIRINCHI (network-first)
-//     Yangi deploy DARHOL ko'rinadi (sayt eski dizaynda qotib qolmaydi).
-//     Faqat offline bo'lgandagina keshdan / '/' dan beriladi.
-//
-//  MUHIM: kesh nomi (v5, v6...) o'zgarganda eski kesh avtomatik tozalanadi.
-
-const STATIC_CACHE = "zikra-static-v5";
-const IMAGE_CACHE = "zikra-img-v5";
-const PAGE_CACHE = "zikra-pages-v5";
+// Zikra service worker — resilient offline and cache handling.
+const STATIC_CACHE = "zikra-static-v6";
+const IMAGE_CACHE = "zikra-img-v6";
+const PAGE_CACHE = "zikra-pages-v6";
 const KEEP = [STATIC_CACHE, IMAGE_CACHE, PAGE_CACHE];
-
-// Offline uchun boshlang'ich sahifalar
 const CORE = ["/", "/discovery", "/manifest.json", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(PAGE_CACHE).then((cache) => cache.addAll(CORE)).catch(() => {})
+    caches.open(PAGE_CACHE)
+      .then((cache) => cache.addAll(CORE))
+      .catch(() => undefined)
   );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => !KEEP.includes(k)).map((k) => caches.delete(k)))
-      )
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((key) => !KEEP.includes(key)).map((key) => caches.delete(key))
+      ))
       .then(() => self.clients.claim())
   );
 });
 
-// ---- Strategiya yordamchilari ----
-
-// KESH-BIRINCHI: keshda bo'lsa darhol, aks holda tarmoqdan olib keshlaymiz.
-function cacheFirst(request, cacheName) {
-  return caches.match(request).then((cached) => {
-    if (cached) return cached;
-    return fetch(request).then((res) => {
-      if (res && (res.status === 200 || res.type === "opaque")) {
-        const clone = res.clone();
-        caches.open(cacheName).then((c) => c.put(request, clone)).catch(() => {});
-      }
-      return res;
-    });
-  });
+async function offlineFallback(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  const home = await caches.match("/");
+  return home || Response.error();
 }
 
-// STALE-WHILE-REVALIDATE: keshdan darhol qaytaramiz, parallel ravishda
-// tarmoqdan yangilab keshni yangilaymiz.
-function staleWhileRevalidate(request, cacheName) {
-  return caches.open(cacheName).then((cache) =>
-    cache.match(request).then((cached) => {
-      const network = fetch(request)
-        .then((res) => {
-          if (res && (res.status === 200 || res.type === "opaque")) {
-            cache.put(request, res.clone()).catch(() => {});
-          }
-          return res;
-        })
-        .catch(() => cached);
-      // Kesh bo'lsa darhol, bo'lmasa tarmoqni kutamiz.
-      return cached || network;
-    })
-  );
+async function cacheFirst(request, cacheName) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+
+  const response = await fetch(request);
+  if (response && (response.status === 200 || response.type === "opaque")) {
+    const cache = await caches.open(cacheName);
+    await cache.put(request, response.clone()).catch(() => undefined);
+  }
+  return response;
 }
 
-// TARMOQ-BIRINCHI: avval tarmoqdan (eng yangi), offline bo'lsa keshdan.
-function networkFirst(request, cacheName) {
-  return fetch(request)
-    .then((res) => {
-      if (res && res.status === 200 && res.type === "basic") {
-        const clone = res.clone();
-        caches.open(cacheName).then((c) => c.put(request, clone)).catch(() => {});
-      }
-      return res;
-    })
-    .catch(() => caches.match(request).then((r) => r || caches.match("/")));
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+
+  try {
+    const response = await fetch(request);
+    if (response && (response.status === 200 || response.type === "opaque")) {
+      await cache.put(request, response.clone()).catch(() => undefined);
+    }
+    return cached || response;
+  } catch {
+    // Always return a valid Response; never resolve respondWith() with undefined.
+    return cached || Response.error();
+  }
+}
+
+async function networkFirst(request, cacheName) {
+  try {
+    const response = await fetch(request);
+    // Never cache redirects (e.g. Vercel SSO HTML returned for a manifest URL).
+    if (response && !response.redirected && response.status === 200 && response.type === "basic") {
+      const cache = await caches.open(cacheName);
+      await cache.put(request, response.clone()).catch(() => undefined);
+    }
+    return response;
+  } catch {
+    return offlineFallback(request);
+  }
 }
 
 self.addEventListener("fetch", (event) => {
-  const { request } = event;
+  const request = event.request;
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
 
-  // API / auth / server action'lar — hech qachon keshlanmaydi (real-time, dinamik).
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")) {
-    return;
-  }
+  // Let the browser handle cross-origin assets and requests directly.
+  if (url.origin !== self.location.origin) return;
 
-  // 1) O'zgarmas statik fayllar (Next build chunklari) + shriftlar → kesh-birinchi
+  // Never cache API/auth responses: they are user-specific and dynamic.
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")) return;
+
   if (url.pathname.startsWith("/_next/static/") || request.destination === "font") {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
 
-  // 2) Rasm / ikonka / avatar / thumbnail → stale-while-revalidate
-  const isImage =
-    request.destination === "image" ||
+  const isImage = request.destination === "image" ||
     /\.(png|jpe?g|gif|webp|avif|svg|ico)(\?.*)?$/i.test(url.pathname);
   if (isImage) {
     event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE));
     return;
   }
 
-  // 3) HTML sahifalar (navigatsiya) → tarmoq-birinchi (yangi deploy darhol)
   if (request.mode === "navigate" || request.destination === "document") {
     event.respondWith(networkFirst(request, PAGE_CACHE));
     return;
   }
 
-  // 4) Qolgani (masalan RSC ma'lumot oqimi) → tarmoq, offline bo'lsa keshdan.
   event.respondWith(
-    fetch(request)
-      .then((res) => {
-        if (res && res.status === 200 && res.type === "basic") {
-          const clone = res.clone();
-          caches.open(PAGE_CACHE).then((c) => c.put(request, clone)).catch(() => {});
-        }
-        return res;
-      })
-      .catch(() => caches.match(request))
+    fetch(request).catch(() => offlineFallback(request))
   );
 });
