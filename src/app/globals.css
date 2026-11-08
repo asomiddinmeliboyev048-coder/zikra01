@@ -762,10 +762,10 @@ body {
 .zikra-profile-avatar-ring{background:linear-gradient(145deg,#fff 0%,#cbd5e1 30%,#64748b 62%,#eef2f7 100%);box-shadow:0 8px 24px -14px rgba(51,65,85,.65)}
 .dark .zikra-profile-avatar-ring{background:linear-gradient(145deg,#e2e8f0,#64748b 42%,#334155 75%,#cbd5e1)}
 .zikra-profile-silver .bg-success,.zikra-profile-silver .bg-brand{background:linear-gradient(145deg,#e8edf3,#aeb9c8)!important;color:#263140!important;border:1px solid rgba(255,255,255,.9)!important;box-shadow:inset 0 1px 0 #fff,0 8px 20px -14px rgba(51,65,85,.55)}
-.zikra-profile-silver .hover\\:bg-brand-700:hover{background:#aeb9c8!important}
+ .zikra-profile-silver [class~="hover:bg-brand-700"]:hover{background:#aeb9c8!important}
 .zikra-profile-silver .bg-orange-50{background:#edf0f4!important}.zikra-profile-silver .text-orange-600{color:#64748b!important}
-.zikra-profile-silver .bg-gray-50,.zikra-profile-silver .bg-gray-50\\/60,.zikra-profile-silver .bg-gray-100{background:rgba(226,232,240,.58)!important}
-.dark .zikra-profile-silver .bg-gray-50,.dark .zikra-profile-silver .bg-gray-50\\/60,.dark .zikra-profile-silver .bg-gray-100{background:rgba(71,85,105,.24)!important}
+ .zikra-profile-silver .bg-gray-50,.zikra-profile-silver [class~="bg-gray-50/60"],.zikra-profile-silver .bg-gray-100{background:rgba(226,232,240,.58)!important}
+ .dark .zikra-profile-silver .bg-gray-50,.dark .zikra-profile-silver [class~="bg-gray-50/60"],.dark .zikra-profile-silver .bg-gray-100{background:rgba(71,85,105,.24)!important}
 .zikra-profile-silver .text-brand{color:#526174!important}.dark .zikra-profile-silver .text-brand{color:#cbd5e1!important}
 .zikra-profile-silver .rounded-full.bg-gray-900{background:linear-gradient(145deg,#64748b,#334155)!important}
 .zikra-profile-silver .rounded-full.bg-gray-100{background:#e2e8f0!important}
@@ -779,3 +779,5 @@ body {
 .zikra-notifications-list li p.text-xs{color:#8793a3}.dark .zikra-notifications-list li p.text-xs{color:#9ca3af}
 .zikra-notifications-list .bg-brand{background:linear-gradient(145deg,#94a3b8,#64748b)!important}
 .zikra-silver-action{border-color:#aeb8c6!important;background:linear-gradient(145deg,#f8fafc,#d5dbe4)!important;color:#263140!important}
+
+.zikra-profile-silver section span[style*="color"]{color:#64748b!important}.dark .zikra-profile-silver section span[style*="color"]{color:#cbd5e1!important}.zikra-profile-silver section div[style*="background-color"]{background:#94a3b8!important}
