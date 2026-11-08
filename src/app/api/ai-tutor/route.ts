@@ -63,7 +63,10 @@ export async function POST(request: Request) {
       parts: [{ text: item.content.slice(0, 1800) }],
     }));
 
-  if (!safeMessages.length || safeMessages[safeMessages.length - 1].role !== "user") {
+  // The UI may prepend a welcome bubble; Gemini conversation history must begin with a user turn.
+  const firstUserIndex = safeMessages.findIndex((message) => message.role === "user");
+  const conversation = firstUserIndex >= 0 ? safeMessages.slice(firstUserIndex) : [];
+  if (!conversation.length || conversation[conversation.length - 1].role !== "user") {
     return NextResponse.json({ error: "Xabar topilmadi." }, { status: 400 });
   }
 
@@ -84,7 +87,7 @@ Xatolarni muloyim tuzat: avval nimasi yaxshi chiqqanini ayt, keyin to‘g‘ri v
       },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemInstruction }] },
-        contents: safeMessages,
+        contents: conversation,
         generationConfig: {
           maxOutputTokens: 420,
           temperature: 0.75,
