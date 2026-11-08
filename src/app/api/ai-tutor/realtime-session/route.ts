@@ -33,7 +33,7 @@ Suhbat jonli va tabiiy bo‘lsin: bir paytda bitta savol ber, javobni kut, foyda
 
   try {
     const now = Date.now();
-    const upstream = await fetch("https://generativelanguage.googleapis.com/v1alpha/auth_tokens", {
+    const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/auth_tokens", {
       method: "POST",
       headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
       body: JSON.stringify({
