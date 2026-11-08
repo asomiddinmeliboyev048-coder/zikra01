@@ -35,13 +35,17 @@ export default function AssessmentFlow({ track, plan, onClose }: Props) {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Natijani saqlab bo‘lmadi.");
-      setResult(payload.assessment); setStage("result");
+      setResult(payload.assessment);
+      await fetch("/api/learning/activity", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackId: track, skillName: plan.skillName, activityType: "diagnostic", itemKey: "assessment-" + track + "-" + payload.assessment.assessed_at, score: Math.round((payload.assessment.score / payload.assessment.total) * 100), details: { level: payload.assessment.level, practicalPassed: payload.assessment.practical_passed }, completed: true }),
+      }).catch((activityError) => console.error("[assessment-xp]", activityError));
+      setStage("result");
     } catch (e) { setError(e instanceof Error ? e.message : "Tarmoq xatosi. Qayta urinib ko‘ring."); }
     finally { setSaving(false); }
   };
 
-  if (stage === "result" && result) {
-    if (stage === "practical") {
+  if (stage === "practical") {
     return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#f4f8f7] px-4 py-6 text-[#102321] sm:px-8 sm:py-10">
       <div className="mx-auto max-w-3xl">
         <button onClick={() => setStage("quiz")} className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-[#102321]"><ArrowLeft size={17}/> Testga qaytish</button>
@@ -60,6 +64,7 @@ export default function AssessmentFlow({ track, plan, onClose }: Props) {
     </main>;
   }
 
+  if (stage === "result" && result) {
   return <main className="min-h-[100dvh] w-full overflow-y-auto bg-[#f4f8f7] px-4 py-8 text-[#102321] sm:px-8">
       <div className="mx-auto max-w-5xl">
         <button onClick={onClose} className="mb-7 inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-[#102321]"><ArrowLeft size={17}/> Orqaga</button>
