@@ -106,7 +106,7 @@ export default function AiTutorPage() {
         <header className="flex items-center justify-between gap-3">
           <Link href="/learn" className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-200 transition hover:bg-white/10"><ArrowLeft size={16}/> Orqaga</Link>
           <div className="flex items-center gap-2 text-sm font-black tracking-tight"><span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-white to-slate-400 text-slate-800"><Sparkles size={17}/></span>Zikra AI Ustoz</div>
-          <button onClick={() => setVoiceEnabled((value) => !value)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300" aria-label="Ovoz sozlamasi">{voiceEnabled ? <Volume2 size={17}/> : <VolumeX size={17}/>}</button>
+          <div className="flex items-center gap-2"><Link href="/ai-ustoz/studio" className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-300/20 bg-white/[0.06] px-3 text-[11px] font-bold text-slate-200 transition hover:bg-white/10"><Sparkles size={14}/> 3D Avatar Studio</Link><button onClick={() => setVoiceEnabled((value) => !value)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300" aria-label="Ovoz sozlamasi">{voiceEnabled ? <Volume2 size={17}/> : <VolumeX size={17}/>}</button></div>
         </header>
 
         <div className="mt-4"><LiveVoicePanel track={track} level={level} /></div>
