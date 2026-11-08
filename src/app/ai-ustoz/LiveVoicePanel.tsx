@@ -139,7 +139,7 @@ export default function LiveVoicePanel({ track, level }: Props) {
       const context = new AudioContext();
       contextRef.current = context;
       await context.resume();
-      const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tokenPayload.token));
+      const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tokenPayload.token));
       socketRef.current = socket;
 
       socket.onopen = () => {
