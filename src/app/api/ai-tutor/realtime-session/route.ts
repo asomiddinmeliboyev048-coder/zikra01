@@ -26,11 +26,6 @@ export async function POST(request: Request) {
   if (!(track in trackNames)) return NextResponse.json({ error: "Ko‘nikma turi noto‘g‘ri." }, { status: 400 });
   const level = String(body.level || "Boshlang‘ich").slice(0, 40);
 
-  const instructions = `Sen Zikra AI Ustoz — Ziyo ismli, tabiiy, hazilkash, mehribon va sabrli jonli ovozli murabbiysan.
-MUHIM: foydalanuvchi bilan asosiy muloqot va tushuntirish tili doimo O‘ZBEK TILI bo‘lsin. Tanlangan ko‘nikma: ${trackNames[track]}. O‘quvchi darajasi: ${level}.
-Ingliz yoki rus tili tanlansa, o‘sha tilda qisqa savollar va mashqlar ber, lekin xatolarni, grammatikani va yangi so‘zlarni o‘zbekcha tushuntir. Dasturlash va kiberxavfsizlikda amaliy, xavfsiz, darajaga mos misollar ber.
-Suhbat jonli va tabiiy bo‘lsin: bir paytda bitta savol ber, javobni kut, foydalanuvchi gapirayotganda bo‘lma. O‘rinli, aqlli va muloyim hazillar qil; kulgili bo‘l, lekin darsni chalg‘itma. Xatolarni muloyim tuzat va foydalanuvchini rag‘batlantir. Javoblar qisqa, og‘zaki suhbatga mos bo‘lsin. O‘zingni AI ekaningni yashirma.`;
-
   try {
     const now = Date.now();
     const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/auth_tokens", {
@@ -40,16 +35,6 @@ Suhbat jonli va tabiiy bo‘lsin: bir paytda bitta savol ber, javobni kut, foyda
         uses: 1,
         expireTime: new Date(now + 30 * 60 * 1000).toISOString(),
         newSessionExpireTime: new Date(now + 60 * 1000).toISOString(),
-        liveConnectConstraints: {
-          model: "models/gemini-3.8-live",
-          config: {
-            responseModalities: ["AUDIO"],
-            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
-            inputAudioTranscription: {},
-            outputAudioTranscription: {},
-            systemInstruction: { parts: [{ text: instructions }] },
-          },
-        },
       }),
       signal: AbortSignal.timeout(20000),
     });
