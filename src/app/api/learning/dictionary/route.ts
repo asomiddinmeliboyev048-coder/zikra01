@@ -24,6 +24,16 @@ const offlineEntries: Record<string, { translation: string; definition: string; 
   phishing:{translation:"firibgarlik orqali ma’lumot o‘g‘irlash",definition:"A scam that tricks people into revealing sensitive information.",example:"Never open a suspicious phishing link."},
   array:{translation:"massiv",definition:"A data structure that stores a collection of values.",example:"The array contains five numbers."},
   function:{translation:"funksiya",definition:"A reusable block of code that performs a task.",example:"This function returns a number."},
+  "привет":{translation:"salom",definition:"A common informal Russian greeting.",example:"Привет, как дела?"},
+  "спасибо":{translation:"rahmat",definition:"A polite expression of gratitude.",example:"Спасибо за помощь."},
+  "пожалуйста":{translation:"iltimos; marhamat",definition:"A polite word used when making a request or responding to thanks.",example:"Пожалуйста, помогите мне."},
+  "сегодня":{translation:"bugun",definition:"On this day; at the present time.",example:"Сегодня хорошая погода."},
+  "работа":{translation:"ish",definition:"An activity involving mental or physical effort.",example:"У меня много работы."},
+  "дом":{translation:"uy",definition:"A building where people live.",example:"Я иду домой."},
+  "книга":{translation:"kitob",definition:"A written or printed work consisting of pages.",example:"Я читаю интересную книгу."},
+  "вода":{translation:"suv",definition:"A clear liquid essential for life.",example:"Пейте больше воды."},
+  "школа":{translation:"maktab",definition:"An institution where children receive education.",example:"Моя школа рядом."},
+  "друг":{translation:"do‘st",definition:"A person whom one knows and likes.",example:"Мой друг помогает мне."},
 };
 
 type DictionaryEntry = {
@@ -92,7 +102,7 @@ export async function GET(request: Request) {
     .filter((item) => item.definition)
     .slice(0, 6);
 
-  const fallback = source === "en" ? offlineEntries[word.toLowerCase()] : undefined;
+  const fallback = offlineEntries[word.toLowerCase()];
   const finalTranslation = translation || fallback?.translation || "";
   const finalMeanings = meanings.length ? meanings : fallback ? [{ partOfSpeech: "meaning", definition: fallback.definition, example: fallback.example }] : [];
 
