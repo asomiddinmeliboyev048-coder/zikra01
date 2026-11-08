@@ -82,7 +82,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
   if (assessmentOpen && activePlan) return <AssessmentFlow track={activePlan.trackId} plan={activePlan} onClose={() => setAssessmentOpen(false)} />;
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#f3f7f6] text-[#172b27] dark:bg-[#071512] dark:text-[#e7f1ed]">
+    <div className="zikra-silver min-h-[calc(100vh-64px)] bg-[#f3f7f6] text-[#172b27] dark:bg-[#071512] dark:text-[#e7f1ed]">
       <div className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-5 lg:space-y-5 lg:px-7 lg:py-6">
         <main className="min-w-0 space-y-4 lg:space-y-5">
           <header className="flex flex-col gap-4 rounded-[24px] border border-white bg-white/90 p-4 shadow-[0_12px_40px_-30px_rgba(17,75,61,.3)] dark:border-white/10 dark:bg-[#10231e] sm:flex-row sm:items-center sm:justify-between sm:px-6">
