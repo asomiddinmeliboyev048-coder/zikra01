@@ -360,7 +360,7 @@ export default function ChatClient({
   }
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden bg-white dark:bg-[#0e1525]">
+    <div className="zikra-silver zikra-chat-silver flex h-[100dvh] w-full overflow-hidden bg-white dark:bg-[#0e1525]">
       {/* Chap panel: suhbatlar */}
       <aside
         className={cn(
