@@ -173,7 +173,7 @@ export default function AiTutorStudioPage() {
             {loaded && animations.length > 0 && <p className="panel-hint">{animations.length} ta animatsiya klipi aniqlandi. Presetlar mavjud kliplarga moslashtiriladi.</p>}
           </section>
 
-          <section className="studio-note"><Volume2 size={16}/><div><b>Tabiiy suhbat rejimi</b><p>Jonli suhbat boshlanganida avatar gapirish presetiga o‘tishi mumkin. Foydalanuvchi 3D modelni aylantira olmaydi.</p></div></section>
+          <section className="studio-note"><Volume2 size={16}/><div><b>Tabiiy suhbat rejimi</b><p>Gemini Live javob berganda avatar gapirish holatiga o‘tadi. GLB animatsiyasi bo‘lmasa, yengil vizual harakat indikatori ishlaydi. Foydalanuvchi 3D modelni aylantira olmaydi.</p></div></section>
           <div className="studio-footer"><span className="footer-shield">✦</span><p>Adaptive Silver · Full-screen 3D experience</p></div>
         </aside>
       </section>
