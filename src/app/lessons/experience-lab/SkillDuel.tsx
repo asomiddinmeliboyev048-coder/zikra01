@@ -214,8 +214,11 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const silverShell = "relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-300/25 bg-[linear-gradient(145deg,#f8fafc_0%,#cbd5e1_42%,#eef2f7_100%)] text-slate-900 shadow-[0_24px_80px_-35px_rgba(0,0,0,.8)]";
   const silverPanel = "border border-white/70 bg-[linear-gradient(145deg,rgba(255,255,255,.94),rgba(215,222,232,.88))] shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_18px_44px_-30px_rgba(15,23,42,.5)]";
   const avatar = (player: Player | null, size = "h-16 w-16") => player?.avatar
-    ? <img src={player.avatar} alt={player.name} className={size + " rounded-full border-2 border-white object-cover shadow-lg"} />
-    : <span className={size + " grid place-items-center rounded-full border-2 border-white bg-gradient-to-br from-slate-100 to-slate-400 text-slate-600 shadow-lg"}><UserRound size={26}/></span>;
+    ? <span className={size + " relative block shrink-0 overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-slate-100 to-slate-400 text-slate-600 shadow-lg"}>
+        <img src={player.avatar} alt={player.name} referrerPolicy="no-referrer" onError={(event) => { event.currentTarget.style.display = "none"; }} className="h-full w-full object-cover" />
+        <span className="absolute inset-0 -z-0 grid place-items-center"><UserRound size={26}/></span>
+      </span>
+    : <span className={size + " grid shrink-0 place-items-center rounded-full border-2 border-white bg-gradient-to-br from-slate-100 to-slate-400 text-slate-600 shadow-lg"}><UserRound size={26}/></span>;
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Skill Duel" className="fixed inset-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden bg-[radial-gradient(60rem_36rem_at_50%_-10%,#64748b_0%,#28313e_45%,#111720_100%)] px-0 pt-[env(safe-area-inset-top)] text-slate-100">
       <header className="mx-auto flex w-full max-w-4xl shrink-0 items-center justify-between gap-2 px-4 py-3">
