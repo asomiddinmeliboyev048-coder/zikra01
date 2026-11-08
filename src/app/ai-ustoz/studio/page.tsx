@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Script from "next/script";
-import { createElement, useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { ArrowLeft, Check, Maximize2, Mic2, Moon, RotateCcw, Sparkles, Sun, Volume2 } from "lucide-react";
 import "./studio.css";
 
@@ -26,7 +26,7 @@ const presets = [
   { id: "wave", label: "Salomlashish", description: "Qo‘l bilan salom beradi" },
 ];
 
-const ModelViewer = "model-viewer" as unknown as React.ComponentType<Record<string, unknown>>;
+const ModelViewer = "model-viewer" as unknown as ComponentType<Record<string, unknown>>;
 
 export default function AiTutorStudioPage() {
   const [avatarId, setAvatarId] = useState<AvatarId>("teacher");
