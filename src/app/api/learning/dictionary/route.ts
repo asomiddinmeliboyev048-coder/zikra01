@@ -50,16 +50,29 @@ async function translate(word: string, source: "en" | "ru") {
   const url = new URL("https://api.mymemory.translated.net/get");
   url.searchParams.set("q", word);
   url.searchParams.set("langpair", source + "|uz");
-  const response = await fetch(url, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(7000),
-    cache: "no-store",
-  });
-  if (!response.ok) return "";
-  const payload = await response.json();
-  const value = payload?.responseData?.translatedText;
-  if (payload?.responseStatus !== 200 || typeof value !== "string" || !value.trim() || value.toLowerCase() === word.toLowerCase() || /please select|invalid language|quota exceeded/i.test(value)) return "";
-  return value.replace(/&amp;/g, "&").replace(/&#39;/g, "'");
+  try {
+    const response = await fetch(url, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(6500), cache: "no-store" });
+    if (response.ok) {
+      const payload = await response.json();
+      const value = payload?.responseData?.translatedText;
+      if (payload?.responseStatus === 200 && typeof value === "string" && value.trim() && value.toLowerCase() !== word.toLowerCase() && !/please select|invalid language|quota exceeded/i.test(value)) {
+        return value.replace(/&amp;/g, "&").replace(/&#39;/g, "'");
+      }
+    }
+  } catch {}
+  try {
+    const fallbackUrl = new URL("https://translate.googleapis.com/translate_a/single");
+    fallbackUrl.searchParams.set("client", "gtx");
+    fallbackUrl.searchParams.set("sl", source);
+    fallbackUrl.searchParams.set("tl", "uz");
+    fallbackUrl.searchParams.set("dt", "t");
+    fallbackUrl.searchParams.set("q", word);
+    const response = await fetch(fallbackUrl, { signal: AbortSignal.timeout(6500), cache: "no-store" });
+    if (!response.ok) return "";
+    const payload = await response.json();
+    const value = Array.isArray(payload?.[0]) ? payload[0].map((part: any) => part?.[0] || "").join("") : "";
+    return value.trim() && value.toLowerCase() !== word.toLowerCase() ? value : "";
+  } catch { return ""; }
 }
 
 async function lookupEnglish(word: string) {
@@ -84,7 +97,7 @@ export async function GET(request: Request) {
 
   const [translation, entry] = await Promise.all([
     translate(word, source).catch((error) => {
-      console.warn("[learning-dictionary] translation provider unavailable", error);
+      console.warn("[learning-dictionary] translation providers unavailable", error);
       return "";
     }),
     source === "en" ? lookupEnglish(word).catch((error) => {
@@ -105,6 +118,8 @@ export async function GET(request: Request) {
   const fallback = offlineEntries[word.toLowerCase()];
   const finalTranslation = translation || fallback?.translation || "";
   const finalMeanings = meanings.length ? meanings : fallback ? [{ partOfSpeech: "meaning", definition: fallback.definition, example: fallback.example }] : [];
+  const example = finalMeanings.find((item) => item.example)?.example || fallback?.example || "";
+  const exampleTranslation = example ? await translate(example, source).catch(() => "") : "";
 
   if (!finalTranslation && !finalMeanings.length && !entry?.phonetic) {
     return NextResponse.json({
@@ -119,6 +134,8 @@ export async function GET(request: Request) {
     targetLanguage: "uz",
     phonetic: entry?.phonetic || entry?.phonetics?.find((item) => item.text)?.text || "",
     meanings: finalMeanings,
+    example,
+    exampleTranslation,
     audio: entry?.phonetics?.find((item) => item.audio)?.audio || "",
     source: translation || meanings.length ? "online" : "offline",
   }, { headers: { "Cache-Control": "private, max-age=900, stale-while-revalidate=3600" } });
