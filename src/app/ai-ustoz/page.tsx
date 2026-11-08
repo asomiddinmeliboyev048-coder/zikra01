@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, AudioLines, Bot, Check, ChevronDown, CircleHelp, Mic, MicOff, Send, Settings2, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";
+import { ArrowLeft, Check, CircleHelp, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";\nimport "./ai-tutor.css";
 
 type Track = "english" | "russian" | "coding" | "cyber";
 type Message = { role: "user" | "assistant"; content: string; id: string };
