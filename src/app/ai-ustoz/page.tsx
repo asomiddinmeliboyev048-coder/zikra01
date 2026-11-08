@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check, CircleHelp, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";
 import "./ai-tutor.css";
-import LiveVoicePanel from "./LiveVoicePanel";
+import LiveVoicePanel from "./LiveVoicePanel";\nimport TutorAvatarStage from "./TutorAvatarStage";
 
 type Track = "english" | "russian" | "coding" | "cyber";
 type Message = { role: "user" | "assistant"; content: string; id: string };
@@ -31,7 +31,7 @@ export default function AiTutorPage() {
   const [sending, setSending] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);\n  const [avatarSpeaking, setAvatarSpeaking] = useState(false);
   const [error, setError] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -109,7 +109,7 @@ export default function AiTutorPage() {
           <div className="flex items-center gap-2"><Link href="/ai-ustoz/studio" className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-300/20 bg-white/[0.06] px-3 text-[11px] font-bold text-slate-200 transition hover:bg-white/10"><Sparkles size={14}/> 3D Avatar Studio</Link><button onClick={() => setVoiceEnabled((value) => !value)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300" aria-label="Ovoz sozlamasi">{voiceEnabled ? <Volume2 size={17}/> : <VolumeX size={17}/>}</button></div>
         </header>
 
-        <div className="mt-4"><LiveVoicePanel track={track} level={level} /></div>
+        <div className="mt-4"><LiveVoicePanel track={track} level={level} onAvatarSpeakingChange={setAvatarSpeaking} /></div>
 
         <section className="mt-4 grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="flex min-h-[72svh] flex-col overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(145deg,#252d39,#171d26_55%,#303947)] shadow-[0_30px_100px_-50px_rgba(0,0,0,.9)]">
@@ -118,13 +118,9 @@ export default function AiTutorPage() {
               <span className="flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[10px] font-bold text-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300"/> Tayyor</span>
             </div>
 
-            <div className="relative flex min-h-[245px] flex-col items-center justify-center overflow-hidden border-b border-white/10 bg-[radial-gradient(ellipse_at_center,rgba(203,213,225,.16),transparent_62%)] px-4 py-5">
-              <div className={`zikra-orb ${speaking || sending || listening ? "is-active" : ""}`}>
-                <div className="zikra-orb-core"><div className="zikra-orb-eyes"><i/><i/></div><div className="zikra-orb-smile"/></div>
-                <span className="zikra-orb-ring ring-one"/><span className="zikra-orb-ring ring-two"/><span className="zikra-orb-ring ring-three"/>
-              </div>
-              <p className="mt-5 text-base font-black">Ziyo <span className="text-slate-400">· AI Ustoz</span></p>
-              <p className="mt-1 text-xs text-slate-400">{listening ? "Sizni tinglayapman…" : sending ? "Javob tayyorlayapman…" : speaking ? "Gapiryapman…" : "Bugun nimani o‘rganamiz?"}</p>
+            <div className="relative flex min-h-[360px] flex-col items-center justify-center overflow-hidden border-b border-white/10 bg-[radial-gradient(ellipse_at_center,rgba(203,213,225,.16),transparent_62%)] px-4 py-4">
+              <TutorAvatarStage speaking={avatarSpeaking || speaking} />
+              <p className="mt-2 text-xs text-slate-400">{avatarSpeaking || speaking ? "Ziyo sizga javob bermoqda…" : listening ? "Sizni tinglayapman…" : sending ? "Javob tayyorlayapman…" : "Bugun nimani o‘rganamiz?"}</p>
             </div>
 
             <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
