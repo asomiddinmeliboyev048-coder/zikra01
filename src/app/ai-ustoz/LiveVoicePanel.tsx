@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Phone, PhoneOff, Radio, Volume2 } from "lucide-react";
 
 type Track = "english" | "russian" | "coding" | "cyber";
-type Props = { track: Track; level: string };
+type Props = { track: Track; level: string; onAvatarSpeakingChange?: (speaking: boolean) => void };
 type LiveMessage = {
   setupComplete?: Record<string, unknown>;
   inputTranscription?: { text?: string };
@@ -43,7 +43,7 @@ function toBase64(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-export default function LiveVoicePanel({ track, level }: Props) {
+export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }: Props) {
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [muted, setMuted] = useState(false);
   const [caption, setCaption] = useState("Ziyo bilan jonli gaplashishni boshlang.");
@@ -196,12 +196,12 @@ export default function LiveVoicePanel({ track, level }: Props) {
             setTranscript((current) => current + (current ? "\n" : "") + "Ziyo: " + outputText);
             setCaption("Ziyo gapiryapti…");
           }
-          if (message.serverContent?.interrupted) stopPlayback();
+          if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
-            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) playPcm(part.inlineData.data);
+            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); playPcm(part.inlineData.data); }
             if (part.text) setCaption("Ziyo: " + part.text);
           }
-          if (message.serverContent?.turnComplete) setCaption("Javob tugadi. Davom etavering!");
+          if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); setCaption("Javob tugadi. Davom etavering!"); }
         } catch (cause) {
           console.error("[zikra-gemini-live-message]", cause);
         }
