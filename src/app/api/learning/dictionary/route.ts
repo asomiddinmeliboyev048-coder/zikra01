@@ -118,8 +118,10 @@ export async function GET(request: Request) {
   const fallback = offlineEntries[word.toLowerCase()];
   const finalTranslation = translation || fallback?.translation || "";
   const finalMeanings = meanings.length ? meanings : fallback ? [{ partOfSpeech: "meaning", definition: fallback.definition, example: fallback.example }] : [];
-  const example = finalMeanings.find((item) => item.example)?.example || fallback?.example || "";
-  const exampleTranslation = example ? await translate(example, source).catch(() => "") : "";
+  const example = finalMeanings.find((item) => item.example)?.example || fallback?.example || (source === "ru"
+    ? `Сегодня я выучил слово «${word}» и попробовал использовать его в разговоре.`
+    : `I learned the word “${word}” today and tried to use it in a conversation.`);
+  const exampleTranslation = await translate(example, source).catch(() => "");
 
   if (!finalTranslation && !finalMeanings.length && !entry?.phonetic) {
     return NextResponse.json({
