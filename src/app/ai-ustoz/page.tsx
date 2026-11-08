@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check, CircleHelp, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";
 import "./ai-tutor.css";
+import LiveVoicePanel from "./LiveVoicePanel";
 
 type Track = "english" | "russian" | "coding" | "cyber";
 type Message = { role: "user" | "assistant"; content: string; id: string };
@@ -107,6 +108,8 @@ export default function AiTutorPage() {
           <div className="flex items-center gap-2 text-sm font-black tracking-tight"><span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-white to-slate-400 text-slate-800"><Sparkles size={17}/></span>Zikra AI Ustoz</div>
           <button onClick={() => setVoiceEnabled((value) => !value)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300" aria-label="Ovoz sozlamasi">{voiceEnabled ? <Volume2 size={17}/> : <VolumeX size={17}/>}</button>
         </header>
+
+        <div className="mt-4"><LiveVoicePanel track={track} level={level} /></div>
 
         <section className="mt-4 grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="flex min-h-[72svh] flex-col overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(145deg,#252d39,#171d26_55%,#303947)] shadow-[0_30px_100px_-50px_rgba(0,0,0,.9)]">
