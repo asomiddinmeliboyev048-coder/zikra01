@@ -37,13 +37,13 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             href={item.href}
             className={cn(
               "group relative flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5 pb-1 pt-2.5 transition-all duration-300",
-              active ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"
+              active ? "text-slate-100" : "text-slate-500 hover:text-slate-200"
             )}
           >
             {/* Aktiv indikator (yuqori chiziqcha) */}
             <span
               className={cn(
-                "absolute top-0 h-[3px] rounded-b-full bg-gradient-to-r from-brand to-success shadow-[0_3px_10px_rgba(11,155,136,0.45)] transition-all duration-300",
+                "absolute top-0 h-[3px] rounded-b-full bg-gradient-to-r from-slate-300 via-white to-slate-400 shadow-[0_3px_12px_rgba(203,213,225,0.42)] transition-all duration-300",
                 active ? "w-8 opacity-100" : "w-0 opacity-0"
               )}
             />
@@ -52,7 +52,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
               className={cn(
                 "flex h-8 w-11 items-center justify-center rounded-xl transition-all duration-300",
                 active
-                  ? "-translate-y-0.5 bg-white/[0.07] shadow-[0_8px_18px_-12px_rgba(11,155,136,0.65)]"
+                  ? "-translate-y-0.5 bg-gradient-to-b from-white/[0.16] to-white/[0.04] shadow-[0_8px_18px_-12px_rgba(203,213,225,0.45)] ring-1 ring-white/[0.08]"
                   : "group-active:scale-95 group-active:bg-gray-100 dark:group-active:bg-white/5"
               )}
             >
