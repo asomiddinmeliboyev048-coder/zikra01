@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Search, Volume2, Mic, Swords, Target, Trophy, Clock3, Flame, ChevronRight, CheckCircle2, Play, Headphones, PenLine, ArrowLeft, CalendarDays, Sparkles, Send, Home, Flag, UserRound } from "lucide-react";
 import type { LearningPlanInput } from "./LearningOnboarding";
 import type { AssessmentTrack } from "./assessment-bank";
+import SilverLearningPath from "./SilverLearningPath";
+import "./silver-learning.css";
 
 type Activity = { id: string; track_id: string; skill_name: string; activity_type: string; item_key: string | null; score: number | null; duration_seconds: number; completed_at: string; details: Record<string, unknown> };
 type Assessment = { score: number; total: number; level: string; practical_passed: boolean; assessed_at: string } | null;
@@ -213,6 +215,8 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
         </section>
         <div className="grid grid-cols-2 gap-2 sm:gap-3">{[[Flame,"Kunlik ritm",plan.dailyMinutes+" daq."],[Trophy,"Diagnostika",assessment ? assessment.score+"/"+assessment.total : "—"],[Clock3,"Maqsad sanasi",date],[CheckCircle2,"Bugungi so‘zlar",currentDoneCount+"/5"]].map(([Icon,label,value]:any)=><div key={label} className="min-w-0 rounded-[20px] border border-white bg-white/90 p-3 shadow-sm sm:rounded-[24px] sm:p-4"><Icon size={19} className="text-[#0b9b88]"/><p className="mt-2 text-[11px] text-slate-500 sm:mt-3 sm:text-xs">{label}</p><b className="mt-1 block break-words text-base font-black sm:text-lg">{value}</b></div>)}</div>
       </div>
+
+      <SilverLearningPath completedActivities={completedStages} totalActivities={activities.length} skillName={plan.skillName} onContinue={() => selectTab("practice")} />
 
       <nav aria-label="Rivojlanish bo‘limlari" className="mt-5 hidden gap-1 overflow-x-auto rounded-2xl border border-white bg-white/85 p-1.5 shadow-sm sm:mt-7 sm:flex sm:gap-2 sm:p-2">{[["home","Umumiy",Target],["vocab","Lug‘at",BookOpen],["practice","Mashqlar",PenLine],["games","O‘yinlar",Swords],["stats","Natijalar",Trophy]].map(([id,label,Icon]:any)=><button key={id} onClick={()=>selectTab(id)} className={"flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold sm:min-h-11 sm:gap-2 sm:px-4 sm:text-sm "+(tab===id?"bg-[#087d70] text-white":"text-slate-500 hover:bg-emerald-50")}><Icon size={15}/>{label}</button>)}</nav>
 
