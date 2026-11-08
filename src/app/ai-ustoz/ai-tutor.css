@@ -1,0 +1,15 @@
+.zikra-ai { color-scheme: dark; }
+.zikra-orb { position:relative; display:grid; width:132px; height:132px; place-items:center; isolation:isolate; }
+.zikra-orb-core { position:relative; z-index:2; display:flex; width:96px; height:96px; flex-direction:column; align-items:center; justify-content:center; gap:12px; border:1px solid rgba(255,255,255,.9); border-radius:34px; background:linear-gradient(145deg,#f8fafc 0%,#cbd5e1 34%,#8794a6 68%,#e2e8f0 100%); box-shadow:0 16px 45px rgba(0,0,0,.32),inset 0 2px 5px rgba(255,255,255,.9); transition:transform .35s ease,filter .35s ease; }
+.zikra-orb-eyes { display:flex; gap:18px; }
+.zikra-orb-eyes i { display:block; width:8px; height:12px; border-radius:50%; background:#263342; animation:zikra-blink 5s infinite; }
+.zikra-orb-smile { width:22px; height:10px; border-bottom:3px solid #334155; border-radius:0 0 20px 20px; }
+.zikra-orb-ring { position:absolute; inset:4px; z-index:1; border:1px solid rgba(226,232,240,.25); border-radius:38px; transform:rotate(24deg); }
+.zikra-orb-ring.ring-two { inset:-5px 12px; border-color:rgba(203,213,225,.18); transform:rotate(-34deg); }
+.zikra-orb-ring.ring-three { inset:12px -7px; border-color:rgba(255,255,255,.12); transform:rotate(58deg); }
+.zikra-orb.is-active .zikra-orb-core { transform:translateY(-3px) scale(1.04); filter:brightness(1.08); }
+.zikra-orb.is-active .zikra-orb-ring { animation:zikra-orbit 3.2s linear infinite; }
+.zikra-orb.is-active .ring-two { animation-direction:reverse; animation-duration:4.4s; }
+@keyframes zikra-orbit { to { transform:rotate(384deg); } }
+@keyframes zikra-blink { 0%,46%,50%,100% { transform:scaleY(1); } 48% { transform:scaleY(.12); } }
+@media (prefers-reduced-motion:reduce) { .zikra-orb *, .zikra-ai * { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
