@@ -91,7 +91,22 @@ export default function LiveVoicePanel({ track, level }: Props) {
       });
       if (!sdpResponse.ok) {
         const details = await sdpResponse.text();
-        throw new Error(details.slice(0, 260) || "WebRTC ulanishi amalga oshmadi.");
+        let message = "Jonli ovozli ulanish amalga oshmadi. Birozdan keyin qayta urinib ko‘ring.";
+        try {
+          const parsed = JSON.parse(details) as { error?: { message?: string; code?: string; type?: string } };
+          const apiError = parsed.error;
+          const combined = `${apiError?.code || ""} ${apiError?.type || ""} ${apiError?.message || ""}`.toLowerCase();
+          if (combined.includes("insufficient_quota") || combined.includes("credit") || combined.includes("billing")) {
+            message = "OpenAI API hisobida kredit yoki mablag‘ qolmagan. Platforma billing bo‘limidan API hisobiga kredit qo‘shing, so‘ng qayta urinib ko‘ring.";
+          } else if (sdpResponse.status === 401 || sdpResponse.status === 403) {
+            message = "OpenAI API kaliti yoki Realtime API ruxsati tekshirilishi kerak.";
+          } else if (apiError?.message) {
+            message = "OpenAI Realtime xizmati xatolik qaytardi. API sozlamalari va billing holatini tekshiring.";
+          }
+        } catch {
+          // Do not expose raw upstream responses in the user interface.
+        }
+        throw new Error(message);
       }
       await pc.setRemoteDescription({ type: "answer", sdp: await sdpResponse.text() });
     } catch (cause) {
