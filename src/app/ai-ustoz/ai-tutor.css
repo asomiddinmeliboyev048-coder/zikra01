@@ -107,3 +107,16 @@
 @media (prefers-reduced-motion: reduce) {
   .zikra-live-avatar *, .zikra-live-avatar *::before { animation: none !important; transition: none !important; }
 }
+
+/* If a GLB has no skeletal talk clip, keep a restrained speaking cue on the model stage. */
+.zikra-live-avatar model-viewer { transform-origin: 50% 82%; }
+.zikra-live-avatar.is-speaking model-viewer {
+  animation: zikra-avatar-speaking 680ms ease-in-out infinite alternate;
+}
+@keyframes zikra-avatar-speaking {
+  from { transform: translateY(1px) scale(1); }
+  to { transform: translateY(-4px) scale(1.012); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zikra-live-avatar.is-speaking model-viewer { animation: none !important; }
+}
