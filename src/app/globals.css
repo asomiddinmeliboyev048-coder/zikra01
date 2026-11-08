@@ -781,3 +781,21 @@ body {
 .zikra-silver-action{border-color:#aeb8c6!important;background:linear-gradient(145deg,#f8fafc,#d5dbe4)!important;color:#263140!important}
 
 .zikra-profile-silver section span[style*="color"]{color:#64748b!important}.dark .zikra-profile-silver section span[style*="color"]{color:#cbd5e1!important}.zikra-profile-silver section div[style*="background-color"]{background:#94a3b8!important}
+
+/* Rivojlanish — next-stage Silver visual pass */
+.learning-hub{color:#263140!important;background:radial-gradient(54rem 30rem at 100% 0%,rgba(203,213,225,.42),transparent 62%),linear-gradient(145deg,#f7f8fa 0%,#e8edf2 52%,#f9fafb 100%)!important}
+.dark .learning-hub{color:#e8edf4!important;background:radial-gradient(54rem 30rem at 100% 0%,rgba(148,163,184,.14),transparent 62%),linear-gradient(145deg,#171c25 0%,#10151d 52%,#1c2430 100%)!important}
+.learning-hub .bg-white,.learning-hub .bg-white\/95,.learning-hub .bg-white\/90,.learning-hub .bg-white\/85,.learning-hub .bg-white\/75,.learning-hub .bg-\[\#fbfdfc\]{background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(226,232,240,.86))!important;border-color:rgba(148,163,184,.25)!important}
+.dark .learning-hub .bg-white,.dark .learning-hub .bg-white\/95,.dark .learning-hub .bg-white\/90,.dark .learning-hub .bg-white\/85,.dark .learning-hub .bg-white\/75{background:linear-gradient(145deg,rgba(48,57,70,.95),rgba(27,34,45,.97))!important;border-color:rgba(203,213,225,.14)!important}
+.learning-hub .bg-emerald-50,.learning-hub .bg-violet-50,.learning-hub .bg-sky-50,.learning-hub .bg-gradient-to-br{background:linear-gradient(145deg,#f5f7fa,#dfe5ed)!important}
+.learning-hub .bg-slate-50,.learning-hub .bg-gray-50,.learning-hub .bg-\[\#f9fbfa\]{background:#e9edf2!important}
+.dark .learning-hub .bg-emerald-50,.dark .learning-hub .bg-violet-50,.dark .learning-hub .bg-sky-50,.dark .learning-hub .bg-gradient-to-br,.dark .learning-hub .bg-slate-50,.dark .learning-hub .bg-gray-50{background:linear-gradient(145deg,#303a49,#202936)!important}
+.learning-hub .text-emerald-600,.learning-hub .text-emerald-700,.learning-hub .text-emerald-800,.learning-hub .text-teal-600,.learning-hub .text-teal-700{color:#526174!important}
+.learning-hub .border-emerald-100,.learning-hub .border-emerald-200,.learning-hub .border-slate-100,.learning-hub .border-slate-200{border-color:rgba(148,163,184,.3)!important}
+.learning-hub nav[aria-label="Rivojlanish bo‘limlari"]{border-color:rgba(148,163,184,.3)!important;background:rgba(239,242,246,.9)!important;box-shadow:0 16px 36px -28px rgba(30,41,59,.45)!important}
+.dark .learning-hub nav[aria-label="Rivojlanish bo‘limlari"]{background:rgba(32,40,52,.9)!important;border-color:rgba(203,213,225,.15)!important}
+.learning-hub nav[aria-label="Rivojlanish bo‘limlari"] button[class*="bg-[#087d70]"]{background:linear-gradient(145deg,#f8fafc,#b9c3d0)!important;color:#263140!important;box-shadow:inset 0 1px 0 #fff,0 8px 20px -14px rgba(51,65,85,.65)!important}
+.learning-hub button{border-color:rgba(148,163,184,.22)}
+.learning-hub input,.learning-hub textarea{background:linear-gradient(145deg,#fff,#e9edf3)!important;border-color:#cbd5e1!important;color:#263140!important}
+.dark .learning-hub input,.dark .learning-hub textarea{background:linear-gradient(145deg,#303a49,#202936)!important;border-color:#475569!important;color:#f1f5f9!important}
+.learning-hub .shadow-lg,.learning-hub .shadow-md,.learning-hub .shadow-sm{box-shadow:0 16px 38px -27px rgba(30,41,59,.38)!important}
