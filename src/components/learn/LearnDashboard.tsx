@@ -39,7 +39,8 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Barchasi");
   const [monthOffset, setMonthOffset] = useState(0);
-  const [doneTasks, setDoneTasks] = useState<string[]>([]);
+  const [weeklyActivity, setWeeklyActivity] = useState<{ day: string; count: number; dateKey: string }[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
   const filteredCourses = useMemo(() => courses.filter((course) => {
     const matchesQuery = `${course.title} ${course.skill_name ?? ""}`.toLowerCase().includes(query.toLowerCase());
     const matchesCategory = category === "Barchasi" || (course.skill_name ?? "").toLowerCase().includes(category.toLowerCase());
@@ -63,6 +64,43 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
     return () => { alive = false; };
   }, []);
 
+  useEffect(() => {
+    if (!activePlan?.trackId) {
+      setWeeklyActivity([]);
+      return;
+    }
+    let alive = true;
+    setActivityLoading(true);
+    fetch(`/api/learning/activity?track=${activePlan.trackId}`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (!alive) return;
+        const rows = Array.isArray(payload?.activities) ? payload.activities as { completed_at: string }[] : [];
+        const today = new Date();
+        const days = Array.from({ length: 7 }, (_, index) => {
+          const day = new Date(today);
+          day.setHours(0, 0, 0, 0);
+          day.setDate(today.getDate() - (6 - index));
+          const dateKey = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+          const count = rows.filter((row) => {
+            const stamp = new Date(row.completed_at);
+            return Number.isFinite(stamp.getTime()) &&
+              stamp.getFullYear() === day.getFullYear() &&
+              stamp.getMonth() === day.getMonth() &&
+              stamp.getDate() === day.getDate();
+          }).length;
+          return { day: new Intl.DateTimeFormat("uz-UZ", { weekday: "short" }).format(day), count, dateKey };
+        });
+        setWeeklyActivity(days);
+      })
+      .catch(() => { if (alive) setWeeklyActivity([]); })
+      .finally(() => { if (alive) setActivityLoading(false); });
+    return () => { alive = false; };
+  }, [activePlan?.trackId]);
+
+  const weeklyTotal = weeklyActivity.reduce((sum, day) => sum + day.count, 0);
+  const maxDailyActivity = Math.max(1, ...weeklyActivity.map((day) => day.count));
+
   const date = new Date();
   date.setDate(1);
   date.setMonth(date.getMonth() + monthOffset);
@@ -71,11 +109,7 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
   const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const today = new Date();
   const purposeLabel = ({ career: "Kasb va karyera", study: "O‘qish va ta’lim", certificate: "Sertifikat va imtihon", personal: "Shaxsiy rivojlanish" } as Record<string, string>)[activePlan?.purpose ?? ""] ?? activePlan?.purpose ?? "";
-  const tasks = [
-    { id: "vocabulary", title: activePlan?.trackId === "russian" ? "Bugungi 10 ta ruscha so‘z" : activePlan?.trackId === "english" ? "Bugungi 10 ta inglizcha so‘z" : "Bugungi 10 ta yangi termin", detail: "Shaxsiy lug‘atingizni boyiting" },
-    { id: "course", title: `${activePlan?.skillName ?? "Ko‘nikma"} bo‘yicha video dars`, detail: "Tanlagan yo‘nalishingizni rivojlantiring" },
-    { id: "mission", title: `${activePlan?.skillName ?? "Ko‘nikma"} bo‘yicha amaliy mashq`, detail: "Bilimingizni amalda mustahkamlang" },
-  ];
+
 
   if (planLoading) return <div className="grid min-h-[70vh] place-items-center zikra-silver bg-[#eef1f5] px-5 dark:bg-[#151a22]"><div className="text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-slate-600"/><p className="mt-4 text-sm font-bold text-slate-500">Shaxsiy o‘quv yo‘lingiz tekshirilmoqda…</p></div></div>;
   if (wizardOpen) return <LearningOnboarding userName={profile.full_name} onStart={(_, nextPlan) => { setActivePlan(nextPlan); setWizardOpen(false); setAssessmentOpen(false); }} />;
@@ -133,9 +167,14 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
                 <div className="flex items-center justify-between"><p className="text-sm font-extrabold">Faollik</p><span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-700 dark:bg-slate-400/10 dark:text-slate-300">Bugungi holat</span></div>
                 <div className="mt-5 flex items-end justify-between gap-3">
                   <div><p className="text-3xl font-black tracking-tight">{profile.streak_days}<span className="ml-1 text-sm font-bold text-slate-400">kun</span></p><p className="mt-1 text-xs text-slate-500">Joriy streak</p></div>
-                  <div className="flex h-14 items-end gap-1.5" aria-label="Faollik ko‘rsatkichi"><span className="h-5 w-3 rounded-t-md bg-slate-200 dark:bg-slate-800"/><span className="h-8 w-3 rounded-t-md bg-slate-300 dark:bg-slate-700"/><span className="h-6 w-3 rounded-t-md bg-slate-400 dark:bg-slate-600"/><span className="h-11 w-3 rounded-t-md bg-slate-1000"/><span className="h-7 w-3 rounded-t-md bg-slate-300 dark:bg-slate-700"/><span className="h-10 w-3 rounded-t-md bg-slate-500"/><span className="h-8 w-3 rounded-t-md bg-slate-1000"/></div>
+                  <div className="flex h-14 min-w-[112px] items-end justify-end gap-1.5" aria-label="So‘nggi 7 kunlik haqiqiy faollik">
+                    {weeklyActivity.map((day) => <div key={day.dateKey} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${day.day}: ${day.count} ta faoliyat`}>
+                      <span className="w-full max-w-3 rounded-t-md bg-gradient-to-t from-slate-600 to-slate-300 dark:from-slate-500 dark:to-slate-300" style={{ height: day.count ? `${Math.max(16, day.count / maxDailyActivity * 100)}%` : "4px", opacity: day.count ? 1 : .3 }} />
+                      <span className="text-[8px] text-slate-400">{day.day.slice(0, 2)}</span>
+                    </div>)}
+                  </div>
                 </div>
-                <p className="mt-4 text-[11px] text-slate-400">Har kuni platformaga kirib, o‘rganishni davom ettir.</p>
+                <p className="mt-4 text-[11px] text-slate-400">{activityLoading ? "Faollik tarixi yuklanmoqda…" : `So‘nggi 7 kunda ${weeklyTotal} ta o‘quv faoliyati qayd etildi.`}</p>
               </article>
               <article className="rounded-[22px] border border-white bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#252d39]">
                 <div className="flex items-center justify-between"><p className="text-sm font-extrabold">O‘sish ko‘rsatkichlari</p><TrendingUp size={17} className="text-slate-600"/></div>
@@ -187,9 +226,20 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
                 <div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-xl bg-slate-50 p-3 dark:bg-white/5"><p className="text-lg font-black">{lessonStats.upcoming}</p><p className="text-[9px] text-slate-400">Kutilayotgan dars</p></div><div className="rounded-xl bg-slate-50 p-3 dark:bg-white/5"><p className="text-lg font-black">{lessonStats.completed}</p><p className="text-[9px] text-slate-400">Yakunlangan dars</p></div></div>
               </section>
               <section className="rounded-[22px] border border-white bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#252d39] sm:p-5">
-                <div className="flex items-center justify-between"><h2 className="text-sm font-black">Bugungi vazifalar</h2><span className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-bold text-slate-700 dark:bg-slate-400/10 dark:text-slate-300">{doneTasks.length}/{tasks.length}</span></div>
-                <div className="mt-3 space-y-2">{tasks.map((task) => {const done=doneTasks.includes(task.id);return <button key={task.id} onClick={() => setDoneTasks((old) => done ? old.filter((id) => id !== task.id) : [...old,task.id])} className="flex w-full items-start gap-3 rounded-xl bg-slate-50 p-3 text-left transition hover:bg-slate-100 dark:bg-white/[.035] dark:hover:bg-slate-500/5"><span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border ${done?"border-slate-600 bg-slate-600 text-white":"border-slate-300 text-transparent dark:border-slate-600"}`}><CheckCircle2 size={13}/></span><span className="min-w-0"><b className={`block text-[11px] ${done?"text-slate-400 line-through":""}`}>{task.title}</b><small className="mt-1 block text-[9px] leading-4 text-slate-400">{task.detail}</small></span></button>;})}</div>
-                <button onClick={() => setAssessmentOpen(true)} className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-slate-700 dark:text-slate-300">Mashqlar va missiyalar <ChevronRight size={13}/></button>
+                <div className="flex items-center justify-between gap-3">
+                  <div><h2 className="text-sm font-black">Haftalik faollik</h2><p className="mt-1 text-[10px] text-slate-400">Saqlangan o‘quv faoliyatlaringiz asosida</p></div>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-700 dark:bg-slate-400/10 dark:text-slate-200">{weeklyTotal} ta</span>
+                </div>
+                <div className="mt-5 grid grid-cols-7 gap-2">
+                  {weeklyActivity.map((day) => <div key={day.dateKey} className="flex min-w-0 flex-col items-center gap-2">
+                    <div className="flex h-20 w-full items-end justify-center rounded-xl bg-slate-100/80 p-1.5 dark:bg-white/[.04]">
+                      <div className="w-full max-w-5 rounded-t-lg bg-gradient-to-t from-slate-600 to-slate-300 dark:from-slate-500 dark:to-slate-300" style={{height: day.count ? `${Math.max(10, day.count / maxDailyActivity * 100)}%` : "3px", opacity: day.count ? 1 : .25}} />
+                    </div>
+                    <span className="text-[9px] font-semibold text-slate-400">{day.day.slice(0, 2)}</span>
+                    <span className="text-[9px] text-slate-500">{day.count}</span>
+                  </div>)}
+                </div>
+                {!activityLoading && weeklyTotal === 0 && <p className="mt-3 text-center text-[10px] text-slate-400">Hali bu haftada faoliyat qayd etilmagan. Birinchi mashqni boshlang!</p>}
               </section>
             </aside>
           </div>
