@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check, CircleHelp, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";
 import "./ai-tutor.css";
-import LiveVoicePanel from "./LiveVoicePanel";\nimport TutorAvatarStage from "./TutorAvatarStage";
+import LiveVoicePanel from "./LiveVoicePanel";
+import TutorAvatarStage from "./TutorAvatarStage";
 
 type Track = "english" | "russian" | "coding" | "cyber";
 type Message = { role: "user" | "assistant"; content: string; id: string };
@@ -31,7 +32,8 @@ export default function AiTutorPage() {
   const [sending, setSending] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);\n  const [avatarSpeaking, setAvatarSpeaking] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [avatarSpeaking, setAvatarSpeaking] = useState(false);
   const [error, setError] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
