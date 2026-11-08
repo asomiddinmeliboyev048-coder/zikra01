@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bot, Clock3, Search, Send, Swords, Trophy, UserRound, Wifi, WifiOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { createPortal } from "react-dom";
 
 type Props = { onClose: () => void; skill: string; vocabulary?: string[] };
 type Stage = "setup" | "search" | "play" | "result";
@@ -20,6 +21,7 @@ const shortId = () => Math.random().toString(36).slice(2, 10);
 export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [stage, setStage] = useState<Stage>("setup");
+  const [mounted, setMounted] = useState(false);
   const [gameLanguage, setGameLanguage] = useState<"uz" | "ru" | "en">(skill === "Rus tili" ? "ru" : "en");
   const [remaining, setRemaining] = useState(15);
   const [total, setTotal] = useState(60);
@@ -53,6 +55,14 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     joinedAt: Date.now(),
     skill
   });
+  useEffect(() => {
+    setMounted(true);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    void supabase.auth.getUser().then(({ data: { user } }) => { if (user) setMe(profileLabel(user)); }).catch(() => {});
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [supabase]);
+
   const finish = useCallback((result: boolean) => {
     setWon(result); setStage("result"); setTyping(false);
     if (result && !rewardSent.current) {
@@ -190,24 +200,85 @@ export default function SkillDuel({ onClose, skill, vocabulary = [] }: Props) {
     if(opponent) await roomRef.current?.send({type:"broadcast",event:"game",payload:{type:"chat",from:me.id,line}});
   };
   const card="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#19211f] sm:p-7";
-  return <div role="dialog" aria-modal="true" className="dark fixed inset-0 z-[100] flex h-[100dvh] flex-col overflow-hidden bg-[#101716] px-3 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-white sm:px-6">
-    <header className="mx-auto flex w-full max-w-5xl shrink-0 items-center justify-between gap-2 py-3"><button onClick={()=>{void stopChannels();onClose();}} className="flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-bold dark:border-white/10"><ArrowLeft size={17}/> Orqaga</button><b className="flex items-center gap-2"><Swords className="text-emerald-600"/> Skill Duel</b><span className="max-w-[35vw] truncate rounded-full bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-900">{skill}</span></header>
-    <main className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col justify-center overflow-hidden">
-      {stage==="setup"&&<section className={card+" text-center"}><div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-emerald-100 text-emerald-800"><Swords size={32}/></div><p className="mt-4 text-xs font-black uppercase tracking-widest text-emerald-700">1 VS 1 · WORD CHAIN</p><h1 className="mt-2 text-3xl font-black sm:text-5xl">So‘nggi harf</h1><p className="mt-3 text-sm leading-6 text-slate-500">O‘yin tilini tanlang. Keyingi so‘z avvalgisining oxirgi harfi bilan boshlanishi kerak.</p><div className="mt-5 grid grid-cols-3 gap-2">{([{id:"uz",label:"O‘zbekcha"},{id:"ru",label:"Русский"},{id:"en",label:"English"}] as const).map(option=><button key={option.id} type="button" onClick={()=>setGameLanguage(option.id)} className={"rounded-xl border px-2 py-3 text-xs font-bold "+(gameLanguage===option.id?"border-emerald-500 bg-emerald-50 text-emerald-800":"border-slate-200 bg-white text-slate-500")}>{option.label}</button>)}</div><p className="mt-2 text-xs text-slate-400">Tanlangan til: {languageLabel}</p><div className="mt-7 grid grid-cols-3 gap-2">{[["60s","O‘yin"],["15s","Har navbat"],["1v1","Format"]].map(([v,l])=><div key={l} className="rounded-2xl bg-slate-50 p-3 text-center dark:bg-white/5"><p className="text-3xl font-black">{v}</p><p className="text-xs text-slate-500">{l}</p></div>)}</div><button onClick={()=>void start()} className="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 font-black text-white"><Search size={19}/> Raqib qidirish</button><p className="mt-3 text-center text-xs text-slate-400">Avval jonli raqib qidiriladi, keyin bot.</p></section>}
-      {stage==="search"&&<section className={card+" text-center"}><div className="relative mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-50"><span className="absolute inset-0 animate-ping rounded-full border-2 border-emerald-400/40"/><Search size={36} className="text-emerald-600"/></div><h1 className="mt-5 text-2xl font-black">Raqib qidirilmoqda…</h1><p className="mt-2 text-sm text-slate-500">{skill} · {languageLabel} · {online?"Queue'ga ulandingiz":"Ulanmoqda…"}</p><p className="mt-3 text-4xl font-black tabular-nums text-emerald-700">00:{String(queueSeconds).padStart(2,"0")}</p><p className="mt-2 text-sm text-slate-500">{message}</p><button onClick={()=>{void stopChannels();setStage("setup");}} className="mt-5 rounded-xl border px-5 py-3 font-bold">Bekor qilish</button></section>}
-      {stage==="play"&&<section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#19211f]">
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b p-3"><div className="min-w-0"><p className="flex items-center gap-1 text-xs font-bold text-emerald-700"><Wifi size={14}/>{opponent?"JONLI DUEL":"BOT DUEL"}</p><p className="truncate font-black">{skill} · {languageLabel}</p></div><div className="rounded-xl bg-slate-900 px-3 py-1.5 text-white"><small>QOLGAN</small><p className="text-xl font-black">00:{String(total).padStart(2,"0")}</p></div></div>
-        <div className="grid shrink-0 grid-cols-2 gap-2 border-b p-2">
-          {[{p:me,active:turn==="you"||turn===me?.id,label:"Siz"},{p:opponent,active:turn==="bot"&&!!opponent||turn===opponent?.id,label:opponent?.name||"Zikra Bot"}].map((x,i)=><div key={i} className={"flex min-w-0 items-center gap-2 rounded-xl border p-2 "+(x.active?"border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40":"border-slate-200 dark:border-white/10")}>{x.p?.avatar?<img src={x.p.avatar} alt="" className="h-10 w-10 rounded-full object-cover"/>:<span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100"><UserRound size={18}/></span>}<div className="min-w-0"><p className="truncate text-sm font-bold">{x.p?.name||x.label}</p><p className="truncate text-xs text-slate-500">{x.active?"Navbat":i===1&&typing?"Yozmoqda…":i===1&&opponent?"Kutyapti":"Zikra"}</p></div></div>)}
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-3" aria-live="polite"><div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-400"><span>DUEL CHAT</span><span>{online?<Wifi size={14}/>:<WifiOff size={14}/>}</span></div>{chat.map(line=><div key={line.id} className={"mb-2 flex "+(line.userId===me?.id?"justify-end":"justify-start")}><div className={"max-w-[88%] rounded-2xl px-3 py-2 "+(line.userId===me?.id?"bg-emerald-700 text-white":"bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white")}><p className="mb-1 text-[10px] font-bold opacity-70">{line.name} · {line.kind==="word"?"So‘z":"Xabar"}</p><p className="break-words text-sm">{line.text}</p></div></div>)}{typing&&<p className="text-xs italic text-slate-400">{opponent?.name||"Raqib"} yozmoqda…</p>}</div>
-        <div className="shrink-0 border-t p-2">
-          <div className="mb-2 flex items-center justify-between text-xs"><b className={turn==="you"||turn===me?.id?"text-emerald-700":"text-slate-500"}>{turn==="you"||turn===me?.id?"Navbat sizda":"Raqib navbati"}</b><span className="flex items-center gap-1 font-black"><Clock3 size={14}/>{remaining}s</span></div>
-          <form onSubmit={submitWord} className="flex gap-2"><input disabled={!!opponent&&(turn!==me?.id)} value={entry} onChange={e=>sendTyping(e.target.value)} placeholder={words.length?"So‘z: "+norm(words[words.length-1].text).slice(-1).toUpperCase()+" harfidan":"Birinchi so‘z"} className="min-w-0 flex-1 rounded-xl border px-3 py-3 text-base disabled:opacity-50"/><button type="submit" disabled={!!opponent&&(turn!==me?.id)} className="rounded-xl bg-emerald-700 px-4 font-black text-white disabled:opacity-40"><Send size={18}/></button></form>
-          <form onSubmit={sendChat} className="mt-2 flex gap-2"><input value={chatEntry} onChange={e=>setChatEntry(e.target.value)} placeholder="Raqibga xabar yozish…" className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm"/><button type="submit" className="rounded-xl border px-3" aria-label="Chat xabarini yuborish"><Send size={16}/></button></form><p role="status" className="mt-1 truncate text-xs text-slate-500">{message}</p>
-        </div>
-      </section>}
-      {stage==="result"&&<section className={card+" text-center"}><Trophy size={44} className="mx-auto text-amber-500"/><h1 className="mt-5 text-3xl font-black">{won?"G‘alaba!":"Bu safar raqib yutdi"}</h1><p className="mt-2 text-slate-500">{opponent?opponent.name:"Bot"} bilan duel yakunlandi.</p><p className="mt-4 text-4xl font-black text-emerald-700">{words.length} <small className="text-sm">so‘z</small></p>{won&&gameXP>0&&<p className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 font-black text-amber-700">✨ +{gameXP} XP</p>}<div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><button onClick={()=>void start()} className="rounded-xl bg-emerald-700 px-6 py-3 font-black text-white">Qayta o‘ynash</button><button onClick={()=>{void stopChannels();onClose();}} className="rounded-xl border px-6 py-3 font-bold">O‘quv markaziga</button></div></section>}
-    </main>
-  </div>;
+  if (!mounted) return null;
+  const silverShell = "relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-slate-300/25 bg-[linear-gradient(145deg,#f8fafc_0%,#cbd5e1_42%,#eef2f7_100%)] text-slate-900 shadow-[0_24px_80px_-35px_rgba(0,0,0,.8)]";
+  const silverPanel = "border border-white/70 bg-[linear-gradient(145deg,rgba(255,255,255,.94),rgba(215,222,232,.88))] shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_18px_44px_-30px_rgba(15,23,42,.5)]";
+  const avatar = (player: Player | null, size = "h-16 w-16") => player?.avatar
+    ? <img src={player.avatar} alt={player.name} className={size + " rounded-full border-2 border-white object-cover shadow-lg"} />
+    : <span className={size + " grid place-items-center rounded-full border-2 border-white bg-gradient-to-br from-slate-100 to-slate-400 text-slate-600 shadow-lg"}><UserRound size={26}/></span>;
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label="Skill Duel" className="fixed inset-0 z-[9999] flex h-[100dvh] w-full flex-col overflow-hidden bg-[radial-gradient(60rem_36rem_at_50%_-10%,#64748b_0%,#28313e_45%,#111720_100%)] px-0 pt-[env(safe-area-inset-top)] text-slate-100">
+      <header className="mx-auto flex w-full max-w-4xl shrink-0 items-center justify-between gap-2 px-4 py-3">
+        <button onClick={()=>{void stopChannels();onClose();}} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-4 text-sm font-bold text-slate-100"><ArrowLeft size={17}/> Orqaga</button>
+        <b className="flex items-center gap-2 text-base tracking-tight"><Swords className="text-slate-200"/> Skill Duel</b>
+        <span className="max-w-[32vw] truncate rounded-full border border-white/60 bg-gradient-to-br from-slate-100 to-slate-400 px-3 py-2 text-xs font-black text-slate-800">{languageLabel}</span>
+      </header>
+      <main className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col overflow-hidden px-0 pb-[env(safe-area-inset-bottom)] sm:px-4">
+        {stage==="setup"&&<section className={silverShell+" flex-1 overflow-y-auto rounded-t-[30px] px-4 pb-5 pt-5 sm:px-7"}>
+          <div className="flex items-center gap-4 border-b border-slate-400/25 pb-5">
+            {avatar(me,"h-[76px] w-[76px]")}
+            <div className="min-w-0 flex-1"><p className="truncate text-xl font-black text-slate-900">{me?.name||"Asomiddin"}</p><p className="truncate text-sm text-slate-500">@{me?.name?.toLowerCase().replace(/\s+/g,"_")||"zikra_user"}</p><p className="mt-1 text-xs font-bold text-slate-500">WORD BATTLES · ZIKRA</p></div>
+            <div className="rounded-2xl border border-white/80 bg-white/65 px-3 py-2 text-center"><Swords className="mx-auto text-slate-600"/><b className="mt-1 block text-lg text-slate-800">1v1</b></div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {[["60s","O‘yin davomiyligi"],["15s","Har bir navbat"],["1 VS 1","Format"]].map(([value,label])=><div key={label} className={silverPanel+" rounded-2xl p-3 text-center"}><b className="block text-2xl font-black text-slate-900">{value}</b><span className="mt-1 block text-[10px] font-semibold text-slate-500">{label}</span></div>)}
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className={silverPanel+" overflow-hidden rounded-[24px] p-3"}><div className="flex h-24 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-200 to-slate-400"><span className="text-4xl font-black tracking-widest text-slate-700">A → Z</span></div><b className="mt-3 block text-sm text-slate-900">So‘nggi harf</b><p className="mt-1 text-xs text-slate-500">So‘z zanjiri orqali bellashing.</p><span className="mt-2 inline-flex rounded-full bg-slate-700/10 px-2 py-1 text-[10px] font-black text-slate-700">TANLANGAN O‘YIN</span></div>
+            <div className={silverPanel+" overflow-hidden rounded-[24px] p-3 opacity-75"}><div className="flex h-24 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-300 to-slate-500"><span className="text-4xl font-black tracking-widest text-slate-700">ABC</span></div><b className="mt-3 block text-sm text-slate-900">So‘zlar jangi</b><p className="mt-1 text-xs text-slate-500">Keyingi yangilanishda.</p></div>
+          </div>
+          <section className={silverPanel+" mt-4 rounded-[24px] p-4"}>
+            <h2 className="text-base font-black text-slate-900">O‘yin qoidalari</h2>
+            <ol className="mt-3 space-y-3 text-sm text-slate-700">
+              <li className="flex gap-3"><b className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-500/15">1</b><span>O‘yinchilar navbat bilan tanlangan tilda so‘z yozadi.</span></li>
+              <li className="flex gap-3"><b className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-500/15">2</b><span>Har bir yangi so‘z oldingi so‘zning oxirgi harfi bilan boshlanadi.</span></li>
+              <li className="flex gap-3"><b className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-500/15">3</b><span>Bir so‘zni ikki marta ishlatib bo‘lmaydi. Har navbat uchun 15 soniya beriladi.</span></li>
+            </ol>
+          </section>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {[{id:"uz",label:"O‘zbekcha"},{id:"ru",label:"Русский"},{id:"en",label:"English"}].map(option=><button key={option.id} type="button" onClick={()=>setGameLanguage(option.id as "uz"|"ru"|"en")} className={"min-h-10 rounded-xl border text-xs font-bold "+(gameLanguage===option.id?"border-slate-500 bg-slate-700 text-white":"border-slate-400/40 bg-white/50 text-slate-600")}>{option.label}</button>)}
+          </div>
+          <button onClick={()=>void start()} className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-white/70 bg-gradient-to-b from-slate-600 to-slate-800 text-base font-black text-white shadow-lg"><Search size={19}/> TASODIFIY RAQIB QIDIRISH</button>
+          <p className="mt-3 text-center text-xs text-slate-500">Avval jonli raqib qidiriladi, topilmasa Zikra Bot bilan o‘ynaysiz.</p>
+        </section>}
+        {stage==="search"&&<section className="flex min-h-0 flex-1 flex-col items-center justify-between px-5 py-5 text-center">
+          <div className="w-full text-center"><p className="text-sm font-bold text-slate-300">{languageLabel} · SO‘NGGI HARF</p><h1 className="mt-2 text-xl font-black">Raqib qidirilmoqda</h1></div>
+          <div className="flex w-full flex-col items-center">
+            {avatar(me,"h-28 w-28")}
+            <h2 className="mt-4 text-xl font-black">{me?.name||"Siz"}</h2><p className="text-sm text-slate-400">Sizning profilingiz</p>
+            <div className="my-10 flex w-full items-center"><span className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-400"/><span className="mx-3 rounded-2xl border border-slate-300 bg-gradient-to-b from-slate-100 to-slate-400 px-7 py-3 text-3xl font-black text-slate-800 shadow-xl">VS</span><span className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-400"/></div>
+            <div className="relative grid h-28 w-28 place-items-center rounded-full border-4 border-slate-300/40 bg-gradient-to-br from-slate-700 to-slate-900"><span className="absolute inset-0 animate-ping rounded-full border-2 border-slate-200/30"/><Search size={38} className="text-slate-200"/></div>
+            <p className="mt-5 text-lg font-black">Raqib qidirilmoqda… 00:{String(queueSeconds).padStart(2,"0")}</p>
+            <p className="mt-2 text-sm text-slate-400">{message||"Yaqin orada sizga mos raqib topamiz."}</p>
+          </div>
+          <button onClick={()=>{void stopChannels();setStage("setup");}} className="min-h-14 w-full rounded-full border border-slate-300/20 bg-slate-700/70 text-base font-black text-white">BEKOR QILISH</button>
+        </section>}
+        {stage==="play"&&<section className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-3 pt-2">
+          <div className="shrink-0"><div className="flex items-center justify-between text-sm font-black"><span>{Math.floor((60-total)/60)}:{String((60-total)%60).padStart(2,"0")}</span><span className="text-slate-400">00:{String(total).padStart(2,"0")}</span></div><div className="mt-2 flex gap-2"><div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-700"><div className="h-full rounded-full bg-gradient-to-r from-slate-100 to-slate-400" style={{width:((60-total)/60*100)+"%"}}/></div><div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-700"><div className="h-full rounded-full bg-gradient-to-r from-slate-400 to-slate-200" style={{width:((60-total)/60*100)+"%"}}/></div></div>
+            <div className="mt-5 flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2">{avatar(me,"h-14 w-14")}<div className="min-w-0"><b className="block max-w-28 truncate text-sm">{me?.name||"Siz"}</b><span className="text-xs text-slate-400">XP {gameXP}</span></div></div><div className="text-3xl font-black tabular-nums">{words.filter(w=>w.userId===me?.id||w.userId==="you"||w.userId==="me").length} : {words.filter(w=>w.userId!==me?.id&&w.userId!=="you"&&w.userId!=="me").length}</div><div className="flex min-w-0 items-center gap-2">{avatar(opponent,"h-14 w-14")}<div className="min-w-0 text-right"><b className="block max-w-28 truncate text-sm">{opponent?.name||"Zikra Bot"}</b><span className="text-xs text-slate-400">Raqib</span></div></div></div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto py-5" aria-live="polite">{chat.map(line=><div key={line.id} className={"mb-3 flex "+((line.userId===me?.id||line.userId==="you"||line.userId==="me")?"justify-end":"justify-start")}><div className={"max-w-[82%] rounded-[22px] px-4 py-3 shadow "+((line.userId===me?.id||line.userId==="you"||line.userId==="me")?"border border-slate-300/20 bg-gradient-to-br from-slate-500 to-slate-700 text-white":"border border-white/10 bg-slate-800 text-slate-100")}><p className="mb-1 text-[10px] font-bold opacity-60">{line.name}</p><p className="break-words text-lg">{line.text}</p></div></div>)}{typing&&<p className="text-xs italic text-slate-400">Raqib yozmoqda…</p>}{chat.length===0&&<div className="grid h-full place-items-center text-center text-sm text-slate-500"><div><Swords size={34} className="mx-auto mb-3 opacity-60"/><p>Duel boshlandi. Birinchi so‘zni yozing!</p></div></div>}</div>
+          <div className="shrink-0 border-t border-slate-500/30 pt-3">
+            <div className="mb-2 flex items-center justify-between text-xs"><b className={turn==="you"||turn===me?.id?"text-slate-200":"text-slate-400"}>{turn==="you"||turn===me?.id?"Navbat sizda":"Raqib navbati"}</b><span className="flex items-center gap-1 font-black"><Clock3 size={14}/>{remaining}s</span></div>
+            <form onSubmit={submitWord} className="flex gap-2"><input disabled={!!opponent&&(turn!==me?.id)} value={entry} onChange={e=>sendTyping(e.target.value)} placeholder={words.length?"So‘z: "+norm(words[words.length-1].text).slice(-1).toUpperCase()+" harfidan":"So‘zingizni kiriting…"} className="min-w-0 min-h-14 flex-1 rounded-2xl border border-slate-300/30 bg-slate-100 px-4 text-base text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"/><button type="submit" disabled={!!opponent&&(turn!==me?.id)} className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-slate-200 to-slate-400 text-slate-900 shadow-lg disabled:opacity-40"><Send size={21}/></button></form>
+            <form onSubmit={sendChat} className="mt-2 flex gap-2"><input value={chatEntry} onChange={e=>setChatEntry(e.target.value)} placeholder="Xabar yozish…" className="min-w-0 min-h-10 flex-1 rounded-xl border border-slate-500/30 bg-slate-800 px-3 text-sm text-white placeholder:text-slate-400"/><button type="submit" className="rounded-xl border border-slate-500/40 px-3" aria-label="Chat xabarini yuborish"><Send size={16}/></button></form>
+            <p role="status" className="mt-2 truncate text-xs text-slate-400">{message}</p>
+          </div>
+        </section>}
+        {stage==="result"&&<section className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-5 py-6 text-center">
+          <div className="grid h-24 w-24 place-items-center rounded-full border border-white/50 bg-gradient-to-br from-slate-100 to-slate-500 text-slate-800 shadow-2xl"><Trophy size={48}/></div>
+          <h1 className={"mt-5 text-4xl font-black "+(won?"text-slate-100":"text-slate-300")}>{won?"G‘alaba!":"O‘yin yakunlandi"}</h1>
+          <p className="mt-2 max-w-sm text-sm text-slate-400">{opponent?.name||"Zikra Bot"} {won?"bu safar sizdan ortda qoldi.":"bilan bellashuv yakunlandi."}</p>
+          <div className="mt-7 flex w-full max-w-sm items-center justify-between rounded-[28px] border border-slate-300/20 bg-white/5 p-4">
+            <div className="flex flex-col items-center gap-2">{avatar(me,"h-16 w-16")}<b className="max-w-28 truncate text-xs">{me?.name||"Siz"}</b><span className="text-xs text-slate-400">XP {gameXP}</span></div>
+            <div className="text-3xl font-black">{words.filter(w=>w.userId===me?.id||w.userId==="you"||w.userId==="me").length} : {words.filter(w=>w.userId!==me?.id&&w.userId!=="you"&&w.userId!=="me").length}</div>
+            <div className="flex flex-col items-center gap-2">{avatar(opponent,"h-16 w-16")}<b className="max-w-28 truncate text-xs">{opponent?.name||"Zikra Bot"}</b><span className="text-xs text-slate-400">Raqib</span></div>
+          </div>
+          {won&&gameXP>0&&<p className="mt-4 rounded-full border border-slate-300/20 bg-slate-500/20 px-5 py-3 font-black text-slate-100">+{gameXP} XP</p>}
+          <div className="mt-8 grid w-full max-w-sm gap-3"><button onClick={()=>void start()} className="min-h-14 rounded-full bg-gradient-to-b from-slate-200 to-slate-400 font-black text-slate-900 shadow-lg">YANGI RAQIB</button><button onClick={()=>{void stopChannels();setStage("setup");}} className="min-h-12 rounded-full border border-slate-300/25 bg-white/5 font-bold text-slate-100">LOBBIGA QAYTISH</button></div>
+        </section>}
+      </main>
+    </div>,
+    document.body
+  );
 }
