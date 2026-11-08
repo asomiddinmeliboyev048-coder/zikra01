@@ -23,7 +23,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
   ];
 
   return (
-    <nav className="zikra-bottom-nav fixed inset-x-2 bottom-2 z-40 flex overflow-hidden rounded-2xl border border-white/80 bg-[#101114]/[0.97] pb-[calc(env(safe-area-inset-bottom)+6px)] shadow-[0_-14px_40px_-24px_rgba(0,0,0,0.85)] backdrop-blur-2xl md:hidden dark:border-white/10">
+    <nav className="zikra-bottom-nav fixed inset-x-2 bottom-2 z-40 flex overflow-hidden rounded-2xl border border-white/90 ring-1 ring-slate-500/25 bg-[linear-gradient(145deg,#f1f3f6_0%,#cbd1d9_24%,#aeb6c1_52%,#e7eaee_76%,#bcc4ce_100%)] pb-[calc(env(safe-area-inset-bottom)+6px)] shadow-[0_12px_34px_-12px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(71,85,105,0.2)] backdrop-blur-2xl md:hidden dark:border-white/90">
       {items.map((item) => {
         const active = item.href.startsWith("/profile")
           ? pathname.startsWith("/profile")
@@ -35,13 +35,13 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             href={item.href}
             className={cn(
               "group relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 transition-all duration-300",
-              active ? "text-slate-100" : "text-slate-500 hover:text-slate-200"
+              active ? "text-slate-950" : "text-slate-600 hover:text-slate-900"
             )}
           >
             {/* Aktiv indikator (yuqori chiziqcha) */}
             <span
               className={cn(
-                "absolute top-0 h-[3px] rounded-b-full bg-gradient-to-r from-slate-300 via-white to-slate-400 shadow-[0_3px_12px_rgba(203,213,225,0.42)] transition-all duration-300",
+                "absolute top-0 h-[3px] rounded-b-full bg-gradient-to-r from-slate-500 via-white to-slate-500 shadow-[0_2px_8px_rgba(71,85,105,0.5)] transition-all duration-300",
                 active ? "w-8 opacity-100" : "w-0 opacity-0"
               )}
             />
@@ -50,7 +50,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
               className={cn(
                 "flex h-8 w-12 items-center justify-center rounded-xl transition-all duration-300",
                 active
-                  ? "-translate-y-0.5 bg-gradient-to-b from-white/[0.16] to-white/[0.04] shadow-[0_8px_18px_-12px_rgba(203,213,225,0.45)] ring-1 ring-white/[0.08]"
+                  ? "-translate-y-0.5 bg-gradient-to-b from-white via-slate-100 to-slate-300 shadow-[0_7px_16px_-8px_rgba(51,65,85,0.45)] ring-1 ring-white/90"
                   : "group-active:scale-95 group-active:bg-gray-100 dark:group-active:bg-white/5"
               )}
             >
