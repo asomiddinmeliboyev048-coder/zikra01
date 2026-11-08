@@ -746,7 +746,7 @@ body {
 .dark .zikra-silver .text-brand,.dark .zikra-silver .text-brand-700,.dark .zikra-silver .text-brand-600{color:#cbd5e1!important}
 .zikra-silver .bg-brand,.zikra-silver .bg-brand-600,.zikra-silver .bg-brand-50{background-color:#d7dde6!important;color:#273243!important}
 .dark .zikra-silver .bg-brand,.dark .zikra-silver .bg-brand-600,.dark .zikra-silver .bg-brand-50{background-color:#475569!important;color:#f1f5f9!important}
-.zikra-silver .border-brand,.zikra-silver .border-brand\/20,.zikra-silver .border-brand\/30{border-color:rgba(100,116,139,.38)!important}
+.zikra-silver .border-brand{border-color:rgba(100,116,139,.38)!important}
 .zikra-video-home .sticky{border-color:rgba(148,163,184,.32)!important;background:rgba(239,242,246,.9)!important}
 .dark .zikra-video-home .sticky{background:rgba(24,29,38,.92)!important;border-color:rgba(203,213,225,.14)!important}
 .zikra-video-home .sticky button{border:1px solid rgba(148,163,184,.28)}
