@@ -55,7 +55,7 @@ function toBase64(bytes: Uint8Array) {
 export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, onListeningChange, onVoiceLevelChange, onMoodChange }: Props) {
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [muted, setMuted] = useState(false);
-  const [caption, setCaption] = useState("Ziyo bilan jonli gaplashishni boshlang.");
+  const [caption, setCaption] = useState("Ziyra bilan jonli gaplashishni boshlang.");
   const [error, setError] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -232,7 +232,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
             if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
-            if (part.text) setCaption("Ziyo: " + part.text);
+            if (part.text) setCaption("Ziyra: " + part.text);
           }
           if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); setCaption("Ziyra sizni tinglayapti…"); }
         } catch (cause) {
