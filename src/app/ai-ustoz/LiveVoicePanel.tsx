@@ -123,6 +123,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
     setError("");
     setTranscript("");
     setCaption("Mikrofon va Gemini Live ulanmoqda…");
+    let setupTimeout: ReturnType<typeof setTimeout> | undefined;
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Mikrofon uchun HTTPS va brauzer ruxsati kerak.");
       const mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
@@ -139,8 +140,16 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
       const context = new AudioContext();
       contextRef.current = context;
       await context.resume();
-      const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?access_token=" + encodeURIComponent(tokenPayload.token));
+      const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tokenPayload.token));
       socketRef.current = socket;
+      setupTimeout = setTimeout(() => {
+        if (!readyRef.current && socket.readyState !== WebSocket.CLOSED) {
+          console.error("[zikra-gemini-live-timeout] setup did not complete within 15 seconds");
+          setError("Gemini Live 15 soniya ichida sessiyani tayyorlamadi. Model ruxsati va token sozlamasini tekshirish kerak.");
+          setStatus("error");
+          socket.close(4000, "setup timeout");
+        }
+      }, 15000);
 
       socket.onopen = () => {
         socket.send(JSON.stringify({
@@ -167,6 +176,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
             return;
           }
           if (message.setupComplete) {
+            if (setupTimeout) clearTimeout(setupTimeout);
             readyRef.current = true;
             const source = context.createMediaStreamSource(mic);
             const processor = context.createScriptProcessor(4096, 1, 1);
@@ -207,15 +217,19 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
         }
       };
 
-      socket.onerror = () => {
+      socket.onerror = (event) => {
+        console.error("[zikra-gemini-live-websocket]", event);
         setStatus("error");
-        setError("Gemini Live bilan aloqa o‘rnatilmadi. API kalit, model ruxsati va internetni tekshiring.");
+        setError("Gemini Live WebSocket ulanishida xatolik. Token, model yoki Google API ruxsatini tekshiring.");
       };
       socket.onclose = (event) => {
+        if (setupTimeout) clearTimeout(setupTimeout);
         readyRef.current = false;
-        if (event.code !== 1000) {
+        onAvatarSpeakingChange?.(false);
+        if (event.code !== 1000 && status !== "idle") {
+          console.error("[zikra-gemini-live-close]", { code: event.code, reason: event.reason, wasClean: event.wasClean });
           setStatus("error");
-          setError("Jonli aloqa uzildi. Qayta ulanishga urinib ko‘ring.");
+          setError(`Jonli aloqa uzildi (kod: ${event.code || "noma’lum"}). ${event.reason || "Gemini sessiyasi yopildi."}`);
         }
       };
     } catch (cause) {
