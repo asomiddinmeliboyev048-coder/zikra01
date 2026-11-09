@@ -150,6 +150,15 @@ export default function LearnDashboard({ profile, courses, skills, lessonStats }
             <img src="/zikra-mascot.webp" alt="Zikra Learn mushukcha maskoti" className="pointer-events-none absolute -bottom-4 right-2 z-0 h-[94%] max-w-[43%] object-contain object-bottom drop-shadow-[0_14px_20px_rgba(0,0,0,.2)] sm:right-8 sm:h-[112%] sm:max-w-[34%]" />
           </section>
 
+          <Link href="/ai-ustoz" className="group relative flex flex-col gap-4 overflow-hidden rounded-[24px] border border-white/80 bg-[linear-gradient(120deg,#f8fafc_0%,#dbe1e9_42%,#aeb8c6_72%,#f1f5f9_100%)] p-5 text-slate-800 shadow-[0_18px_45px_-28px_rgba(15,23,42,.5)] transition hover:-translate-y-0.5 hover:shadow-xl dark:border-white/10 dark:bg-[linear-gradient(120deg,#303a48_0%,#222b37_55%,#3c4655_100%)] dark:text-slate-100 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-white/40 blur-3xl dark:bg-slate-200/10"/>
+            <div className="relative flex items-center gap-4">
+              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/80 bg-gradient-to-br from-white to-slate-300 text-slate-700 shadow-lg dark:border-white/20"><Sparkles size={25}/></span>
+              <div><span className="inline-flex items-center gap-1 rounded-full border border-slate-500/20 bg-white/55 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-slate-600 dark:bg-black/10 dark:text-slate-300"><Sparkles size={11}/> Yangi imkoniyat</span><h2 className="mt-1 text-lg font-black sm:text-xl">Zikra AI Ustoz</h2><p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Ziyo bilan o‘zbekcha suhbatlashing, tanlagan ko‘nikmangizni mashq qiling.</p></div>
+            </div>
+            <span className="relative inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-800 px-5 text-xs font-extrabold text-white shadow-lg transition group-hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900">Ustoz bilan suhbat <ChevronRight size={16}/></span>
+          </Link>
+
           <section className="relative overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-r from-white via-[#f2fbf7] to-[#e3f6ef] p-5 shadow-sm dark:border-slate-500/20 dark:from-[#252d39] dark:via-[#1d2530] dark:to-[#303a49] sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-7">
             <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-slate-400/20 blur-3xl"/>
             <div className="relative max-w-2xl">
