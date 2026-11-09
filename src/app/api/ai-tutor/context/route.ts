@@ -10,7 +10,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Avtorizatsiya talab qilinadi." }, { status: 401 });
 
   const [{ data: profile, error: profileError }, { data: rows, error: messagesError }] = await Promise.all([
-    supabase.from("ai_tutor_profiles").select("selected_track,level,learning_goal,focus_topic,memory_summary").eq("user_id", user.id).maybeSingle(),
+    supabase.from("ai_tutor_profiles").select("selected_track,selected_avatar,level,learning_goal,focus_topic,memory_summary").eq("user_id", user.id).maybeSingle(),
     supabase.from("ai_tutor_messages").select("id,mode,track,role,content,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(40),
   ]);
   if (profileError || messagesError) {
@@ -29,12 +29,13 @@ export async function POST(request: Request) {
 
   const track = String(body.track || "english");
   const level = String(body.level || "Boshlang‘ich").slice(0, 40);
+  const avatar = body.avatar === "student" ? "student" : "teacher";
   const learningGoal = typeof body.learningGoal === "string" ? body.learningGoal.slice(0, 240) : null;
   const focusTopic = typeof body.focusTopic === "string" ? body.focusTopic.slice(0, 160) : null;
   if (!tracks.includes(track as typeof tracks[number])) return NextResponse.json({ error: "Kurs noto‘g‘ri." }, { status: 400 });
 
   const { error } = await supabase.from("ai_tutor_profiles").upsert({
-    user_id: user.id, selected_track: track, level, learning_goal: learningGoal,
+    user_id: user.id, selected_track: track, selected_avatar: avatar, level, learning_goal: learningGoal,
     focus_topic: focusTopic, updated_at: new Date().toISOString(),
   }, { onConflict: "user_id" });
   if (error) {
