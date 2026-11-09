@@ -27,3 +27,11 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 @media(max-width:900px){.studio-layout{grid-template-columns:minmax(0,1fr) 310px}.studio-panel{padding:24px 18px}.stage-controls{right:18px}.stage-controls span{display:none}}
 @media(max-width:680px){.studio-topbar{height:64px;padding:0 12px}.studio-brand{gap:7px}.studio-brand>span{width:31px;height:31px}.studio-brand b{font-size:11px}.studio-brand small{font-size:8px}.studio-back{padding:8px 10px;font-size:0;gap:0}.studio-back svg{width:17px;height:17px}.studio-top-actions{gap:5px}.studio-top-actions button{width:33px;height:33px}.studio-layout{height:auto;min-height:calc(100svh - 64px);display:flex;flex-direction:column}.zikra-studio-stage{height:58svh;min-height:430px;flex:none}.studio-panel{overflow:visible;border-left:0;border-top:1px solid #cbd5e11a;padding:24px 18px 34px}.stage-label{top:18px;left:17px}.stage-caption{left:15px;bottom:15px}.stage-controls{right:14px;bottom:17px}.stage-controls button{padding:9px;font-size:0}.stage-controls button svg{width:16px;height:16px}.stage-aura{width:95vw}.stage-aura-two{width:72vw}model-viewer{height:calc(100% - 65px)}}
 @media(prefers-reduced-motion:reduce){.zikra-studio *{animation:none!important;transition:none!important}}
+
+
+/* Live voice state: animate the full-body model even when the GLB has no talk clip. */
+.zikra-studio-stage.avatar-speaking model-viewer{transform-origin:50% 82%;animation:zikra-studio-speaking .72s ease-in-out infinite alternate}
+.zikra-studio-stage.avatar-speaking .stage-aura-one{animation:studio-aura-speaking 1.4s ease-in-out infinite alternate}
+@keyframes zikra-studio-speaking{from{transform:translateY(1px) scale(1)}to{transform:translateY(-5px) scale(1.012)}}
+@keyframes studio-aura-speaking{from{opacity:.55;transform:translate(-50%,-50%) scale(.99)}to{opacity:1;transform:translate(-50%,-50%) scale(1.035)}}
+@media(prefers-reduced-motion:reduce){.zikra-studio-stage.avatar-speaking model-viewer,.zikra-studio-stage.avatar-speaking .stage-aura-one{animation:none!important}}
