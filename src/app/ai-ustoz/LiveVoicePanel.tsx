@@ -280,7 +280,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-sm font-black"><Radio size={16} className="text-cyan-200"/> Jonli suhbat <span className="rounded-full border border-cyan-200/20 bg-cyan-200/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-100">Gemini Live</span></div>
-          <p className="mt-1 text-[11px] text-slate-400">Matn yozish shart emas — " + tutorName + " bilan tabiiy gaplashing.</p>
+          <p className="mt-1 text-[11px] text-slate-400">Matn yozish shart emas — {tutorName} bilan tabiiy gaplashing.</p>
         </div>
         <span className="flex items-center gap-2 text-[10px] font-bold text-slate-300"><i className={`h-2 w-2 rounded-full ${status === "live" ? "animate-pulse bg-emerald-300" : status === "error" ? "bg-rose-300" : "bg-slate-500"}`}/>{status === "live" ? "Jonli ulandi" : status === "connecting" ? "Ulanmoqda…" : status === "error" ? "Aloqa xatosi" : "Ulanishga tayyor"}</span>
       </div>
