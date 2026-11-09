@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { createElement, useCallback, useEffect, useRef, useState, type ComponentType } from "react";
+import { createElement, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import { Maximize2, Moon, Sparkles, Sun } from "lucide-react";
 import LiveVoicePanel from "../LiveVoicePanel";
 import "./studio.css";
@@ -139,7 +139,7 @@ export default function AiTutorStudioPage() {
       </header>
 
       <section className="studio-layout studio-layout-single">
-        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood}`}>
+        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood}`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
           <div className="stage-label"><span className="stage-live-dot"/><span>ZIYRA AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
