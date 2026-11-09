@@ -27,11 +27,14 @@ export async function POST(request: Request) {
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Noto‘g‘ri so‘rov." }, { status: 400 }); }
 
-  const track = String(body.track || "english");
-  const level = String(body.level || "Boshlang‘ich").slice(0, 40);
-  const avatar = body.avatar === "student" ? "student" : "teacher";
-  const learningGoal = typeof body.learningGoal === "string" ? body.learningGoal.slice(0, 240) : null;
-  const focusTopic = typeof body.focusTopic === "string" ? body.focusTopic.slice(0, 160) : null;
+  const { data: existing } = await supabase.from("ai_tutor_profiles")
+    .select("selected_track,selected_avatar,level,learning_goal,focus_topic")
+    .eq("user_id", user.id).maybeSingle();
+  const track = String(body.track || existing?.selected_track || "english");
+  const level = String(body.level || existing?.level || "Boshlang‘ich").slice(0, 40);
+  const avatar = body.avatar === "student" || body.avatar === "teacher" ? body.avatar : (existing?.selected_avatar || "teacher");
+  const learningGoal = typeof body.learningGoal === "string" ? body.learningGoal.slice(0, 240) : (existing?.learning_goal || null);
+  const focusTopic = typeof body.focusTopic === "string" ? body.focusTopic.slice(0, 160) : (existing?.focus_topic || null);
   if (!tracks.includes(track as typeof tracks[number])) return NextResponse.json({ error: "Kurs noto‘g‘ri." }, { status: 400 });
 
   const { error } = await supabase.from("ai_tutor_profiles").upsert({
