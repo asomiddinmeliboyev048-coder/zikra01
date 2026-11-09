@@ -80,7 +80,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Xabar topilmadi." }, { status: 400 });
   }
 
-  const remembered = Array.isArray(savedProfile?.conversation_history) ? savedProfile.conversation_history.slice(-10) : [];\n  const memoryContext = typeof savedProfile?.memory_summary === "string" ? savedProfile.memory_summary : "";\n  const systemInstruction = `Sen Zikra AI Ustozsan: aqlli, samimiy, hazilkash, sabrli va rag‘batlantiruvchi shaxsiy murabbiy.
+  const remembered = Array.isArray(savedProfile?.conversation_history) ? savedProfile.conversation_history.slice(-10) : [];
+  const memoryContext = typeof savedProfile?.memory_summary === "string" ? savedProfile.memory_summary : "";\n  const systemInstruction = `Sen Zikra AI Ustozsan: aqlli, samimiy, hazilkash, sabrli va rag‘batlantiruvchi shaxsiy murabbiy.
 Foydalanuvchi bilan ASOSIY TIL sifatida o‘zbek tilida gaplash. Tanlangan yo‘nalish: ${trackNames[track]}. Foydalanuvchi darajasi: ${level}.\nOldingi xotira: ${memoryContext || "Hozircha qo‘shimcha xotira yo‘q."}. So‘nggi suhbat: ${remembered.map((item: { role: string; content: string }) => (item.role === "user" ? "O‘quvchi: " : "Ustoz: ") + item.content).join(" | ") || "Yangi suhbat."}. Avvalgi suhbatni esla va bir xil savollarni takrorlama.
 Maqsad: foydalanuvchiga aynan shu ko‘nikmani mashq qildirish. Ingliz yoki rus tili tanlansa, qisqa savol va topshiriqlarni o‘rganilayotgan tilda ber, ammo izoh, xatolar tahlili va rag‘batni o‘zbekcha tushuntir. Dasturlash/kiberxavfsizlikda xavfsiz, amaliy va darajaga mos topshiriqlar ber.
 Xatolarni muloyim tuzat: avval nimasi yaxshi chiqqanini ayt, keyin to‘g‘ri variantni va qisqa sababini ko‘rsat, so‘ng foydalanuvchiga yana urinib ko‘rish uchun savol ber. Tabiiy, qisqa va jonli yoz. Vaqti-vaqti bilan yengil, hurmatli hazil qil; kamsitma, ortiqcha hazil bilan darsni chalg‘itma. O‘zingni AI ekaningni yashirma. Javoblar odatda 2-6 gapdan oshmasin. Foydalanuvchi faqat o‘zbekcha izoh so‘rasa, mashq tiliga majburlama.`;
@@ -136,7 +137,15 @@ Xatolarni muloyim tuzat: avval nimasi yaxshi chiqqanini ayt, keyin to‘g‘ri v
       ...(lastUserTurn ? [{ role: "user", content: lastUserTurn.parts.map((part) => part.text).join("") }] : []),
       { role: "assistant", content: reply },
     ].slice(-24);
-    const { error: saveError } = await supabase.from("ai_tutor_profiles").upsert({\n      user_id: user.id,\n      selected_track: track,\n      level,\n      avatar_id: savedProfile?.avatar_id || "teacher",\n      memory_summary: memoryContext,\n      conversation_history: newHistory,\n      updated_at: new Date().toISOString(),\n    }, { onConflict: "user_id" });\n    if (saveError) console.error("[zikra-ai-tutor-chat-memory-save]", saveError.message);\n\n    return NextResponse.json({ reply, provider: "gemini", model });
+    const { error: saveError } = await supabase.from("ai_tutor_profiles").upsert({
+      user_id: user.id,
+      selected_track: track,
+      level,
+      avatar_id: savedProfile?.avatar_id || "teacher",
+      memory_summary: memoryContext,
+      conversation_history: newHistory,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });\n    if (saveError) console.error("[zikra-ai-tutor-chat-memory-save]", saveError.message);\n\n    return NextResponse.json({ reply, provider: "gemini", model });
   } catch (error) {
     console.error("[zikra-gemini-chat]", error);
     return NextResponse.json(
