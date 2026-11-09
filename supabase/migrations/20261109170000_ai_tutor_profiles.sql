@@ -31,3 +31,5 @@ create policy "Users can update own AI tutor profile"
 
 create index if not exists ai_tutor_profiles_updated_at_idx
   on public.ai_tutor_profiles (updated_at desc);
+
+grant select, insert, update on public.ai_tutor_profiles to authenticated;
