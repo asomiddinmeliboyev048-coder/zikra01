@@ -83,3 +83,45 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 }
 
 .studio-topbar{grid-template-columns:1fr auto}
+
+
+/* Expressive Ziyra simulator — inspired by the reference's simple, readable face */
+.studio-layout-single{grid-template-columns:minmax(0,1fr)}
+.zikra-studio-stage{min-height:calc(100svh - 76px)}
+.zikra-orb-wrap{position:relative;z-index:2;width:min(54vw,520px);aspect-ratio:1;display:grid;place-items:center;margin:0 auto 120px;isolation:isolate;--orb-ink:#252b35}
+.zikra-orb-halo{position:absolute;inset:5%;border-radius:50%;background:radial-gradient(circle,#b9d7ff24 0%,#8eb7ff10 52%,transparent 72%);filter:blur(12px);animation:orb-halo 4s ease-in-out infinite}
+.zikra-orb-face{position:relative;width:70%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff 0%,#f8fafc 52%,#dce4ef 100%);border:clamp(7px,1.1vw,12px) solid #3978ff;box-shadow:0 18px 55px #2764ff30,inset 0 -12px 22px #9aa9bd32,0 0 0 9px #ffffff10;animation:orb-float 4s ease-in-out infinite;transition:border-color .35s,box-shadow .35s,border-radius .4s}
+.stage-light .zikra-orb-face{border-color:#537de8;box-shadow:0 18px 55px #365fba25,inset 0 -12px 22px #9aa9bd32}
+.zikra-orb-shine{position:absolute;top:8%;left:17%;width:35%;height:16%;border-radius:50%;background:#fff9;filter:blur(12px);transform:rotate(-28deg)}
+.zikra-orb-eyes{position:absolute;top:39%;left:26%;width:48%;display:flex;justify-content:space-between;align-items:center}
+.zikra-orb-eyes i{display:block;width:22%;height:clamp(8px,1.4vw,15px);border-radius:2px 2px 10px 10px;background:var(--orb-ink);transform-origin:center;animation:orb-blink 5.8s infinite}
+.zikra-orb-eyes i:nth-child(2){animation-delay:.12s}
+.zikra-orb-brows{position:absolute;top:30%;left:25%;width:50%;display:flex;justify-content:space-between;opacity:0;transition:opacity .2s}
+.zikra-orb-brows i{width:24%;height:4px;border-radius:8px;background:#303846;transform:rotate(-8deg)}
+.zikra-orb-brows i+ i{transform:rotate(8deg)}
+.zikra-orb-mouth{position:absolute;left:50%;top:57%;width:19%;height:clamp(8px,1.6vw,17px);border-radius:999px;background:var(--orb-ink);transform:translateX(-50%);transition:width .12s,height .08s,border-radius .12s}
+.zikra-orb-mouth span{display:none}
+.zikra-orb-cheeks{position:absolute;left:13%;right:13%;top:57%;display:flex;justify-content:space-between;opacity:0;transition:opacity .3s}
+.zikra-orb-cheeks i{width:14%;height:10px;border-radius:50%;background:#f29aa7;filter:blur(7px)}
+.zikra-orb-shadow{position:absolute;bottom:8%;width:48%;height:7%;border-radius:50%;background:#8ba0bd55;filter:blur(7px);animation:orb-shadow 4s ease-in-out infinite}
+.zikra-orb-status{position:absolute;bottom:-4%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;white-space:nowrap;padding:10px 16px;border:1px solid #dce5ef35;border-radius:999px;background:#111a27b8;color:#dce5ef;font-size:11px;font-weight:700;backdrop-filter:blur(14px)}
+.zikra-orb-status span{width:7px;height:7px;border-radius:50%;background:#93a4ba}
+.mood-listening .zikra-orb-face{border-color:#2f91ee;box-shadow:0 0 0 12px #4da9ff12,0 18px 55px #2764ff40,inset 0 -12px 22px #9aa9bd32}
+.mood-listening .zikra-orb-eyes i{height:clamp(10px,1.7vw,18px);transform:scaleY(1.15)}
+.mood-listening .zikra-orb-mouth{width:12%;height:8px}
+.mood-speaking .zikra-orb-face{border-color:#4b83ff;box-shadow:0 0 0 14px #4b83ff16,0 18px 65px #2764ff55,inset 0 -12px 22px #9aa9bd32}
+.mood-speaking .zikra-orb-mouth{width:calc(13% + var(--voice-open,0) * 13%);height:calc(8px + var(--voice-open,0) * 24px);border-radius:45% 45% 55% 55%}
+.mood-speaking .zikra-orb-eyes i{animation:orb-talk-eyes 1.8s ease-in-out infinite}
+.mood-speaking .zikra-orb-status span{background:#69e0b2;box-shadow:0 0 12px #69e0b2;animation:orb-pulse .8s infinite}
+.mood-idle .zikra-orb-cheeks{opacity:.25}
+.mood-listening .zikra-orb-brows{opacity:.55}
+.mood-speaking .zikra-orb-cheeks{opacity:.7}
+.mood-speaking .zikra-orb-brows{opacity:.35}
+@keyframes orb-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-11px) rotate(1deg)}}
+@keyframes orb-shadow{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(.82);opacity:.4}}
+@keyframes orb-halo{0%,100%{transform:scale(.96);opacity:.65}50%{transform:scale(1.05);opacity:1}}
+@keyframes orb-blink{0%,44%,48%,100%{transform:scaleY(1)}46%{transform:scaleY(.08)}}
+@keyframes orb-talk-eyes{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.72)}}
+@keyframes orb-pulse{50%{opacity:.35;transform:scale(.8)}}
+@media(max-width:680px){.zikra-studio-stage{min-height:calc(100svh - 64px)}.zikra-orb-wrap{width:min(88vw,390px);margin:10px auto 150px}.zikra-orb-status{font-size:10px}.studio-layout-single{min-height:calc(100svh - 64px)}}
+@media(prefers-reduced-motion:reduce){.zikra-orb-face,.zikra-orb-halo,.zikra-orb-shadow,.zikra-orb-eyes i,.zikra-orb-status span{animation:none!important}}
