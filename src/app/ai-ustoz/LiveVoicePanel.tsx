@@ -227,8 +227,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
-            setTranscript((current) => current + (current ? "
-" : "") + "Siz: " + inputText);
+            setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
             void persistTurn("user", inputText);
             setCaption("Sizni tinglayapman…");
           }
@@ -236,7 +235,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             setTranscript((current) => current + (current ? "
 " : "") + tutorName + ": " + outputText);
             void persistTurn("assistant", outputText);
-            setCaption("Ziyo gapiryapti…");
+            setCaption(tutorName + " gapiryapti…");
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
