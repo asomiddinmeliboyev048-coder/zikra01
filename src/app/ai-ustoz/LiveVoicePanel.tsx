@@ -232,8 +232,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
-            setTranscript((current) => current + (current ? "
-" : "") + tutorName + ": " + outputText);
+            setTranscript((current) => current + (current ? "\n" : "") + tutorName + ": " + outputText);
             void persistTurn("assistant", outputText);
             setCaption(tutorName + " gapiryapti…");
           }
