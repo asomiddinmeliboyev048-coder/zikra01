@@ -76,9 +76,15 @@ export async function POST(request: Request) {
     .eq("user_id", user.id)
     .maybeSingle();
   if (memoryError) console.warn("[zikra-ai-memory-read]", memoryError.message);
-  const memoryContext = tutorProfile
-    ? `\\nFoydalanuvchining saqlangan o‘quv maqsadi: ${tutorProfile.learning_goal || "ko‘rsatilmagan"}.\\nOxirgi mavzu: ${tutorProfile.focus_topic || "hali belgilanmagan"}.\\nOldingi mashg‘ulotlardan xulosa: ${tutorProfile.memory_summary || "hali yo‘q"}. Ushbu ma’lumotlardan davomiylik uchun foydalan, lekin foydalanuvchi yangi kurs tanlasa uni ustun qo‘y.`
+  const { data: learningPlan } = await supabase.from("learning_plans")
+    .select("skill_name,purpose,current_level,target_level,daily_minutes,learning_style,interests")
+    .eq("user_id", user.id).eq("track_id", track).maybeSingle();
+  const planContext = learningPlan
+    ? `\\nPlatformadagi faol o‘quv reja: ${learningPlan.skill_name || trackNames[track]}; maqsad: ${learningPlan.purpose || "ko‘rsatilmagan"}; hozirgi daraja: ${learningPlan.current_level || level}; maqsadli daraja: ${learningPlan.target_level || "ko‘rsatilmagan"}; kunlik vaqt: ${learningPlan.daily_minutes || "ko‘rsatilmagan"} daqiqa; uslub: ${learningPlan.learning_style || "aralash"}; qiziqishlar: ${Array.isArray(learningPlan.interests) ? learningPlan.interests.join(", ") : "ko‘rsatilmagan"}.`
     : "";
+  const memoryContext = (tutorProfile
+    ? `\\nFoydalanuvchining saqlangan o‘quv maqsadi: ${tutorProfile.learning_goal || "ko‘rsatilmagan"}.\\nOxirgi mavzu: ${tutorProfile.focus_topic || "hali belgilanmagan"}.\\nOldingi mashg‘ulotlardan xulosa: ${tutorProfile.memory_summary || "hali yo‘q"}. Ushbu ma’lumotlardan davomiylik uchun foydalan, lekin foydalanuvchi yangi kurs tanlasa uni ustun qo‘y.`
+    : "") + planContext;
   const systemInstruction = `Sen Zikra AI Ustozsan: aqlli, samimiy, hazilkash, sabrli va rag‘batlantiruvchi shaxsiy murabbiy.
 Foydalanuvchi bilan ASOSIY TIL sifatida o‘zbek tilida gaplash. Tanlangan yo‘nalish: ${trackNames[track]}. Foydalanuvchi darajasi: ${level}.
 Maqsad: foydalanuvchiga aynan shu ko‘nikmani mashq qildirish. Ingliz yoki rus tili tanlansa, qisqa savol va topshiriqlarni o‘rganilayotgan tilda ber, ammo izoh, xatolar tahlili va rag‘batni o‘zbekcha tushuntir. Dasturlash/kiberxavfsizlikda xavfsiz, amaliy va darajaga mos topshiriqlar ber.
