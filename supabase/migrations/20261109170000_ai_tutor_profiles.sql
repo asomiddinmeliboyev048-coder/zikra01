@@ -4,7 +4,7 @@ create table if not exists public.ai_tutor_profiles (
   selected_track text not null default 'english'
     check (selected_track in ('english','russian','coding','cyber')),
   level text not null default 'Boshlang‘ich',
-  avatar_id text not null default 'teacher'
+  avatar_id text not null default 'student'
     check (avatar_id in ('teacher','student')),
   memory_summary text not null default '',
   conversation_history jsonb not null default '[]'::jsonb,
