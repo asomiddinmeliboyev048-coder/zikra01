@@ -117,12 +117,29 @@ export default function AiTutorPage() {
 
   async function speak(text: string) {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
+    if (typeof window === "undefined") return;
+    window.speechSynthesis?.cancel();
+    try {
+      const response = await fetch("/api/ai-tutor/speech", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, track }),
+      });
+      if (response.ok && response.headers.get("content-type")?.includes("audio")) {
+        const audioUrl = URL.createObjectURL(await response.blob());
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+        audio.onplay = () => setSpeaking(true);
+        audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(audioUrl); audioRef.current = null; };
+        audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(audioUrl); audioRef.current = null; };
+        await audio.play();
+        return;
+      }
+    } catch { /* Use browser speech as a fallback when premium TTS is not configured. */ }
+    if (!("speechSynthesis" in window)) return;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "uz-UZ";
+    utterance.lang = track === "english" ? "en-US" : track === "russian" ? "ru-RU" : "uz-UZ";
     utterance.rate = 0.96;
-    utterance.pitch = 1.06;
+    utterance.pitch = 1.02;
     utterance.onstart = () => setSpeaking(true);
     utterance.onend = () => setSpeaking(false);
     utterance.onerror = () => setSpeaking(false);
