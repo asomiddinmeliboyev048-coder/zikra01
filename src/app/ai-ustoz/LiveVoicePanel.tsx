@@ -88,6 +88,8 @@ export default function LiveVoicePanel({ track, level, avatarId = "student", onA
   function closeSession() {
     readyRef.current = false;
     onAvatarSpeakingChange?.(false);
+    onListeningChange?.(false);
+    onVoiceLevelChange?.(0);
     socketRef.current?.close();
     socketRef.current = null;
     processorRef.current?.disconnect();
@@ -128,7 +130,12 @@ export default function LiveVoicePanel({ track, level, avatarId = "student", onA
     }
     const buffer = context.createBuffer(1, samples.length, 24000);
     const channel = buffer.getChannelData(0);
-    for (let i = 0; i < samples.length; i++) channel[i] = samples[i] / 32768;
+    let energy = 0;
+    for (let i = 0; i < samples.length; i++) {
+      channel[i] = samples[i] / 32768;
+      energy += channel[i] * channel[i];
+    }
+    onVoiceLevelChange?.(Math.min(1, Math.sqrt(energy / Math.max(1, samples.length)) * 5.5));
     const source = context.createBufferSource();
     source.buffer = buffer;
     source.connect(context.destination);
@@ -140,7 +147,9 @@ export default function LiveVoicePanel({ track, level, avatarId = "student", onA
   }
 
   async function startSession() {
-    if (status === "connecting" || status === "live") return;\n    onListeningChange?.(false);\n    onVoiceLevelChange?.(0);
+    if (status === "connecting" || status === "live") return;
+    onListeningChange?.(false);
+    onVoiceLevelChange?.(0);
     setStatus("connecting");
     setError("");
     setTranscript("");
@@ -197,7 +206,8 @@ export default function LiveVoicePanel({ track, level, avatarId = "student", onA
       socket.onmessage = async (event) => {
         try {
           const message = JSON.parse(typeof event.data === "string" ? event.data : await event.data.text()) as LiveMessage;
-          if (message.error?.message) {\n            onListeningChange?.(false);
+          if (message.error?.message) {
+            onListeningChange?.(false);
             console.error("[zikra-gemini-live-server-error]", message.error);
             setStatus("error");
             setError("Gemini Live: " + message.error.message);
@@ -222,20 +232,37 @@ export default function LiveVoicePanel({ track, level, avatarId = "student", onA
             processor.connect(silentGain);
             silentGain.connect(context.destination);
             setStatus("live");
-            setCaption("Ulandik! " + tutorName + " siz bilan salomlashmoqda…");
-            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni hozir boshlang. O‘zbek tilida qisqa, samimiy salomlashing va tanlangan ko‘nikma bo‘yicha darajamga mos bitta sodda savol bering. Tabiiy, hazilkash ohangda gapiring." }] }], turnComplete: true } }));
+            onListeningChange?.(false);
+            setCaption("Ulandik! Ziyra siz bilan salomlashmoqda…");
+            const openingStyles = [
+              "Bugungi kayfiyatga mos, quvnoq va qisqa salom bilan boshlang.",
+              "Oldingi darsdan tabiiy davom eting; yangi o‘quvchi bo‘lsa, iliq tanishing.",
+              "Yengil hazil bilan kirish qiling, keyin darhol foydali mashqqa o‘ting.",
+              "Darajaga mos qiziqarli savol bilan suhbatni oching.",
+              "Avvalgi natijani eslab, yangi kichik maqsad taklif qiling."
+            ];
+            const openingStyle = openingStyles[Math.floor(Math.random() * openingStyles.length)];
+            const hasHistory = historyRef.current.length > 0;
+            const openingPrompt = "Suhbatni boshlang. " + openingStyle + " " +
+              (hasHistory
+                ? "Bu qaytib kelgan o‘quvchi: xotiradagi kurs, daraja va oxirgi mashqni hisobga oling, avvalgi salom yoki savolni takrorlamang."
+                : "Bu yangi suhbat: kursi va darajasiga mos tabiiy, shaxsiy salom ayting.") +
+              " O‘zbek tilida gapiring, tanlangan ko‘nikma bo‘yicha darajaga mos bitta savol bering. Har safar bir xil kirish gapini ishlatmang.";
+            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: openingPrompt }] }], turnComplete: true } }));
           }
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
             setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
             void persistTurn("user", inputText);
-            setCaption("Sizni tinglayapman…");\n            onListeningChange?.(true);
+            setCaption("Sizni tinglayapman…");
+            onListeningChange?.(true);
           }
           if (outputText) {
             setTranscript((current) => current + (current ? "\n" : "") + tutorName + ": " + outputText);
             void persistTurn("assistant", outputText);
-            setCaption(tutorName + " gapiryapti…");\n            onListeningChange?.(false);
+            setCaption(tutorName + " gapiryapti…");
+            onListeningChange?.(false);
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onListeningChange?.(true); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
@@ -257,6 +284,8 @@ export default function LiveVoicePanel({ track, level, avatarId = "student", onA
         if (setupTimeout) clearTimeout(setupTimeout);
         readyRef.current = false;
         onAvatarSpeakingChange?.(false);
+        onListeningChange?.(false);
+        onVoiceLevelChange?.(0);
         if (event.code !== 1000) {
           console.error("[zikra-gemini-live-close]", { code: event.code, reason: event.reason, wasClean: event.wasClean });
           setStatus("error");
