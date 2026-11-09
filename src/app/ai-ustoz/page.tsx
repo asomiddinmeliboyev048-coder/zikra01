@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Check, CircleHelp, Mic, MicOff, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";
+import { ArrowLeft, Check, CircleHelp, Maximize2, Mic, MicOff, Minimize2, Send, Sparkles, Volume2, VolumeX, Waves } from "lucide-react";
 import "./ai-tutor.css";
 import LiveVoicePanel from "./LiveVoicePanel";
 import TutorAvatarStage from "./TutorAvatarStage";
@@ -35,10 +35,55 @@ export default function AiTutorPage() {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [avatarSpeaking, setAvatarSpeaking] = useState(false);
   const [error, setError] = useState("");
+  const [memoryLoaded, setMemoryLoaded] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const pageRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    fetch("/api/ai-tutor/context")
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Xotira yuklanmadi.");
+        if (!active) return;
+        const savedTrack = payload.profile?.selected_track;
+        if (["english", "russian", "coding", "cyber"].includes(savedTrack)) setTrack(savedTrack as Track);
+        if (typeof payload.profile?.level === "string") setLevel(payload.profile.level);
+        if (Array.isArray(payload.messages) && payload.messages.length) {
+          setMessages(payload.messages.map((item: { role: "user" | "assistant"; content: string; id: number | string }) => ({
+            role: item.role, content: item.content, id: String(item.id || makeId()),
+          })));
+        }
+      })
+      .catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : "Xotira yuklanmadi."); })
+      .finally(() => { if (active) setMemoryLoaded(true); });
+    return () => { active = false; };
+  }, []);
+
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [messages, sending]);
+
+  useEffect(() => {
+    if (!memoryLoaded) return;
+    void fetch("/api/ai-tutor/context", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ track, level }),
+    }).catch(() => undefined);
+  }, [track, level, memoryLoaded]);
+
+  useEffect(() => {
+    const sync = () => setFullscreen(document.fullscreenElement === pageRef.current);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await pageRef.current?.requestFullscreen?.();
+    } catch { setError("To‘liq ekran rejimini brauzer ruxsati bilan yoqib bo‘lmadi."); }
+  }
 
   function changeTrack(next: Track) {
     setTrack(next);
@@ -103,12 +148,12 @@ export default function AiTutorPage() {
   }
 
   return (
-    <main className="zikra-ai min-h-[100svh] overflow-hidden bg-[#11151c] text-slate-100">
+    <main ref={pageRef} className="zikra-ai min-h-[100svh] overflow-hidden bg-[#11151c] text-slate-100">
       <div className="mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col px-3 pb-4 pt-3 sm:px-6 sm:pt-6">
         <header className="flex items-center justify-between gap-3">
           <Link href="/learn" className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-slate-200 transition hover:bg-white/10"><ArrowLeft size={16}/> Orqaga</Link>
           <div className="flex items-center gap-2 text-sm font-black tracking-tight"><span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-white to-slate-400 text-slate-800"><Sparkles size={17}/></span>Zikra AI Ustoz</div>
-          <div className="flex items-center gap-2"><Link href="/ai-ustoz/studio" className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-300/20 bg-white/[0.06] px-3 text-[11px] font-bold text-slate-200 transition hover:bg-white/10"><Sparkles size={14}/> 3D Avatar Studio</Link><button onClick={() => setVoiceEnabled((value) => !value)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300" aria-label="Ovoz sozlamasi">{voiceEnabled ? <Volume2 size={17}/> : <VolumeX size={17}/>}</button></div>
+          <div className="flex items-center gap-2"><button type="button" onClick={() => void toggleFullscreen()} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300" aria-label={fullscreen ? "To‘liq ekrandan chiqish" : "To‘liq ekran"}>{fullscreen ? <Minimize2 size={17}/> : <Maximize2 size={17}/>}</button><Link href="/ai-ustoz/studio" className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-300/20 bg-white/[0.06] px-3 text-[11px] font-bold text-slate-200 transition hover:bg-white/10"><Sparkles size={14}/> 3D Avatar Studio</Link><button onClick={() => setVoiceEnabled((value) => !value)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300" aria-label="Ovoz sozlamasi">{voiceEnabled ? <Volume2 size={17}/> : <VolumeX size={17}/>}</button></div>
         </header>
 
         <div className="mt-4"><LiveVoicePanel track={track} level={level} onAvatarSpeakingChange={setAvatarSpeaking} /></div>
@@ -116,7 +161,7 @@ export default function AiTutorPage() {
         <section className="mt-4 grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="flex min-h-[72svh] flex-col overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(145deg,#252d39,#171d26_55%,#303947)] shadow-[0_30px_100px_-50px_rgba(0,0,0,.9)]">
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6">
-              <div><p className="text-[10px] font-bold uppercase tracking-[.22em] text-slate-400">Sizning shaxsiy AI murabbiyingiz</p><p className="mt-1 text-sm font-bold">O‘zbekcha tushuntiradi · Birga mashq qiladi</p></div>
+              <div><p className="text-[10px] font-bold uppercase tracking-[.22em] text-slate-400">Sizning shaxsiy AI murabbiyingiz</p><p className="mt-1 text-sm font-bold">O‘zbekcha tushuntiradi · Birga mashq qiladi</p><p className="mt-1 text-[9px] text-slate-400">{memoryLoaded ? "O‘quv xotirasi sinxronlangan" : "O‘quv xotirasi yuklanmoqda…"}</p></div>
               <span className="flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[10px] font-bold text-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300"/> Tayyor</span>
             </div>
 
