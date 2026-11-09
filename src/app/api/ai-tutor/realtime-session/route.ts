@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   const track = String(body.track || "english") as Track;
   if (!(track in trackNames)) return NextResponse.json({ error: "Ko‘nikma turi noto‘g‘ri." }, { status: 400 });
   const level = String(body.level || "Boshlang‘ich").slice(0, 40);
-  const avatarId = body.avatarId === "student" ? "student" : "teacher";
+  const avatarId = "student";
   const { data: profile, error: profileError } = await supabase
     .from("ai_tutor_profiles")
     .select("memory_summary, conversation_history, selected_track, level, avatar_id")
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       token,
       model: "models/gemini-3.8-live",
-      voiceName: avatarId === "student" ? "Aoede" : "Puck",
+      voiceName: "Aoede",
       context: {
         memorySummary: memory,
         conversationHistory: history,
