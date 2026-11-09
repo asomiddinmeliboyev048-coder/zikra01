@@ -419,7 +419,7 @@ export default async function ProfilePage({
   ========================================================== */
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="zikra-profile-silver min-h-screen bg-gray-50">
 
       <Navbar />
 
@@ -433,7 +433,7 @@ export default async function ProfilePage({
 
           {/* COVER */}
 
-          <div className="h-20 bg-gradient-to-r from-brand via-brand-700 to-purple-600 sm:h-28" />
+          <div className="zikra-profile-cover h-20 sm:h-28" />
 
           <div className="px-4 pb-6 sm:px-8 sm:pb-8">
 
@@ -453,7 +453,7 @@ export default async function ProfilePage({
 
                   <div className="relative shrink-0">
 
-                    <div className="rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-1">
+                    <div className="zikra-profile-avatar-ring rounded-full p-1">
 
                       <div className="rounded-full bg-white p-[3px]">
 

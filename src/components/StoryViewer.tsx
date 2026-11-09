@@ -43,6 +43,15 @@ export default function StoryViewer({
   const [showForward, setShowForward] = useState(false);
   const [forwardDone, setForwardDone] = useState<string | null>(null);
 
+  // Hikoya to'liq ekran rejimida ochilganda mobil pastki navigatsiyani yashirish.
+  useEffect(() => {
+    document.documentElement.classList.add("story-active");
+    return () => {
+      document.documentElement.classList.remove("story-active");
+    };
+  }, []);
+
+
   const group = groups[gi];
   const story = group?.stories[si];
   const isOwner = group?.isMe ?? false;

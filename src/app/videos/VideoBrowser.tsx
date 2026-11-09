@@ -38,7 +38,7 @@ export default function VideoBrowser({ navbar, videos, reels, profile }: Props) 
 
 
   return (
-    <div className="zikra-video-home min-h-screen bg-[#f9faf9] pb-24 text-gray-900 md:pb-10 dark:bg-[#0f0f0f] dark:text-white">
+    <div className="zikra-silver zikra-video-home min-h-screen bg-[#f9faf9] pb-24 text-gray-900 md:pb-10 dark:bg-[#0f0f0f] dark:text-white">
       {navbar}
       {/* Yagona global navigatsiya ostidagi video qidiruv va filtrlar */}
       <div className="sticky top-16 z-30 border-b border-black/[0.04] bg-white/95 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#0b100f]/95">

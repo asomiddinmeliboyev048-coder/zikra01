@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Search, Volume2, Mic, Swords, Target, Trophy, Clock3, Flame, ChevronRight, CheckCircle2, Play, Headphones, PenLine, ArrowLeft, CalendarDays, Sparkles, Send, Home, Flag, UserRound } from "lucide-react";
 import type { LearningPlanInput } from "./LearningOnboarding";
 import type { AssessmentTrack } from "./assessment-bank";
+import LearningPathProgress from "./LearningPathProgress";
 
 type Activity = { id: string; track_id: string; skill_name: string; activity_type: string; item_key: string | null; score: number | null; duration_seconds: number; completed_at: string; details: Record<string, unknown> };
 type Assessment = { score: number; total: number; level: string; practical_passed: boolean; assessed_at: string } | null;
@@ -36,6 +37,65 @@ const listeningPrompts: Record<AssessmentTrack, string> = {
   cyber: "Use strong authentication and keep your software up to date.",
 };
 const todayKey = () => new Date().toLocaleDateString("en-CA");
+const progressiveVocabulary: Record<AssessmentTrack, Array<{ word: string; translation: string }>> = {
+  english: [
+    {word:"ambitious",translation:"intiluvchan"},{word:"contribute",translation:"hissa qo‘shmoq"},{word:"essential",translation:"muhim"},{word:"efficient",translation:"samarali"},{word:"maintain",translation:"saqlab turmoq"},
+    {word:"perspective",translation:"nuqtayi nazar"},{word:"significant",translation:"sezilarli"},{word:"circumstance",translation:"vaziyat"},{word:"consequence",translation:"oqibat"},{word:"determine",translation:"aniqlamoq"},
+    {word:"accomplish",translation:"amalga oshirmoq"},{word:"sustainable",translation:"barqaror"},{word:"comprehensive",translation:"batafsil"},{word:"inevitable",translation:"muqarrar"},{word:"resilience",translation:"chidamlilik"}
+  ],
+  russian: [
+    {word:"вдохновение",translation:"ilhom"},{word:"привычка",translation:"odat"},{word:"возможность",translation:"imkoniyat"},{word:"достижение",translation:"yutuq"},{word:"ответственность",translation:"mas’uliyat"},
+    {word:"окружающий",translation:"atrofdagi"},{word:"исследование",translation:"tadqiqot"},{word:"преимущество",translation:"ustunlik"},{word:"последовательность",translation:"izchillik"},{word:"самостоятельность",translation:"mustaqillik"},
+    {word:"целеустремлённость",translation:"maqsadga intiluvchanlik"},{word:"взаимодействие",translation:"o‘zaro ta’sir"},{word:"усовершенствование",translation:"takomillashtirish"},{word:"предприимчивость",translation:"tadbirkorlik"},{word:"осведомлённость",translation:"xabardorlik"}
+  ],
+  coding: [
+    {word:"recursion",translation:"rekursiya"},{word:"middleware",translation:"oraliq dasturiy qatlam"},{word:"abstraction",translation:"abstraksiya"},{word:"inheritance",translation:"meros olish"},{word:"polymorphism",translation:"polimorfizm"},
+    {word:"asynchronous",translation:"asinxron"},{word:"optimization",translation:"optimallashtirish"},{word:"dependency",translation:"bog‘liqlik"},{word:"architecture",translation:"arxitektura"},{word:"encapsulation",translation:"inkapsulyatsiya"},
+    {word:"concurrency",translation:"bir vaqtda bajarilish"},{word:"serialization",translation:"serializatsiya"},{word:"observability",translation:"kuzatuvchanlik"},{word:"idempotency",translation:"takroriy xavfsiz bajarilish"},{word:"orchestration",translation:"jarayonlarni muvofiqlashtirish"}
+  ],
+  cyber: [
+    {word:"cryptography",translation:"kriptografiya"},{word:"zero-day",translation:"nol kunlik zaiflik"},{word:"intrusion",translation:"ruxsatsiz kirish"},{word:"privilege",translation:"imtiyoz"},{word:"exfiltration",translation:"ma’lumotni yashirin olib chiqish"},
+    {word:"mitigation",translation:"xavfni kamaytirish"},{word:"forensics",translation:"raqamli kriminalistika"},{word:"obfuscation",translation:"kodni chalkashtirish"},{word:"credential",translation:"hisob ma’lumoti"},{word:"sandboxing",translation:"izolyatsiyalangan muhitda ishga tushirish"},
+    {word:"persistence",translation:"tizimda yashirin saqlanib qolish"},{word:"escalation",translation:"huquqni oshirish"},{word:"exploitation",translation:"zaiflikdan foydalanish"},{word:"attestation",translation:"ishonchlilikni tasdiqlash"},{word:"segmentation",translation:"tarmoqqa ajratish"}
+  ],
+};
+const offlineDictionary: Record<string, { translation: string; definition: string; example: string }> = {
+  hello:{translation:"salom",definition:"A greeting used when meeting someone.",example:"Hello, how are you?"},
+  achieve:{translation:"erishmoq",definition:"To succeed in reaching a goal.",example:"You can achieve your goals with practice."},
+  improve:{translation:"yaxshilamoq",definition:"To make or become better.",example:"Daily practice helps you improve."},
+  although:{translation:"garchi",definition:"Used to introduce a contrast or unexpected fact.",example:"Although it was late, we continued."},
+  reliable:{translation:"ishonchli",definition:"Able to be trusted or depended on.",example:"This is a reliable source."},
+  opportunity:{translation:"imkoniyat",definition:"A situation that makes it possible to do something.",example:"This is a great opportunity."},
+  confident:{translation:"o‘ziga ishongan",definition:"Feeling sure about your abilities.",example:"She feels confident before the exam."},
+  environment:{translation:"atrof-muhit",definition:"The surroundings or conditions in which people live.",example:"We should protect the environment."},
+  experience:{translation:"tajriba",definition:"Knowledge or skill gained by doing something.",example:"Experience helps us learn."},
+  decision:{translation:"qaror",definition:"A choice made after thinking about something.",example:"It was a difficult decision."},
+  challenge:{translation:"qiyinchilik",definition:"A difficult task that tests someone's ability.",example:"Every challenge can teach us something."},
+  curious:{translation:"qiziquvchan",definition:"Eager to know or learn something.",example:"Curious people ask questions."},
+  discover:{translation:"kashf qilmoq",definition:"To find something for the first time.",example:"We discover new ideas every day."},
+  journey:{translation:"sayohat",definition:"An act of travelling from one place to another.",example:"Learning is a lifelong journey."},
+  patient:{translation:"sabrli",definition:"Able to wait calmly without becoming upset.",example:"Be patient with yourself."},
+  success:{translation:"muvaffaqiyat",definition:"The achievement of a desired result.",example:"Hard work can lead to success."},
+  apple:{translation:"olma",definition:"A round fruit with red, green, or yellow skin.",example:"I eat an apple every morning."},
+  book:{translation:"kitob",definition:"A set of written or printed pages bound together.",example:"This book is interesting."},
+  network:{translation:"tarmoq",definition:"A group of connected computers or people.",example:"The network is secure."},
+  security:{translation:"xavfsizlik",definition:"The state of being protected from danger or attack.",example:"Security matters online."},
+  authentication:{translation:"autentifikatsiya",definition:"The process of verifying a user's identity.",example:"Use multi-factor authentication."},
+  encryption:{translation:"shifrlash",definition:"The process of protecting information by converting it into code.",example:"Encryption protects private data."},
+  firewall:{translation:"tarmoqlararo ekran",definition:"A security system that controls incoming and outgoing network traffic.",example:"The firewall blocks suspicious traffic."},
+  phishing:{translation:"fishing hujumi",definition:"A scam that tricks people into revealing private information.",example:"Never click a suspicious phishing link."},
+  array:{translation:"massiv",definition:"A data structure that stores a collection of values.",example:"The array contains five numbers."},
+  function:{translation:"funksiya",definition:"A reusable block of code that performs a task.",example:"This function returns a result."},
+  computer:{translation:"kompyuter",definition:"An electronic device that processes and stores information.",example:"My computer is fast."},
+  "привет":{translation:"salom",definition:"A common informal Russian greeting.",example:"Привет, как дела?"},
+  "спасибо":{translation:"rahmat",definition:"A polite expression of gratitude.",example:"Спасибо за помощь."},
+  "пожалуйста":{translation:"iltimos; marhamat",definition:"A polite word used when making a request or responding to thanks.",example:"Пожалуйста, помогите мне."},
+  "сегодня":{translation:"bugun",definition:"On this day; at the present time.",example:"Сегодня хорошая погода."},
+  "работа":{translation:"ish",definition:"An activity involving mental or physical effort.",example:"У меня много работы."},
+  "дом":{translation:"uy",definition:"A building where people live.",example:"Я иду домой."},
+  "книга":{translation:"kitob",definition:"A written or printed work consisting of pages.",example:"Я читаю интересную книгу."},
+};
+
 
 export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel }: Props) {
   const [tab, setTab] = useState("home");
@@ -87,10 +147,15 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
 
   const meta = languageMeta[plan.trackId];
   const completedStages = activities.filter((item) => ["listening", "speaking", "writing", "game"].includes(item.activity_type) && (item.score ?? 0) >= 45).length;
-  const wordStage = completedStages % 3;
-  const wordOffset = wordStage * 5;
-  const words = useMemo(() => meta.sample.slice(wordOffset, wordOffset + 5), [meta.sample, wordOffset]);
-  const currentDoneCount = words.filter((word) => done.includes(word)).length;
+  const vocabularyCatalog = useMemo(() => [
+    ...meta.sample.map((word, index) => ({ word, translation: translations[plan.trackId][index], level: index < 5 ? 1 : index < 10 ? 2 : 3 })),
+    ...progressiveVocabulary[plan.trackId].map((item, index) => ({ ...item, level: index < 5 ? 4 : index < 10 ? 5 : 6 })),
+  ], [meta.sample, plan.trackId]);
+  const usedVocabulary = useMemo(() => new Set(activities.filter((item) => item.activity_type === "vocabulary").map((item) => String(item.item_key || "").split(":")[0].toLocaleLowerCase())), [activities]);
+  const nextVocabulary = vocabularyCatalog.filter((item) => !usedVocabulary.has(item.word.toLocaleLowerCase()) && !done.includes(item.word)).slice(0, 5);
+  const words = nextVocabulary.map((item) => item.word);
+  const currentDoneCount = words.filter((word) => done.includes(word) || usedVocabulary.has(word.toLocaleLowerCase())).length;
+  const currentVocabularyLevel = nextVocabulary[0]?.level || (vocabularyCatalog.length ? vocabularyCatalog[vocabularyCatalog.length - 1].level + 1 : 1);
   const date = plan.targetDate ? new Date(plan.targetDate + "T12:00:00").toLocaleDateString("uz-UZ") : "Belgilanmagan";
   const logActivity = async (activityType: string, itemKey: string, score?: number, details: Record<string, unknown> = {}, completed = false) => {
     try {
@@ -129,7 +194,15 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Lug‘atga ulanib bo‘lmadi.");
       setResult(data);
-    } catch (e) { setError(e instanceof Error ? e.message : "Lug‘atga ulanib bo‘lmadi."); }
+    } catch (e) {
+      const fallback = offlineDictionary[query.trim().toLowerCase()];
+      if (fallback) {
+        setResult({ word: query.trim(), phonetic: "", translation: fallback.translation, meanings: [{ partOfSpeech: "meaning", definition: fallback.definition, example: fallback.example }], audio: "", source: "offline" });
+        setError("");
+      } else {
+        setError("Lug‘at serveriga ulanib bo‘lmadi. Internetni tekshiring yoki hozircha boshqa so‘z kiriting.");
+      }
+    }
     finally { setLoading(false); }
   }
 
@@ -138,6 +211,9 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
+    const languageCode = lang.split("-")[0].toLowerCase();
+    const preferredVoice = window.speechSynthesis.getVoices().find((voice) => voice.lang.toLowerCase().startsWith(languageCode));
+    if (preferredVoice) utterance.voice = preferredVoice;
     utterance.rate = 0.88;
     utterance.onend = () => { setStatus("Tinglash yakunlandi."); if (practiceMode === "listening") setListeningHeard(true); };
     window.speechSynthesis.speak(utterance);
@@ -217,12 +293,12 @@ export default function LearningHub({ plan, assessment, onEdit, onAssess, onDuel
       <nav aria-label="Rivojlanish bo‘limlari" className="mt-5 hidden gap-1 overflow-x-auto rounded-2xl border border-white bg-white/85 p-1.5 shadow-sm sm:mt-7 sm:flex sm:gap-2 sm:p-2">{[["home","Umumiy",Target],["vocab","Lug‘at",BookOpen],["practice","Mashqlar",PenLine],["games","O‘yinlar",Swords],["stats","Natijalar",Trophy]].map(([id,label,Icon]:any)=><button key={id} onClick={()=>selectTab(id)} className={"flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold sm:min-h-11 sm:gap-2 sm:px-4 sm:text-sm "+(tab===id?"bg-[#087d70] text-white":"text-slate-500 hover:bg-emerald-50")}><Icon size={15}/>{label}</button>)}</nav>
 
       <div key={tab} className="learning-screen-transition" data-direction={tabDirection}>
-      {tab === "home" && <div className="mt-4 grid gap-4 lg:mt-6 lg:grid-cols-2">
-        <section className="rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:rounded-[28px] sm:p-7"><div className="relative mb-4 h-28 overflow-hidden rounded-2xl sm:h-36"><img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=85" alt="" className="h-full w-full object-cover"/><div className="absolute inset-0 bg-gradient-to-r from-emerald-950/75 to-transparent"/><span className="absolute bottom-4 left-4 text-lg font-black text-white sm:text-xl">Bugun o‘zingizga yangi imkoniyat oching</span></div><p className="text-[10px] font-black tracking-widest text-[#078777]">BUGUNGI REJA</p><h2 className="mt-1 text-xl font-black sm:text-2xl">Har kuni 5 ta yangi {plan.trackId === "russian" ? "so‘z" : "atama"}</h2><div className="mt-4 space-y-2">{words.map((word,i)=><button key={word} onClick={()=>toggleWord(word)} className="flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-slate-100 bg-[#fbfdfc] p-3 text-left"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{done.includes(word)?<CheckCircle2 size={19}/>:<BookOpen size={19}/>}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{word}</b><small className="text-xs text-slate-500">{translations[plan.trackId][wordOffset+i]}</small></span><small className="shrink-0 font-bold text-emerald-700">{done.includes(word)?"Yodlandi":"Belgilash"}</small></button>)}</div></section>
+      {tab === "home" && <div className="mt-4 space-y-4 lg:mt-6"><LearningPathProgress activities={activities} trackId={plan.trackId} /><div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:rounded-[28px] sm:p-7"><div className="relative mb-4 h-28 overflow-hidden rounded-2xl sm:h-36"><img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=85" alt="" className="h-full w-full object-cover"/><div className="absolute inset-0 bg-gradient-to-r from-emerald-950/75 to-transparent"/><span className="absolute bottom-4 left-4 text-lg font-black text-white sm:text-xl">Bugun o‘zingizga yangi imkoniyat oching</span></div><p className="text-[10px] font-black tracking-widest text-[#078777]">BUGUNGI REJA</p><h2 className="mt-1 text-xl font-black sm:text-2xl">Har kuni 5 ta yangi {plan.trackId === "russian" ? "so‘z" : "atama"}</h2><p className="mt-1 text-xs font-semibold text-slate-500">Bosqich {currentVocabularyLevel} · Avval o‘rganilgan so‘zlar qayta berilmaydi</p><div className="mt-4 space-y-2">{words.length ? words.map((word,i)=><button key={word} onClick={()=>toggleWord(word)} className="flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-slate-100 bg-[#fbfdfc] p-3 text-left"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700">{done.includes(word)?<CheckCircle2 size={19}/>:<BookOpen size={19}/>}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{word}</b><small className="text-xs text-slate-500">{vocabularyCatalog.find(item=>item.word===word)?.translation || "Tarjima keyinroq qo‘shiladi"}</small></span><small className="shrink-0 font-bold text-emerald-700">{done.includes(word)?"Yodlandi":"Belgilash"}</small></button>) : <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">Ushbu lug‘atdagi so‘zlar tugadi. Keyingi so‘zlar to‘plami tayyorlanmoqda.</p>}</div></section>
         <section className="rounded-[24px] border border-white bg-gradient-to-br from-[#f1f7ff] to-[#effaf5] p-5 sm:rounded-[28px] sm:p-7"><h2 className="text-xl font-black sm:text-2xl">Keyingi qadam</h2><p className="mt-2 text-sm leading-6 text-slate-500">Tanlagan ko‘nikmangiz bo‘yicha mashq qiling, bilimni mustahkamlang va natijangizni kuzating.</p><div className="mt-5 space-y-2">{[["Lug‘atni ochish",BookOpen,"vocab"],["Mashqlarni boshlash",Mic,"practice"],["O‘yinlarni ko‘rish",Swords,"games"]].map(([label,Icon,id]:any)=><button key={id} onClick={()=>setTab(id)} className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-white bg-white px-4 text-sm font-bold text-slate-700"><Icon size={17} className="text-emerald-700"/>{label}<ChevronRight className="ml-auto"/></button>)}</div></section>
-      </div>}
+      </div></div>}
 
-      {tab === "vocab" && <section className="mt-4 rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:mt-6 sm:rounded-[28px] sm:p-8"><div className="flex items-center gap-3"><BookOpen className="shrink-0 text-sky-600" size={26}/><div className="min-w-0"><h2 className="text-xl font-black sm:text-2xl">{meta.label} lug‘ati</h2><p className="text-xs text-slate-500 sm:text-sm">So‘zni qidiring, ma’nosini ko‘ring va talaffuzini tinglang.</p></div></div><form onSubmit={search} className="mt-5 flex flex-col gap-2 sm:flex-row"><div className="relative min-w-0 flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={plan.trackId === "russian" ? "Ruscha so‘zni kiriting..." : "Inglizcha so‘zni kiriting..."} className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f9fbfa] pl-11 pr-4 text-base outline-none focus:border-emerald-600 sm:h-14 sm:text-sm"/></div><button disabled={loading||!query.trim()} className="min-h-12 rounded-2xl bg-[#087d70] px-5 text-sm font-bold text-white disabled:opacity-50">{loading?"Qidirilmoqda…":"Qidirish"}</button></form>{error&&<p role="alert" className="mt-4 text-sm text-rose-600">{error}</p>}{result&&<article className="mt-5 rounded-3xl border border-emerald-100 bg-[#f2fbf7] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-2xl font-black sm:text-3xl">{result.word}</h3><p className="text-sm text-slate-500">{result.phonetic}</p>{result.translation&&<p className="mt-1 text-sm font-bold text-emerald-800">Tarjimasi: {result.translation}</p>}</div><button onClick={()=>result.audio?new Audio(result.audio.startsWith("//")?"https:"+result.audio:result.audio).play().catch(()=>speak(result.word)):speak(result.word)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#087d70] px-4 text-sm font-bold text-white"><Volume2 size={18}/> Aytilishi</button></div><ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-700">{result.meanings.map((m:any,i:number)=><li key={i}><span className="font-semibold text-slate-500">{m.partOfSpeech}</span> {m.definition}{m.example&&<p className="mt-1 text-xs italic text-slate-500">“{m.example}”</p>}</li>)}</ol><button onClick={()=>void logActivity("vocabulary",result.word,100,{lookedUp:true})} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 text-sm font-bold text-emerald-800"><CheckCircle2 size={16}/> O‘rgandim</button></article>}<p className="mt-4 text-xs text-slate-400">Lug‘at server orqali olinadi. Ovozli o‘qish brauzer imkoniyatiga bog‘liq.</p></section>}
+      {tab === "vocab" && <section className="mt-4 rounded-[24px] border border-white bg-white/95 p-4 shadow-sm sm:mt-6 sm:rounded-[28px] sm:p-8"><div className="flex items-center gap-3"><BookOpen className="shrink-0 text-sky-600" size={26}/><div className="min-w-0"><h2 className="text-xl font-black sm:text-2xl">{meta.label} lug‘ati</h2><p className="text-xs text-slate-500 sm:text-sm">So‘zni qidiring, ma’nosini ko‘ring va talaffuzini tinglang.</p></div></div><form onSubmit={search} className="mt-5 flex flex-col gap-2 sm:flex-row"><div className="relative min-w-0 flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={plan.trackId === "russian" ? "Ruscha so‘zni kiriting..." : "Inglizcha so‘zni kiriting..."} className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f9fbfa] pl-11 pr-4 text-base outline-none focus:border-emerald-600 sm:h-14 sm:text-sm"/></div><button disabled={loading||!query.trim()} className="min-h-12 rounded-2xl bg-[#087d70] px-5 text-sm font-bold text-white disabled:opacity-50">{loading?"Qidirilmoqda…":"Qidirish"}</button></form>{error&&<p role="alert" className="mt-4 text-sm text-rose-600">{error}</p>}{result&&<article className="mt-5 rounded-3xl border border-emerald-100 bg-[#f2fbf7] p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-2xl font-black sm:text-3xl">{result.word}</h3><p className="text-sm text-slate-500">{result.phonetic}</p>{result.translation&&<p className="mt-1 text-sm font-bold text-emerald-800">Tarjimasi: {result.translation}</p>}</div><button onClick={()=>result.audio?new Audio(result.audio.startsWith("//")?"https:"+result.audio:result.audio).play().catch(()=>speak(result.word)):speak(result.word)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#087d70] px-4 text-sm font-bold text-white"><Volume2 size={18}/> Aytilishi</button></div><ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-slate-700">{result.meanings.map((m:any,i:number)=><li key={i}><span className="font-semibold text-slate-500">{m.partOfSpeech}</span> {m.definition}</li>)}</ol>{result.example&&<div className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-4"><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Namunaviy gap</p><p className="mt-2 text-sm font-semibold text-slate-800">“{result.example}”</p><p className="mt-2 text-sm text-emerald-800">Tarjimasi: {result.exampleTranslation || "Tarjima hozircha topilmadi."}</p><button type="button" onClick={()=>speak(result.example,meta.speech)} className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-slate-600"><Volume2 size={14}/> Gapni tinglash</button></div>}<button onClick={()=>void logActivity("vocabulary",result.word,100,{lookedUp:true})} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 text-sm font-bold text-emerald-800"><CheckCircle2 size={16}/> O‘rgandim</button></article>}<p className="mt-4 text-xs text-slate-400">Lug‘at server orqali olinadi. Ovozli o‘qish brauzer imkoniyatiga bog‘liq.</p></section>}
 
       {tab === "practice" && !practiceMode && <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 xl:grid-cols-3">{practiceCards.map(({id,icon:Icon,title,desc})=><button key={id} onClick={()=>{setPracticeMode(id);setStatus("");setSpoken("");setWritingAnswer("");setWritingSaved(false);setListeningDone(false);setListeningHeard(false)}} className="min-h-[190px] rounded-[24px] border border-white bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:rounded-[26px] sm:p-6"><div className="relative -mx-5 -mt-5 mb-4 h-28 overflow-hidden rounded-t-[24px] sm:-mx-6 sm:-mt-6 sm:h-36 sm:rounded-t-[26px]"><img src={id === "listening" ? "https://images.unsplash.com/photo-1507838153414-b4b713384a76?auto=format&fit=crop&w=900&q=85" : id === "speaking" ? "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85" : "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=85"} alt="" className="h-full w-full object-cover"/><span className="absolute inset-0 bg-gradient-to-t from-slate-900/55 to-transparent"/><span className="absolute bottom-3 left-4 grid h-10 w-10 place-items-center rounded-xl bg-white/90 text-emerald-700"><Icon size={23}/></span></div><b className="block text-lg">{title}</b><p className="mt-2 text-sm leading-6 text-slate-500">{desc}</p><span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-emerald-700">Mashqni boshlash <ChevronRight size={15}/></span></button>)}<button onClick={onAssess} className="min-h-[190px] rounded-[24px] border border-white bg-gradient-to-br from-emerald-50 to-sky-50 p-5 text-left sm:rounded-[26px] sm:p-6"><Target size={25} className="text-emerald-700"/><b className="mt-4 block text-lg">Bilim diagnostikasi</b><p className="mt-2 text-sm leading-6 text-slate-500">Bilimingizni tekshiring va kuchli hamda rivojlantirish kerak bo‘lgan mavzularni aniqlang.</p><span className="mt-4 inline-flex items-center gap-2 text-xs font-black text-emerald-700">Diagnostikani boshlash <ChevronRight size={15}/></span></button></div>}
 
