@@ -17,7 +17,11 @@ export async function GET() {
     console.error("[ai-tutor/context GET]", profileError?.message || messagesError?.message);
     return NextResponse.json({ error: "AI Ustoz xotira jadvallari tayyor emas. Supabase migratsiyasini bajaring." }, { status: 503 });
   }
-  return NextResponse.json({ profile, messages: (rows || []).reverse() });
+  const selectedTrack = profile?.selected_track || "english";
+  const { data: learningPlan } = await supabase.from("learning_plans")
+    .select("skill_name,purpose,current_level,target_level,daily_minutes,learning_style,interests")
+    .eq("user_id", user.id).eq("track_id", selectedTrack).maybeSingle();
+  return NextResponse.json({ profile, learningPlan: learningPlan || null, messages: (rows || []).reverse() });
 }
 
 export async function POST(request: Request) {
