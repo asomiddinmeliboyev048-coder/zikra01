@@ -124,6 +124,15 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
     setTranscript("");
     setCaption("Mikrofon va Gemini Live ulanmoqda…");
     try {
+      let savedMemory = "";
+      try {
+        const contextResponse = await fetch("/api/ai-tutor/context");
+        if (contextResponse.ok) {
+          const contextPayload = await contextResponse.json();
+          const profile = contextPayload.profile;
+          if (profile) savedMemory = " Foydalanuvchining maqsadi: " + (profile.learning_goal || "ko‘rsatilmagan") + ". Oxirgi mavzusi: " + (profile.focus_topic || "hali belgilanmagan") + ". Avvalgi o‘quv xulosasi: " + (profile.memory_summary || "hali yo‘q") + ". Shu kontekstdan davom et, lekin hozirgi suhbatda aytilgan yangi ma’lumotni ustun qo‘y.";
+        }
+      } catch { /* Live session can still start if memory is temporarily unavailable. */ }
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Mikrofon uchun HTTPS va brauzer ruxsati kerak.");
       const mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
       streamRef.current = mic;
@@ -190,10 +199,12 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
             setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
+            void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "user", content: inputText }) });
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
             setTranscript((current) => current + (current ? "\n" : "") + "Ziyo: " + outputText);
+            void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "assistant", content: outputText }) });
             setCaption("Ziyo gapiryapti…");
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); }
