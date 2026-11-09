@@ -40,7 +40,7 @@ export async function GET() {
     profile: data || {
       selected_track: "english",
       level: "Boshlang‘ich",
-      avatar_id: "teacher",
+      avatar_id: "student",
       memory_summary: "",
       conversation_history: [],
       updated_at: null,
@@ -90,7 +90,7 @@ export async function PATCH(request: Request) {
     user_id: user.id,
     selected_track: (update.selected_track as string) || existing?.selected_track || "english",
     level: (update.level as string) || existing?.level || "Boshlang‘ich",
-    avatar_id: (update.avatar_id as string) || existing?.avatar_id || "teacher",
+    avatar_id: (update.avatar_id as string) || existing?.avatar_id || "student",
     memory_summary: (update.memory_summary as string) ?? existing?.memory_summary ?? "",
     conversation_history: (update.conversation_history as HistoryItem[]) ?? existing?.conversation_history ?? [],
     updated_at: update.updated_at,
