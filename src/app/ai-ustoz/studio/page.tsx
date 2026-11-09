@@ -49,7 +49,7 @@ export default function AiTutorStudioPage() {
         if (!response.ok) throw new Error(payload.error || "O‘quv rejasini yuklab bo‘lmadi.");
         const plan = payload.learningPlan;
         const profile = payload.profile;
-        const selected = (plan?.track_id || profile?.selected_track || "english") as Track;
+        const selected = (payload.selectedTrack || plan?.track_id || profile?.selected_track || "english") as Track;
         if (!active) return;
         if (selected in trackNames) setTrack(selected);
         setSkillLabel(plan?.skill_name || trackNames[selected] || "Tanlangan ko‘nikma");
