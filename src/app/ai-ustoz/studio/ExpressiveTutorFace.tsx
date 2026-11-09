@@ -9,7 +9,7 @@ export default function ExpressiveTutorFace({ speaking, listening, voiceLevel, m
   const faceMood = speaking ? "speaking" : listening ? "listening" : mood;
   const style = { "--mouth-open": `${Math.max(0.08, Math.min(1, voiceLevel))}` } as CSSProperties;
   return (
-    <div className={`expressive-tutor expressive-${faceMood}`} style={style} role="img" aria-label={speaking ? "Ziyo gapiryapti" : listening ? "Ziyo tinglayapti" : "Ziyo suhbatga tayyor"}>
+    <div className={`expressive-tutor expressive-${faceMood} expressive-${mood}`} style={style} role="img" aria-label={speaking ? "Ziyo gapiryapti" : listening ? "Ziyo tinglayapti" : "Ziyo suhbatga tayyor"}>
       <div className="expressive-orbit expressive-orbit-a"/>
       <div className="expressive-orbit expressive-orbit-b"/>
       <div className="expressive-shadow"/>
