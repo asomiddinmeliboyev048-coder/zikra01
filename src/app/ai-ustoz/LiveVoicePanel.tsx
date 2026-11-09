@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Phone, PhoneOff, Radio, Volume2 } from "lucide-react";
 
 type Track = "english" | "russian" | "coding" | "cyber";
-type Props = { track: Track; level: string; avatarId?: "teacher" | "student"; onAvatarSpeakingChange?: (speaking: boolean) => void };
+type Props = { track: Track; level: string; avatarId?: "teacher" | "student"; onAvatarSpeakingChange?: (speaking: boolean) => void; onListeningChange?: (listening: boolean) => void; onVoiceLevelChange?: (level: number) => void };
 type LiveMessage = {
   setupComplete?: Record<string, unknown>;
   inputTranscription?: { text?: string };
@@ -43,10 +43,10 @@ function toBase64(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-export default function LiveVoicePanel({ track, level, avatarId = "teacher", onAvatarSpeakingChange }: Props) {
+export default function LiveVoicePanel({ track, level, avatarId = "student", onAvatarSpeakingChange, onListeningChange, onVoiceLevelChange }: Props) {
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [muted, setMuted] = useState(false);
-  const tutorName = avatarId === "student" ? "Ziyra" : "Ziyo";
+  const tutorName = "Ziyra";
   const [caption, setCaption] = useState(avatarId === "student" ? "Ziyra bilan jonli gaplashishni boshlang." : "Ziyo bilan jonli gaplashishni boshlang.");
   const [error, setError] = useState("");
   const [transcript, setTranscript] = useState("");
@@ -140,7 +140,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   }
 
   async function startSession() {
-    if (status === "connecting" || status === "live") return;
+    if (status === "connecting" || status === "live") return;\n    onListeningChange?.(false);\n    onVoiceLevelChange?.(0);
     setStatus("connecting");
     setError("");
     setTranscript("");
@@ -197,7 +197,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
       socket.onmessage = async (event) => {
         try {
           const message = JSON.parse(typeof event.data === "string" ? event.data : await event.data.text()) as LiveMessage;
-          if (message.error?.message) {
+          if (message.error?.message) {\n            onListeningChange?.(false);
             console.error("[zikra-gemini-live-server-error]", message.error);
             setStatus("error");
             setError("Gemini Live: " + message.error.message);
@@ -230,19 +230,19 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           if (inputText) {
             setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
             void persistTurn("user", inputText);
-            setCaption("Sizni tinglayapman…");
+            setCaption("Sizni tinglayapman…");\n            onListeningChange?.(true);
           }
           if (outputText) {
             setTranscript((current) => current + (current ? "\n" : "") + tutorName + ": " + outputText);
             void persistTurn("assistant", outputText);
-            setCaption(tutorName + " gapiryapti…");
+            setCaption(tutorName + " gapiryapti…");\n            onListeningChange?.(false);
           }
-          if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); }
+          if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onListeningChange?.(true); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
-            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); playPcm(part.inlineData.data); }
+            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
             if (part.text) setCaption(tutorName + ": " + part.text);
           }
-          if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); setCaption("Javob tugadi. Davom etavering!"); }
+          if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onListeningChange?.(true); setCaption("Javob tugadi. Davom etavering!"); }
         } catch (cause) {
           console.error("[zikra-gemini-live-message]", cause);
         }
@@ -286,7 +286,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-sm font-black"><Radio size={16} className="text-cyan-200"/> Jonli suhbat <span className="rounded-full border border-cyan-200/20 bg-cyan-200/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-100">Gemini Live</span></div>
-          <p className="mt-1 text-[11px] text-slate-400">Matn yozish shart emas — Ziyo bilan tabiiy gaplashing.</p>
+          <p className="mt-1 text-[11px] text-slate-400">Matn yozish shart emas — Ziyra bilan tabiiy gaplashing.</p>
         </div>
         <span className="flex items-center gap-2 text-[10px] font-bold text-slate-300"><i className={`h-2 w-2 rounded-full ${status === "live" ? "animate-pulse bg-emerald-300" : status === "error" ? "bg-rose-300" : "bg-slate-500"}`}/>{status === "live" ? "Jonli ulandi" : status === "connecting" ? "Ulanmoqda…" : status === "error" ? "Aloqa xatosi" : "Ulanishga tayyor"}</span>
       </div>
