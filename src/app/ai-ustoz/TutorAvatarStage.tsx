@@ -32,6 +32,15 @@ export default function TutorAvatarStage({ speaking }: { speaking: boolean }) {
     try {
       const saved = window.localStorage.getItem(AVATAR_STORAGE_KEY);
       if (saved === "teacher" || saved === "student") setAvatarId(saved);
+      fetch("/api/ai-tutor/context").then(async (response) => {
+        if (!response.ok) return;
+        const payload = await response.json();
+        const preferred = payload.profile?.selected_avatar;
+        if (preferred === "teacher" || preferred === "student") {
+          setAvatarId(preferred);
+          window.localStorage.setItem(AVATAR_STORAGE_KEY, preferred);
+        }
+      }).catch(() => undefined);
     } catch { /* storage may be unavailable in private browsing */ }
   }, []);
 
