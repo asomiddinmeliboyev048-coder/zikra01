@@ -87,7 +87,7 @@ export default function AiTutorStudioPage() {
     viewerRef.current.animationName = selected;
     viewerRef.current.currentTime = 0;
     viewerRef.current.play?.();
-  }, [preset, loaded, avatarId]);
+  }, [preset, loaded, avatarId, avatarSpeaking]);
 
   function changeAvatar(next: AvatarId) {
     setLoaded(false);
