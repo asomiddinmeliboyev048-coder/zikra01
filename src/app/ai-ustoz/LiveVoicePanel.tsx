@@ -57,7 +57,6 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
   const [muted, setMuted] = useState(false);
   const [caption, setCaption] = useState("Ziyo bilan jonli gaplashishni boshlang.");
   const [error, setError] = useState("");
-  const [transcript, setTranscript] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
@@ -221,16 +220,14 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
           if (inputText) {
             onListeningChange?.(true);
             onMoodChange?.(inferTutorMood(inputText));
-            setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "user", content: inputText }) });
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
             const detectedMood = inferTutorMood(outputText);
             onMoodChange?.(detectedMood === "idle" ? "speaking" : detectedMood);
-            setTranscript((current) => current + (current ? "\n" : "") + "Ziyo: " + outputText);
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "assistant", content: outputText }) });
-            setCaption("Ziyo gapiryapti…");
+            setCaption("Ziyra gapiryapti…");
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
