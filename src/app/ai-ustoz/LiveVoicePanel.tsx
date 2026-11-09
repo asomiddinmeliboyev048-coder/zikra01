@@ -46,7 +46,8 @@ function toBase64(bytes: Uint8Array) {
 export default function LiveVoicePanel({ track, level, avatarId = "teacher", onAvatarSpeakingChange }: Props) {
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [muted, setMuted] = useState(false);
-  const [caption, setCaption] = useState("Ziyo bilan jonli gaplashishni boshlang.");
+  const tutorName = avatarId === "student" ? "Ziyra" : "Ziyo";
+  const [caption, setCaption] = useState(avatarId === "student" ? "Ziyra bilan jonli gaplashishni boshlang." : "Ziyo bilan jonli gaplashishni boshlang.");
   const [error, setError] = useState("");
   const [transcript, setTranscript] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
@@ -220,7 +221,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             processor.connect(silentGain);
             silentGain.connect(context.destination);
             setStatus("live");
-            setCaption("Ulandik! Ziyo siz bilan salomlashmoqda…");
+            setCaption("Ulandik! " + tutorName + " siz bilan salomlashmoqda…");
             socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni hozir boshlang. O‘zbek tilida qisqa, samimiy salomlashing va tanlangan ko‘nikma bo‘yicha darajamga mos bitta sodda savol bering. Tabiiy, hazilkash ohangda gapiring." }] }], turnComplete: true } }));
           }
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
@@ -233,14 +234,14 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           }
           if (outputText) {
             setTranscript((current) => current + (current ? "
-" : "") + "Ziyo: " + outputText);
+" : "") + tutorName + ": " + outputText);
             void persistTurn("assistant", outputText);
             setCaption("Ziyo gapiryapti…");
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
             if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); playPcm(part.inlineData.data); }
-            if (part.text) setCaption("Ziyo: " + part.text);
+            if (part.text) setCaption(tutorName + ": " + part.text);
           }
           if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); setCaption("Javob tugadi. Davom etavering!"); }
         } catch (cause) {
