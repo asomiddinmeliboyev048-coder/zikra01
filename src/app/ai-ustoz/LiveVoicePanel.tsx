@@ -74,6 +74,10 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
 
   function closeSession() {
     readyRef.current = false;
+    onAvatarSpeakingChange?.(false);
+    onListeningChange?.(false);
+    onVoiceLevelChange?.(0);
+    onMoodChange?.("idle");
     socketRef.current?.close();
     socketRef.current = null;
     processorRef.current?.disconnect();
