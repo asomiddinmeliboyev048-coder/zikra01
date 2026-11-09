@@ -168,3 +168,23 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 @media(prefers-reduced-motion:reduce){
  .expressive-orbit,.expressive-head,.expressive-eyes i,.expressive-speaking .expressive-mouth{animation:none!important}
 }
+
+/* Expressive speech: the face keeps articulating between audio packets instead of freezing. */
+.expressive-speaking .expressive-mouth{animation:expressive-mouth-talk .16s ease-in-out infinite alternate;transform-origin:center 35%}
+.expressive-speaking .expressive-head{animation:expressive-speech-bob .72s ease-in-out infinite alternate,expressive-float 4.2s ease-in-out infinite}
+.expressive-speaking .expressive-eyes i{animation:expressive-speech-eyes 2.8s ease-in-out infinite}
+.expressive-speaking .expressive-brows i{animation:expressive-speech-brows 1.4s ease-in-out infinite alternate}
+@keyframes expressive-mouth-talk{0%{transform:scaleY(.16) scaleX(.9)}35%{transform:scaleY(.82) scaleX(1.08)}68%{transform:scaleY(.34) scaleX(.96)}100%{transform:scaleY(1) scaleX(1.04)}}
+@keyframes expressive-speech-bob{0%{translate:0 0}100%{translate:0 -5px}}
+@keyframes expressive-speech-eyes{0%,35%,100%{transform:scaleY(1)}40%,44%{transform:scaleY(.12)}}
+@keyframes expressive-speech-brows{0%{translate:0 0}100%{translate:0 -3px}}
+.expressive-thinking .expressive-head{animation:expressive-think-tilt 1.8s ease-in-out 1}
+.expressive-amused .expressive-head{animation:expressive-laugh  .52s ease-in-out 3}
+.expressive-surprised .expressive-head{animation:expressive-gasp .5s ease-out 1}
+.expressive-playful-angry .expressive-head{animation:expressive-sassy .32s ease-in-out 3}
+@keyframes expressive-think-tilt{0%,100%{transform:rotate(0)}35%,70%{transform:rotate(3deg) translateY(-4px)}}
+@keyframes expressive-laugh{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-9px) rotate(-2deg)}65%{transform:translateY(-3px) rotate(2deg)}}
+@keyframes expressive-gasp{0%,100%{transform:scale(1)}35%{transform:scale(1.055) translateY(-8px)}}
+@keyframes expressive-sassy{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-5px) rotate(-1deg)}75%{transform:translateX(5px) rotate(1deg)}}
+.expressive-listening .expressive-head{animation:expressive-listen 3.2s ease-in-out infinite}
+@keyframes expressive-listen{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-1deg)}}
