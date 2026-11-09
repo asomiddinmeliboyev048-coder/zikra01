@@ -34,7 +34,16 @@ function floatToPcm16(input: Float32Array, inputRate: number, outputRate = 16000
   return pcm;
 }
 
-function inferTutorMood(text: string): "idle" | "thinking" | "amused" | "surprised" | "playful-angry" {\n  const value = text.toLowerCase();\n  if (/(😂|🤣|haha|hazil|kulgili|kulib|kulma)/i.test(value)) return "amused";\n  if (/(jahlim|jahl|qattiqqo‘l|ustimdan kul|xafa bo‘ldim|ranjidim)/i.test(value)) return "playful-angry";\n  if (/(voy|rostdanmi|hayrat|nimaaa|ajab|seriously|really\\?)/i.test(value)) return "surprised";\n  if (/(hmm|o‘ylab ko‘ray|bir daqiqa|qiziq savol|let me think)/i.test(value)) return "thinking";\n  return "idle";\n}\n\nfunction toBase64(bytes: Uint8Array) {
+function inferTutorMood(text: string): "idle" | "thinking" | "amused" | "surprised" | "playful-angry" {
+  const value = text.toLowerCase();
+  if (/(😂|🤣|haha|hazil|kulgili|kulib|kulma)/i.test(value)) return "amused";
+  if (/(jahlim|jahl|qattiqqo‘l|ustimdan kul|xafa bo‘ldim|ranjidim)/i.test(value)) return "playful-angry";
+  if (/(voy|rostdanmi|hayrat|nimaaa|ajab|seriously|really\?)/i.test(value)) return "surprised";
+  if (/(hmm|o‘ylab ko‘ray|bir daqiqa|qiziq savol|let me think)/i.test(value)) return "thinking";
+  return "idle";
+}
+
+function toBase64(bytes: Uint8Array) {
   let binary = "";
   const chunkSize = 0x8000;
   for (let i = 0; i < bytes.length; i += chunkSize) {
@@ -106,7 +115,12 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
     }
     const buffer = context.createBuffer(1, samples.length, 24000);
     const channel = buffer.getChannelData(0);
-    for (let i = 0; i < samples.length; i++) channel[i] = samples[i] / 32768;
+    let energy = 0;
+    for (let i = 0; i < samples.length; i++) {
+      channel[i] = samples[i] / 32768;
+      energy += channel[i] * channel[i];
+    }
+    onVoiceLevelChange?.(Math.min(1, Math.sqrt(energy / Math.max(1, samples.length)) * 5.5));
     const source = context.createBufferSource();
     source.buffer = buffer;
     source.connect(context.destination);
@@ -197,17 +211,23 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
             processor.connect(silentGain);
             silentGain.connect(context.destination);
             setStatus("live");
-            setCaption("Ulandik! Ziyo siz bilan salomlashmoqda…");
-            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni hozir boshlang. O‘zbek tilida qisqa, samimiy salomlashing va tanlangan ko‘nikma bo‘yicha darajamga mos bitta sodda savol bering. Tabiiy, hazilkash ohangda gapiring." }] }], turnComplete: true } }));
+            onListeningChange?.(true);
+            onMoodChange?.("idle");
+            setCaption("Ziyra sizni tinglayapti…");
+            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni boshlang. Foydalanuvchining shaxsiy yo‘l xaritasi va oldingi natijalarini hisobga olib, takrorlanmagan tabiiy kirish bilan gap boshlang. Tanlangan ko‘nikmaga oid darajaga mos bitta savol yoki kichik mashq bering. Har doim bir xil salomlashuvni ishlatmang." }] }], turnComplete: true } }));
           }
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
+            onListeningChange?.(true);
+            onMoodChange?.(inferTutorMood(inputText));
             setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "user", content: inputText }) });
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
+            const detectedMood = inferTutorMood(outputText);
+            onMoodChange?.(detectedMood === "idle" ? "speaking" : detectedMood);
             setTranscript((current) => current + (current ? "\n" : "") + "Ziyo: " + outputText);
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "assistant", content: outputText }) });
             setCaption("Ziyo gapiryapti…");
@@ -267,7 +287,6 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
         <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/30 bg-gradient-to-br from-slate-100 to-slate-500 text-slate-900 ${status === "live" ? "animate-pulse" : ""}`}><Volume2 size={21}/></div>
         <p aria-live="polite" className="text-xs leading-5 text-slate-200">{caption}</p>
       </div>
-      {transcript && <pre className="mt-3 max-h-32 overflow-y-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-black/15 p-3 text-[10px] leading-5 text-slate-300">{transcript}</pre>}
       {error && <p role="alert" className="mt-3 rounded-xl border border-rose-300/20 bg-rose-300/10 px-3 py-2 text-[11px] text-rose-200">{error}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
         {status === "live" ? <>
