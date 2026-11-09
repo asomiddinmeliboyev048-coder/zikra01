@@ -140,7 +140,7 @@ export default function AiTutorStudioPage() {
   }
 
   function toggleFullscreen() {
-    const stage = document.querySelector(".zikra-studio-stage");
+    const stage = document.querySelector(".zikra-studio");
     if (!stage) return;
     if (document.fullscreenElement) void document.exitFullscreen();
     else void stage.requestFullscreen?.();
