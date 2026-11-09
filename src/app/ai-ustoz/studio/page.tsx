@@ -7,7 +7,7 @@ import LiveVoicePanel from "../LiveVoicePanel";
 import ExpressiveTutorFace from "./ExpressiveTutorFace";
 import "./studio.css";
 
-type Track = "english" | "russian" | "coding" | "cyber";
+type Track = "english" | "russian" | "uzbek" | "coding" | "cyber";
 type AvatarId = "teacher" | "student";
 type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry";
 type ViewerElement = HTMLElement & {
@@ -21,6 +21,7 @@ type ViewerElement = HTMLElement & {
 const trackNames: Record<Track, string> = {
   english: "Ingliz tili",
   russian: "Rus tili",
+  uzbek: "O‘zbek tili",
   coding: "Dasturlash",
   cyber: "Kiberxavfsizlik",
 };
