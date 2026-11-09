@@ -43,6 +43,15 @@ export default function AiTutorStudioPage() {
     try {
       const saved = window.localStorage.getItem("zikra-ai-ustoz-avatar");
       if (saved === "teacher" || saved === "student") setAvatarId(saved);
+      fetch("/api/ai-tutor/context").then(async (response) => {
+        if (!response.ok) return;
+        const payload = await response.json();
+        const preferred = payload.profile?.selected_avatar;
+        if (preferred === "teacher" || preferred === "student") {
+          setAvatarId(preferred);
+          window.localStorage.setItem("zikra-ai-ustoz-avatar", preferred);
+        }
+      }).catch(() => undefined);
     } catch { /* storage may be unavailable */ }
   }, []);
 
@@ -90,6 +99,11 @@ export default function AiTutorStudioPage() {
     setError("");
     setAnimations([]);
     setAvatarId(next);
+    try { window.localStorage.setItem("zikra-ai-ustoz-avatar", next); } catch { /* storage may be unavailable */ }
+    void fetch("/api/ai-tutor/context", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatar: next }),
+    }).catch(() => undefined);
     setPreset("idle");
   }
 
@@ -100,10 +114,10 @@ export default function AiTutorStudioPage() {
   }
 
   function toggleFullscreen() {
-    const stage = document.querySelector(".zikra-studio-stage");
-    if (!stage) return;
+    const experience = document.querySelector(".zikra-studio");
+    if (!experience) return;
     if (document.fullscreenElement) void document.exitFullscreen();
-    else void stage.requestFullscreen?.();
+    else void experience.requestFullscreen?.();
   }
 
   return (
