@@ -130,7 +130,13 @@ Xatolarni muloyim tuzat: avval nimasi yaxshi chiqqanini ayt, keyin to‘g‘ri v
       );
     }
 
-    const newHistory = [\n      ...(Array.isArray(savedProfile?.conversation_history) ? savedProfile.conversation_history : []),\n      ...conversation.map((item) => ({ role: item.role === "model" ? "assistant" : "user", content: item.parts.map((part) => part.text).join("") })),\n      { role: "assistant", content: reply },\n    ].slice(-24);\n    const { error: saveError } = await supabase.from("ai_tutor_profiles").upsert({\n      user_id: user.id,\n      selected_track: track,\n      level,\n      avatar_id: savedProfile?.avatar_id || "teacher",\n      memory_summary: memoryContext,\n      conversation_history: newHistory,\n      updated_at: new Date().toISOString(),\n    }, { onConflict: "user_id" });\n    if (saveError) console.error("[zikra-ai-tutor-chat-memory-save]", saveError.message);\n\n    return NextResponse.json({ reply, provider: "gemini", model });
+    const lastUserTurn = [...conversation].reverse().find((item) => item.role === "user");
+    const newHistory = [
+      ...(Array.isArray(savedProfile?.conversation_history) ? savedProfile.conversation_history : []),
+      ...(lastUserTurn ? [{ role: "user", content: lastUserTurn.parts.map((part) => part.text).join("") }] : []),
+      { role: "assistant", content: reply },
+    ].slice(-24);
+    const { error: saveError } = await supabase.from("ai_tutor_profiles").upsert({\n      user_id: user.id,\n      selected_track: track,\n      level,\n      avatar_id: savedProfile?.avatar_id || "teacher",\n      memory_summary: memoryContext,\n      conversation_history: newHistory,\n      updated_at: new Date().toISOString(),\n    }, { onConflict: "user_id" });\n    if (saveError) console.error("[zikra-ai-tutor-chat-memory-save]", saveError.message);\n\n    return NextResponse.json({ reply, provider: "gemini", model });
   } catch (error) {
     console.error("[zikra-gemini-chat]", error);
     return NextResponse.json(
