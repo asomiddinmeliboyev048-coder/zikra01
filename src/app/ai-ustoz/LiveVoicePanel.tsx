@@ -139,7 +139,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
       const context = new AudioContext();
       contextRef.current = context;
       await context.resume();
-      const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?access_token=" + encodeURIComponent(tokenPayload.token));
+      const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tokenPayload.token));
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -207,15 +207,17 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
         }
       };
 
-      socket.onerror = () => {
+      socket.onerror = (event) => {
+        console.error("[zikra-gemini-live-websocket]", event);
         setStatus("error");
-        setError("Gemini Live bilan aloqa o‘rnatilmadi. API kalit, model ruxsati va internetni tekshiring.");
+        setError("Gemini Live WebSocket ulanishida xatolik. Token yoki Live API endpointini tekshiring.");
       };
       socket.onclose = (event) => {
         readyRef.current = false;
         if (event.code !== 1000) {
+          console.error("[zikra-gemini-live-close]", { code: event.code, reason: event.reason, wasClean: event.wasClean });
           setStatus("error");
-          setError("Jonli aloqa uzildi. Qayta ulanishga urinib ko‘ring.");
+          setError(`Jonli aloqa uzildi (kod: ${event.code || "noma’lum"}). ${event.reason || "Qayta ulanishga urinib ko‘ring."}`);
         }
       };
     } catch (cause) {
