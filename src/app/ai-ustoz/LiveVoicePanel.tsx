@@ -231,7 +231,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange, o
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
-            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); onMoodChange?.("speaking"); playPcm(part.inlineData.data); }
+            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
             if (part.text) setCaption("Ziyo: " + part.text);
           }
           if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); setCaption("Ziyra sizni tinglayapti…"); }
