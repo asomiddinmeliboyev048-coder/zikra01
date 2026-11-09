@@ -42,7 +42,9 @@ export async function POST(request: Request) {
     .eq("user_id", user.id).maybeSingle();
   const track = String(body.track || existing?.selected_track || "english");
   const level = String(body.level || existing?.level || "Boshlang‘ich").slice(0, 40);
-  const selectedAvatar = body.selectedAvatar === "teacher" || body.selectedAvatar === "student"\n    ? body.selectedAvatar\n    : existing?.selected_avatar || "student";
+  const selectedAvatar = body.selectedAvatar === "teacher" || body.selectedAvatar === "student"
+    ? body.selectedAvatar
+    : existing?.selected_avatar || "student";
   const learningGoal = typeof body.learningGoal === "string" ? body.learningGoal.slice(0, 240) : (existing?.learning_goal || null);
   const focusTopic = typeof body.focusTopic === "string" ? body.focusTopic.slice(0, 160) : (existing?.focus_topic || null);
   if (!tracks.includes(track as typeof tracks[number])) return NextResponse.json({ error: "Kurs noto‘g‘ri." }, { status: 400 });
