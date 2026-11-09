@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import Script from "next/script";
-import { createElement, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
-import { ArrowLeft, Check, Maximize2, Mic2, Moon, RotateCcw, Sparkles, Sun, Volume2 } from "lucide-react";
+import { createElement, useCallback, useEffect, useRef, useState, type ComponentType } from "react";
+import { Maximize2, Moon, Sparkles, Sun } from "lucide-react";
+import LiveVoicePanel from "../LiveVoicePanel";
 import "./studio.css";
 
-type AvatarId = "teacher" | "student";
+type Track = "english" | "russian" | "coding" | "cyber";
+type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry";
 type ViewerElement = HTMLElement & {
   availableAnimations?: string[];
   animationName?: string;
@@ -15,44 +16,49 @@ type ViewerElement = HTMLElement & {
   currentTime?: number;
 };
 
-const avatars: { id: AvatarId; name: string; role: string; src: string; accent: string }[] = [
-  { id: "teacher", name: "Ziyo Ustoz", role: "Erkak ustoz", src: "/models/teacher_joe.glb", accent: "silver" },
-  { id: "student", name: "Ziyra", role: "Ayol ustoz", src: "/models/school_girl_v21.glb", accent: "pearl" },
-];
-
-const presets = [
-  { id: "idle", label: "Tinch holat", description: "Tabiiy kutish holati" },
-  { id: "talk", label: "Gapirish", description: "Suhbat paytidagi harakat" },
-  { id: "wave", label: "Salomlashish", description: "Qo‘l bilan salom beradi" },
-];
-
+const trackNames: Record<Track, string> = {
+  english: "Ingliz tili",
+  russian: "Rus tili",
+  coding: "Dasturlash",
+  cyber: "Kiberxavfsizlik",
+};
+const avatar = { name: "Ziyra", role: "Shaxsiy AI ustoz", src: "/models/school_girl_v21.glb" };
 const ModelViewer = "model-viewer" as unknown as ComponentType<Record<string, unknown>>;
 
 export default function AiTutorStudioPage() {
-  const [avatarId, setAvatarId] = useState<AvatarId>("teacher");
-  const [preset, setPreset] = useState("idle");
-  const [animations, setAnimations] = useState<string[]>([]);
+  const [track, setTrack] = useState<Track>("english");
+  const [level, setLevel] = useState("Boshlang‘ich");
+  const [skillLabel, setSkillLabel] = useState("Ingliz tili");
   const [darkStage, setDarkStage] = useState(true);
+  const [speaking, setSpeaking] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [voiceLevel, setVoiceLevel] = useState(0);
+  const [mood, setMood] = useState<Mood>("idle");
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState("");
   const [scriptReady, setScriptReady] = useState(false);
+  const [animations, setAnimations] = useState<string[]>([]);
+  const [modelError, setModelError] = useState("");
+  const [profileError, setProfileError] = useState("");
   const viewerRef = useRef<ViewerElement | null>(null);
-  const avatar = useMemo(() => avatars.find((item) => item.id === avatarId) || avatars[0], [avatarId]);
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("zikra-ai-ustoz-avatar");
-      if (saved === "teacher" || saved === "student") setAvatarId(saved);
-      fetch("/api/ai-tutor/context").then(async (response) => {
-        if (!response.ok) return;
+    let active = true;
+    fetch("/api/ai-tutor/context", { cache: "no-store" })
+      .then(async (response) => {
         const payload = await response.json();
-        const preferred = payload.profile?.selected_avatar;
-        if (preferred === "teacher" || preferred === "student") {
-          setAvatarId(preferred);
-          window.localStorage.setItem("zikra-ai-ustoz-avatar", preferred);
-        }
-      }).catch(() => undefined);
-    } catch { /* storage may be unavailable */ }
+        if (!response.ok) throw new Error(payload.error || "O‘quv rejasini yuklab bo‘lmadi.");
+        const plan = payload.learningPlan;
+        const profile = payload.profile;
+        const selected = (plan?.track_id || profile?.selected_track || "english") as Track;
+        if (!active) return;
+        if (selected in trackNames) setTrack(selected);
+        setSkillLabel(plan?.skill_name || trackNames[selected] || "Tanlangan ko‘nikma");
+        setLevel(plan?.current_level || profile?.level || "Boshlang‘ich");
+      })
+      .catch((error) => {
+        if (active) setProfileError(error instanceof Error ? error.message : "O‘quv rejasiga ulanib bo‘lmadi.");
+      });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -60,19 +66,19 @@ export default function AiTutorStudioPage() {
     const viewer = viewerRef.current;
     if (!viewer) return;
     const onLoad = () => {
-      setLoaded(true);
-      setError("");
       const names = viewer.availableAnimations || [];
       setAnimations(names);
-      if (names.length) {
-        const preferred = names.find((name) => /idle|stand|breath/i.test(name)) || names[0];
-        viewer.animationName = preferred;
+      setLoaded(true);
+      setModelError("");
+      const idle = names.find((name) => /idle|stand|breath/i.test(name)) || names[0];
+      if (idle) {
+        viewer.animationName = idle;
         viewer.play?.();
       }
     };
     const onError = () => {
       setLoaded(false);
-      setError("3D model yuklanmadi. Model fayli public/models ichida borligini tekshiring.");
+      setModelError("Ziyra 3D modeli yuklanmadi. GLB fayl manzilini tekshiring.");
     };
     viewer.addEventListener("load", onLoad);
     viewer.addEventListener("error", onError);
@@ -80,74 +86,68 @@ export default function AiTutorStudioPage() {
       viewer.removeEventListener("load", onLoad);
       viewer.removeEventListener("error", onError);
     };
-  }, [scriptReady, avatarId]);
+  }, [scriptReady]);
 
   useEffect(() => {
-    if (!loaded || !viewerRef.current) return;
-    const names = viewerRef.current.availableAnimations || [];
-    setAnimations(names);
-    if (!names.length) return;
-    const pattern = preset === "wave" ? /wave|hello|greet/i : preset === "talk" ? /talk|speak|gesture/i : /idle|stand|breath/i;
-    const selected = names.find((name) => pattern.test(name)) || names[0];
-    viewerRef.current.animationName = selected;
-    viewerRef.current.currentTime = 0;
-    viewerRef.current.play?.();
-  }, [preset, loaded, avatarId]);
+    const viewer = viewerRef.current;
+    if (!viewer || !loaded) return;
+    const idle = animations.find((name) => /idle|stand|breath/i.test(name)) || animations[0];
+    const talk = animations.find((name) => /talk|speak|speech|conversation|gesture/i.test(name));
+    const gesture = animations.find((name) => /think|look|explain|gesture/i.test(name));
+    const selected = mood === "speaking" ? (talk || idle)
+      : mood === "thinking" || mood === "surprised" || mood === "amused" || mood === "playful-angry" ? (gesture || talk || idle)
+      : idle;
+    if (selected && viewer.animationName !== selected) {
+      viewer.animationName = selected;
+      viewer.currentTime = 0;
+      viewer.play?.();
+    }
+  }, [mood, loaded, animations]);
 
-  function changeAvatar(next: AvatarId) {
-    setLoaded(false);
-    setError("");
-    setAnimations([]);
-    setAvatarId(next);
-    try { window.localStorage.setItem("zikra-ai-ustoz-avatar", next); } catch { /* storage may be unavailable */ }
-    void fetch("/api/ai-tutor/context", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatar: next }),
-    }).catch(() => undefined);
-    setPreset("idle");
-  }
-
-  function replay() {
-    if (!viewerRef.current) return;
-    viewerRef.current.currentTime = 0;
-    viewerRef.current.play?.();
-  }
+  const handleSpeaking = useCallback((value: boolean) => {
+    setSpeaking(value);
+    if (value) setMood("speaking");
+    else setMood("idle");
+  }, []);
+  const handleListening = useCallback((value: boolean) => {
+    setListening(value);
+    if (value && !speaking) setMood("idle");
+  }, [speaking]);
 
   function toggleFullscreen() {
-    const experience = document.querySelector(".zikra-studio");
-    if (!experience) return;
+    const stage = document.querySelector(".zikra-studio-stage");
+    if (!stage) return;
     if (document.fullscreenElement) void document.exitFullscreen();
-    else void experience.requestFullscreen?.();
+    else void stage.requestFullscreen?.();
   }
 
   return (
-    <main className="zikra-studio">
+    <main className="zikra-studio zikra-studio-immersive">
       <Script
         src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
         type="module"
         strategy="afterInteractive"
         onReady={() => setScriptReady(true)}
-        onError={() => setError("3D ko‘rish moduli yuklanmadi. Internet aloqasini tekshiring.")}
+        onError={() => setModelError("3D ko‘rish moduli yuklanmadi. Internet aloqasini tekshiring.")}
       />
-      <header className="studio-topbar">
-        <Link href="/ai-ustoz" className="studio-back"><ArrowLeft size={17}/> AI Ustozga qaytish</Link>
-        <div className="studio-brand"><span><Sparkles size={17}/></span><div><b>Zikra AI Ustoz</b><small>3D Avatar Studio</small></div></div>
+      <header className="studio-topbar studio-topbar-immersive">
+        <div className="studio-brand"><span><Sparkles size={18}/></span><div><b>Zikra AI Ustoz</b><small>ZIYRA · JONLI MURABBIY</small></div></div>
         <div className="studio-top-actions">
-          <button type="button" onClick={() => setDarkStage((v) => !v)} aria-label="Sahna rangini almashtirish">{darkStage ? <Sun size={17}/> : <Moon size={17}/>}</button>
+          <button type="button" onClick={() => setDarkStage((value) => !value)} aria-label="Sahna rangini almashtirish">{darkStage ? <Sun size={17}/> : <Moon size={17}/>}</button>
           <button type="button" onClick={toggleFullscreen} aria-label="To‘liq ekran"><Maximize2 size={17}/></button>
         </div>
       </header>
 
-      <section className="studio-layout">
-        <div className={`zikra-studio-stage ${darkStage ? "stage-dark" : "stage-light"}`}>
-          <div className="stage-label"><span className="stage-live-dot"/><span>AVATAR SAHNASI</span><b>{loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
+      <section className="studio-layout studio-layout-single">
+        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood}`}>
+          <div className="stage-label"><span className="stage-live-dot"/><span>ZIYRA AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
           {scriptReady ? createElement(ModelViewer, {
             ref: (node: ViewerElement | null) => { viewerRef.current = node; },
             src: avatar.src,
-            alt: avatar.name + " 3D avatar",
+            alt: "Ziyra ayol 3D AI ustoz",
             "camera-orbit": "0deg 78deg 2.7m",
             "field-of-view": "28deg",
             "min-camera-orbit": "auto auto 2.7m",
@@ -156,47 +156,31 @@ export default function AiTutorStudioPage() {
             "disable-pan": true,
             "interaction-prompt": "none",
             "shadow-intensity": "1",
-            "exposure": "1",
+            exposure: "1",
             "environment-image": "neutral",
             "tone-mapping": "commerce",
             "animation-crossfade-duration": "250",
             autoplay: true,
             ar: false,
-            "touch-action": "pan-y",
             style: { width: "100%", height: "100%", background: "transparent", pointerEvents: "none" },
-          }) : <div className="stage-loading"><span className="studio-spinner"/><p>3D sahna tayyorlanmoqda…</p></div>}
-          {!loaded && !error && <div className="stage-loading stage-loading-overlay"><span className="studio-spinner"/><p>Avatar yuklanmoqda…</p></div>}
-          {error && <div className="stage-error"><b>Modelni ko‘rsatib bo‘lmadi</b><p>{error}</p><small>Kutilayotgan fayl: {avatar.src}</small></div>}
-          <div className="stage-caption"><span className="caption-icon"><Sparkles size={15}/></span><div><b>{avatar.name}</b><small>{avatar.role} · Zikra AI Ustoz</small></div></div>
-          <div className="stage-controls"><button type="button" onClick={replay} disabled={!loaded}><RotateCcw size={15}/> Animatsiyani qayta ijro etish</button><span><Mic2 size={14}/> Jonli suhbatga tayyor</span></div>
+          }) : <div className="stage-loading"><span className="studio-spinner"/><p>Ziyra tayyorlanmoqda…</p></div>}
+          {!loaded && !modelError && <div className="stage-loading stage-loading-overlay"><span className="studio-spinner"/><p>3D avatar yuklanmoqda…</p></div>}
+          {modelError && <div className="stage-error"><b>3D model xatosi</b><p>{modelError}</p><small>{avatar.src}</small></div>}
+          <div className="stage-caption"><span className="caption-icon"><Sparkles size={15}/></span><div><b>Ziyra</b><small>{skillLabel} · {speaking ? "Sizga javob beryapti" : listening ? "Sizni tinglayapti" : "Shaxsiy AI ustozingiz"}</small></div></div>
+          <div className="studio-live-dock studio-live-dock-compact">
+            <LiveVoicePanel
+              track={track}
+              level={level}
+              avatarId="student"
+              onAvatarSpeakingChange={handleSpeaking}
+              onListeningChange={handleListening}
+              onVoiceLevelChange={setVoiceLevel}
+              onMoodChange={setMood}
+            />
+          </div>
+          {profileError && <p role="status" className="studio-profile-error">{profileError}</p>}
+          <div className="studio-skill-indicator"><span>O‘quv yo‘li</span><b>{skillLabel}</b><small>{level} daraja</small></div>
         </div>
-
-        <aside className="studio-panel">
-          <div className="panel-heading"><div><span className="panel-kicker">PERSONALIZATSIYA</span><h1>Avatar sozlamalari</h1><p>Ustozingiz ko‘rinishi va harakatini tanlang.</p></div><span className="panel-spark"><Sparkles size={18}/></span></div>
-
-          <section className="panel-section">
-            <div className="section-title"><span>01</span><div><b>Ustozni tanlang</b><small>3D avatar presetlari</small></div></div>
-            <div className="avatar-options">
-              {avatars.map((item) => <button type="button" key={item.id} onClick={() => changeAvatar(item.id)} className={avatarId === item.id ? "avatar-option selected" : "avatar-option"}>
-                <span className={`avatar-mini ${item.id}`}><span/></span><span className="avatar-option-copy"><b>{item.name}</b><small>{item.role}</small></span>{avatarId === item.id && <Check size={17}/>}
-              </button>)}
-            </div>
-          </section>
-
-          <section className="panel-section">
-            <div className="section-title"><span>02</span><div><b>Harakat presetlari</b><small>Avatar animatsiyasini boshqarish</small></div></div>
-            <div className="preset-list">
-              {presets.map((item, index) => <button type="button" key={item.id} onClick={() => setPreset(item.id)} className={preset === item.id ? "preset-option selected" : "preset-option"} disabled={!loaded || (animations.length === 0 && item.id !== "idle")}>
-                <span className="preset-number">0{index + 1}</span><span className="preset-copy"><b>{item.label}</b><small>{item.description}</small></span>{preset === item.id && <Check size={16}/>}
-              </button>)}
-            </div>
-            {loaded && animations.length === 0 && <p className="panel-hint">Ushbu GLB faylda tayyor animatsiya kliplari topilmadi. Avatar statik holatda ko‘rsatiladi.</p>}
-            {loaded && animations.length > 0 && <p className="panel-hint">{animations.length} ta animatsiya klipi aniqlandi. Presetlar mavjud kliplarga moslashtiriladi.</p>}
-          </section>
-
-          <section className="studio-note"><Volume2 size={16}/><div><b>Tabiiy suhbat rejimi</b><p>Gemini Live javob berganda avatar gapirish holatiga o‘tadi. GLB animatsiyasi bo‘lmasa, yengil vizual harakat indikatori ishlaydi. Foydalanuvchi 3D modelni aylantira olmaydi.</p></div></section>
-          <div className="studio-footer"><span className="footer-shield">✦</span><p>Adaptive Silver · Full-screen 3D experience</p></div>
-        </aside>
       </section>
     </main>
   );
