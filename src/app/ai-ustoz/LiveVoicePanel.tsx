@@ -56,7 +56,25 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const playbackTimeRef = useRef(0);
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
-  const readyRef = useRef(false);\n  const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);\n\n  async function persistTurn(role: "user" | "assistant", content: string) {\n    const clean = content.trim().slice(0, 1200);\n    if (!clean) return;\n    const current = [...historyRef.current];\n    const last = current[current.length - 1];\n    if (last?.role === role) current[current.length - 1] = { role, content: clean };\n    else current.push({ role, content: clean });\n    historyRef.current = current.slice(-24);\n    try {\n      await fetch("/api/ai-tutor/profile", {\n        method: "PATCH",\n        headers: { "Content-Type": "application/json" },\n        body: JSON.stringify({ selectedTrack: track, level, avatarId, conversationHistory: historyRef.current }),\n      });\n    } catch (cause) { console.error("[zikra-ai-tutor-memory-save]", cause); }\n  }
+  const readyRef = useRef(false);
+  const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
+
+  async function persistTurn(role: "user" | "assistant", content: string) {
+    const clean = content.trim().slice(0, 1200);
+    if (!clean) return;
+    const current = [...historyRef.current];
+    const last = current[current.length - 1];
+    if (last?.role === role) current[current.length - 1] = { role, content: clean };
+    else current.push({ role, content: clean });
+    historyRef.current = current.slice(-24);
+    try {
+      await fetch("/api/ai-tutor/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedTrack: track, level, avatarId, conversationHistory: historyRef.current }),
+      });
+    } catch (cause) { console.error("[zikra-ai-tutor-memory-save]", cause); }
+  }
 
   function stopPlayback() {
     activeSourcesRef.current.forEach((source) => { try { source.stop(); } catch { /* already stopped */ } });
@@ -138,7 +156,10 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
       const tokenPayload = await tokenResponse.json();
       if (!tokenResponse.ok) throw new Error(tokenPayload.error || "Gemini Live token olinmadi.");
 
-      historyRef.current = Array.isArray(tokenPayload.context?.conversationHistory) ? tokenPayload.context.conversationHistory.slice(-24) : [];\n      const savedContext = tokenPayload.context || {};\n      const historyPrompt = historyRef.current.slice(-10).map((item) => (item.role === "user" ? "O‘quvchi" : "Ustoz") + ": " + item.content).join("\\n");\n      const context = new AudioContext();
+      historyRef.current = Array.isArray(tokenPayload.context?.conversationHistory) ? tokenPayload.context.conversationHistory.slice(-24) : [];
+      const savedContext = tokenPayload.context || {};
+      const historyPrompt = historyRef.current.slice(-10).map((item) => (item.role === "user" ? "O‘quvchi" : "Ustoz") + ": " + item.content).join(" | ");
+      const context = new AudioContext();
       contextRef.current = context;
       await context.resume();
       const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tokenPayload.token));
@@ -204,10 +225,12 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
             setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
+            void persistTurn("user", inputText);
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
             setTranscript((current) => current + (current ? "\n" : "") + "Ziyo: " + outputText);
+            void persistTurn("assistant", outputText);
             setCaption("Ziyo gapiryapti…");
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); }
