@@ -52,3 +52,4 @@ create policy "ai tutor messages own delete" on public.ai_tutor_messages
 
 grant select, insert, update on public.ai_tutor_profiles to authenticated;
 grant select, insert, delete on public.ai_tutor_messages to authenticated;
+grant usage, select on sequence public.ai_tutor_messages_id_seq to authenticated;
