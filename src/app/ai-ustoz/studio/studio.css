@@ -138,8 +138,8 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 .expressive-cheeks i{width:14%;height:18px;border-radius:50%;background:#f6a6a6;filter:blur(8px)}
 .expressive-mouth{position:absolute;left:43%;top:60%;width:14%;height:5%;min-height:8px;border-radius:3px 3px 12px 12px;background:#252b33;transform-origin:center;transform:scaleY(var(--mouth-open,.12));transition:transform .055s linear;overflow:hidden}
 .expressive-mouth span{position:absolute;left:0;right:0;bottom:0;height:24%;background:#b75b68;border-radius:50%}
-.expressive-speaking .expressive-mouth{animation:expressive-speech  .16s ease-in-out infinite alternate}
-@keyframes expressive-speech{from{transform:scaleY(calc(.18 + var(--mouth-open,.2)*.3))}to{transform:scaleY(calc(.35 + var(--mouth-open,.2)*1.15))}}
+.expressive-speaking .expressive-mouth{transform:scaleY(var(--mouth-open,.15))}
+
 .expressive-listening .expressive-eyes i{height:11px}
 .expressive-thinking .expressive-brows i:first-child{transform:translateY(-4px) rotate(-17deg)}
 .expressive-thinking .expressive-eyes{transform:translateY(-2px)}
