@@ -5,6 +5,8 @@ create table if not exists public.ai_tutor_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   selected_track text not null default 'english'
     check (selected_track in ('english','russian','coding','cyber')),
+  selected_avatar text not null default 'teacher'
+    check (selected_avatar in ('teacher','student')),
   level text not null default 'Boshlang‘ich',
   learning_goal text,
   focus_topic text,
