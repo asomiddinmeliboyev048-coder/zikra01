@@ -55,7 +55,9 @@ function toBase64(bytes: Uint8Array) {
 export default function LiveVoicePanel({ track, level, avatarId = "teacher", onAvatarSpeakingChange, onListeningChange, onVoiceLevelChange, onMoodChange }: Props) {
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [muted, setMuted] = useState(false);
-  const tutorName = avatarId === "teacher" ? "Ziyo" : "Ziyra";\n  const voiceName = avatarId === "teacher" ? "Puck" : "Kore";\n  const [caption, setCaption] = useState(avatarId === "teacher" ? "Ziyo bilan jonli gaplashishni boshlang." : "Ziyra bilan jonli gaplashishni boshlang.");
+  const tutorName = avatarId === "teacher" ? "Ziyo" : "Ziyra";
+  const voiceName = avatarId === "teacher" ? "Puck" : "Kore";
+  const [caption, setCaption] = useState(avatarId === "teacher" ? "Ziyo bilan jonli gaplashishni boshlang." : "Ziyra bilan jonli gaplashishni boshlang.");
   const [error, setError] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -138,7 +140,6 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
     if (status === "connecting" || status === "live") return;
     setStatus("connecting");
     setError("");
-    setTranscript("");
     setCaption("Mikrofon va Gemini Live ulanmoqda…");
     try {
       let savedMemory = "";
