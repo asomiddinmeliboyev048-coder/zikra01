@@ -5,6 +5,7 @@ import Script from "next/script";
 import { createElement, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { ArrowLeft, Check, Maximize2, Mic2, Moon, RotateCcw, Sparkles, Sun, Volume2 } from "lucide-react";
 import "./studio.css";
+import LiveVoicePanel from "../LiveVoicePanel";
 
 type AvatarId = "teacher" | "student";
 type ViewerElement = HTMLElement & {
@@ -36,6 +37,7 @@ export default function AiTutorStudioPage() {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [scriptReady, setScriptReady] = useState(false);
+  const [avatarSpeaking, setAvatarSpeaking] = useState(false);
   const viewerRef = useRef<ViewerElement | null>(null);
   const avatar = useMemo(() => avatars.find((item) => item.id === avatarId) || avatars[0], [avatarId]);
 
@@ -78,8 +80,10 @@ export default function AiTutorStudioPage() {
     const names = viewerRef.current.availableAnimations || [];
     setAnimations(names);
     if (!names.length) return;
-    const pattern = preset === "wave" ? /wave|hello|greet/i : preset === "talk" ? /talk|speak|gesture/i : /idle|stand|breath/i;
-    const selected = names.find((name) => pattern.test(name)) || names[0];
+    const talkClip = names.find((name) => /talk|speak|speech|conversation|gesture|mouth/i.test(name));
+    const idleClip = names.find((name) => /idle|stand|breath/i.test(name)) || names[0];
+    const pattern = avatarSpeaking && talkClip ? /talk|speak|speech|conversation|gesture|mouth/i : preset === "wave" ? /wave|hello|greet/i : preset === "talk" ? /talk|speak|gesture/i : /idle|stand|breath/i;
+    const selected = names.find((name) => pattern.test(name)) || (avatarSpeaking ? talkClip : null) || idleClip;
     viewerRef.current.animationName = selected;
     viewerRef.current.currentTime = 0;
     viewerRef.current.play?.();
@@ -90,6 +94,7 @@ export default function AiTutorStudioPage() {
     setError("");
     setAnimations([]);
     setAvatarId(next);
+    try { window.localStorage.setItem("zikra-ai-ustoz-avatar", next); } catch { /* storage may be unavailable */ }
     setPreset("idle");
   }
 
@@ -125,7 +130,7 @@ export default function AiTutorStudioPage() {
       </header>
 
       <section className="studio-layout">
-        <div className={`zikra-studio-stage ${darkStage ? "stage-dark" : "stage-light"}`}>
+        <div className={`zikra-studio-stage ${darkStage ? "stage-dark" : "stage-light"} ${avatarSpeaking ? "avatar-speaking" : ""}`}>
           <div className="stage-label"><span className="stage-live-dot"/><span>AVATAR SAHNASI</span><b>{loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
@@ -178,6 +183,11 @@ export default function AiTutorStudioPage() {
             </div>
             {loaded && animations.length === 0 && <p className="panel-hint">Ushbu GLB faylda tayyor animatsiya kliplari topilmadi. Avatar statik holatda ko‘rsatiladi.</p>}
             {loaded && animations.length > 0 && <p className="panel-hint">{animations.length} ta animatsiya klipi aniqlandi. Presetlar mavjud kliplarga moslashtiriladi.</p>}
+          </section>
+
+          <section className="panel-section studio-live-section">
+            <div className="section-title"><span>03</span><div><b>Ziyo bilan jonli suhbat</b><small>Ovozli savol bering — ustoz javob beradi</small></div></div>
+            <div className="mt-3"><LiveVoicePanel track="english" level="Boshlang‘ich" onAvatarSpeakingChange={setAvatarSpeaking} /></div>
           </section>
 
           <section className="studio-note"><Volume2 size={16}/><div><b>Tabiiy suhbat rejimi</b><p>Gemini Live javob berganda avatar gapirish holatiga o‘tadi. GLB animatsiyasi bo‘lmasa, yengil vizual harakat indikatori ishlaydi. Foydalanuvchi 3D modelni aylantira olmaydi.</p></div></section>
