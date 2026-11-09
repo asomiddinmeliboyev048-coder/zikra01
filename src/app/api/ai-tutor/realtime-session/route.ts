@@ -73,9 +73,9 @@ export async function POST(request: Request) {
       context: {
         memorySummary: memory,
         conversationHistory: history,
-        selectedTrack: profile?.selected_track || track,
-        level: profile?.level || level,
-        avatarId: profile?.avatar_id || avatarId,
+        selectedTrack: track,
+        level,
+        avatarId,
       },
     });
   } catch (error) {
