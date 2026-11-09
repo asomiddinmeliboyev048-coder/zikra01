@@ -58,6 +58,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const readyRef = useRef(false);
   const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
+  const sessionLastRoleRef = useRef<"user" | "assistant" | null>(null);
 
   async function persistTurn(role: "user" | "assistant", content: string) {
     const clean = content.trim().slice(0, 1200);
@@ -157,6 +158,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
       if (!tokenResponse.ok) throw new Error(tokenPayload.error || "Gemini Live token olinmadi.");
 
       historyRef.current = Array.isArray(tokenPayload.context?.conversationHistory) ? tokenPayload.context.conversationHistory.slice(-24) : [];
+      sessionLastRoleRef.current = null;
       const savedContext = tokenPayload.context || {};
       const historyPrompt = historyRef.current.slice(-10).map((item) => (item.role === "user" ? "O‘quvchi" : "Ustoz") + ": " + item.content).join(" | ");
       const context = new AudioContext();
@@ -224,12 +226,14 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
-            setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
+            setTranscript((current) => current + (current ? "
+" : "") + "Siz: " + inputText);
             void persistTurn("user", inputText);
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
-            setTranscript((current) => current + (current ? "\n" : "") + "Ziyo: " + outputText);
+            setTranscript((current) => current + (current ? "
+" : "") + "Ziyo: " + outputText);
             void persistTurn("assistant", outputText);
             setCaption("Ziyo gapiryapti…");
           }
