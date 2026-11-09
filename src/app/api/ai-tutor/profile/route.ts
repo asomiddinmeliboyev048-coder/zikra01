@@ -77,9 +77,27 @@ export async function PATCH(request: Request) {
     update.conversation_history = history;
   }
 
+  const { data: existing, error: readError } = await supabase
+    .from("ai_tutor_profiles")
+    .select("selected_track, level, avatar_id, memory_summary, conversation_history")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (readError) {
+    console.error("[ai-tutor-profile-read-before-write]", readError.message);
+    return NextResponse.json({ error: "AI Ustoz xotirasini o‘qib bo‘lmadi. Supabase migratsiyasini tekshiring." }, { status: 503 });
+  }
+  const completeUpdate = {
+    user_id: user.id,
+    selected_track: (update.selected_track as string) || existing?.selected_track || "english",
+    level: (update.level as string) || existing?.level || "Boshlang‘ich",
+    avatar_id: (update.avatar_id as string) || existing?.avatar_id || "teacher",
+    memory_summary: (update.memory_summary as string) ?? existing?.memory_summary ?? "",
+    conversation_history: (update.conversation_history as HistoryItem[]) ?? existing?.conversation_history ?? [],
+    updated_at: update.updated_at,
+  };
   const { data, error } = await supabase
     .from("ai_tutor_profiles")
-    .upsert(update, { onConflict: "user_id" })
+    .upsert(completeUpdate, { onConflict: "user_id" })
     .select("selected_track, level, avatar_id, memory_summary, conversation_history, updated_at")
     .single();
 
