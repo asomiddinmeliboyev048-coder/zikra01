@@ -226,7 +226,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
         if (setupTimeout) clearTimeout(setupTimeout);
         readyRef.current = false;
         onAvatarSpeakingChange?.(false);
-        if (event.code !== 1000 && status !== "idle") {
+        if (event.code !== 1000) {
           console.error("[zikra-gemini-live-close]", { code: event.code, reason: event.reason, wasClean: event.wasClean });
           setStatus("error");
           setError(`Jonli aloqa uzildi (kod: ${event.code || "noma’lum"}). ${event.reason || "Gemini sessiyasi yopildi."}`);
