@@ -80,10 +80,10 @@ export async function POST(request: Request) {
     .select("skill_name,purpose,current_level,target_level,daily_minutes,learning_style,interests")
     .eq("user_id", user.id).eq("track_id", track).maybeSingle();
   const planContext = learningPlan
-    ? `\\nPlatformadagi faol o‘quv reja: ${learningPlan.skill_name || trackNames[track]}; maqsad: ${learningPlan.purpose || "ko‘rsatilmagan"}; hozirgi daraja: ${learningPlan.current_level || level}; maqsadli daraja: ${learningPlan.target_level || "ko‘rsatilmagan"}; kunlik vaqt: ${learningPlan.daily_minutes || "ko‘rsatilmagan"} daqiqa; uslub: ${learningPlan.learning_style || "aralash"}; qiziqishlar: ${Array.isArray(learningPlan.interests) ? learningPlan.interests.join(", ") : "ko‘rsatilmagan"}.`
+    ? `\nPlatformadagi faol o‘quv reja: ${learningPlan.skill_name || trackNames[track]}; maqsad: ${learningPlan.purpose || "ko‘rsatilmagan"}; hozirgi daraja: ${learningPlan.current_level || level}; maqsadli daraja: ${learningPlan.target_level || "ko‘rsatilmagan"}; kunlik vaqt: ${learningPlan.daily_minutes || "ko‘rsatilmagan"} daqiqa; uslub: ${learningPlan.learning_style || "aralash"}; qiziqishlar: ${Array.isArray(learningPlan.interests) ? learningPlan.interests.join(", ") : "ko‘rsatilmagan"}.`
     : "";
   const memoryContext = (tutorProfile
-    ? `\\nFoydalanuvchining saqlangan o‘quv maqsadi: ${tutorProfile.learning_goal || "ko‘rsatilmagan"}.\\nOxirgi mavzu: ${tutorProfile.focus_topic || "hali belgilanmagan"}.\\nOldingi mashg‘ulotlardan xulosa: ${tutorProfile.memory_summary || "hali yo‘q"}. Ushbu ma’lumotlardan davomiylik uchun foydalan, lekin foydalanuvchi yangi kurs tanlasa uni ustun qo‘y.`
+    ? `\nFoydalanuvchining saqlangan o‘quv maqsadi: ${tutorProfile.learning_goal || "ko‘rsatilmagan"}.\nOxirgi mavzu: ${tutorProfile.focus_topic || "hali belgilanmagan"}.\nOldingi mashg‘ulotlardan xulosa: ${tutorProfile.memory_summary || "hali yo‘q"}. Ushbu ma’lumotlardan davomiylik uchun foydalan, lekin foydalanuvchi yangi kurs tanlasa uni ustun qo‘y.`
     : "") + planContext;
   const systemInstruction = `Sen Zikra AI Ustozsan: aqlli, samimiy, hazilkash, sabrli va rag‘batlantiruvchi shaxsiy murabbiy.
 Foydalanuvchi bilan ASOSIY TIL sifatida o‘zbek tilida gaplash. Tanlangan yo‘nalish: ${trackNames[track]}. Foydalanuvchi darajasi: ${level}.
