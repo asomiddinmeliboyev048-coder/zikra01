@@ -106,13 +106,10 @@ export default function AiTutorStudioPage() {
 
   const handleSpeaking = useCallback((value: boolean) => {
     setSpeaking(value);
-    if (value) setMood("speaking");
-    else setMood("idle");
   }, []);
   const handleListening = useCallback((value: boolean) => {
     setListening(value);
-    if (value && !speaking) setMood("idle");
-  }, [speaking]);
+  }, []);
 
   function toggleFullscreen() {
     const stage = document.querySelector(".zikra-studio-stage");
