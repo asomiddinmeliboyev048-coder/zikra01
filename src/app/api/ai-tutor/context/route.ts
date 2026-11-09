@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-const tracks = ["english", "russian", "coding", "cyber"] as const;
+const tracks = ["english", "russian", "uzbek", "coding", "cyber"] as const;
 
 export async function GET() {
   const supabase = await createClient();
@@ -17,11 +17,17 @@ export async function GET() {
     console.error("[ai-tutor/context GET]", profileError?.message || messagesError?.message);
     return NextResponse.json({ error: "AI Ustoz xotira jadvallari tayyor emas. Supabase migratsiyasini bajaring." }, { status: 503 });
   }
-  const selectedTrack = profile?.selected_track || "english";
-  const { data: learningPlan } = await supabase.from("learning_plans")
-    .select("skill_name,purpose,current_level,target_level,daily_minutes,learning_style,interests")
-    .eq("user_id", user.id).eq("track_id", selectedTrack).maybeSingle();
-  return NextResponse.json({ profile, learningPlan: learningPlan || null, messages: (rows || []).reverse() });
+  // The active Rivojlanish roadmap is the source of truth for the tutor's subject.
+  // This prevents an old AI-tutor preference from overriding the learner's latest roadmap.
+  const { data: activePlan } = await supabase.from("learning_plans")
+    .select("track_id,skill_name,purpose,current_level,target_level,daily_minutes,learning_style,interests,status,updated_at")
+    .eq("user_id", user.id).eq("status", "active")
+    .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+  const selectedTrack = activePlan?.track_id || profile?.selected_track || "english";
+  const learningPlan = activePlan || (await supabase.from("learning_plans")
+    .select("track_id,skill_name,purpose,current_level,target_level,daily_minutes,learning_style,interests,status,updated_at")
+    .eq("user_id", user.id).eq("track_id", selectedTrack).maybeSingle()).data;
+  return NextResponse.json({ profile, learningPlan: learningPlan || null, selectedTrack, messages: (rows || []).reverse() });
 }
 
 export async function POST(request: Request) {
@@ -36,13 +42,15 @@ export async function POST(request: Request) {
     .eq("user_id", user.id).maybeSingle();
   const track = String(body.track || existing?.selected_track || "english");
   const level = String(body.level || existing?.level || "Boshlang‘ich").slice(0, 40);
-  const avatar = body.avatar === "student" || body.avatar === "teacher" ? body.avatar : (existing?.selected_avatar || "teacher");
+  const selectedAvatar = body.selectedAvatar === "teacher" || body.selectedAvatar === "student"
+    ? body.selectedAvatar
+    : existing?.selected_avatar || "student";
   const learningGoal = typeof body.learningGoal === "string" ? body.learningGoal.slice(0, 240) : (existing?.learning_goal || null);
   const focusTopic = typeof body.focusTopic === "string" ? body.focusTopic.slice(0, 160) : (existing?.focus_topic || null);
   if (!tracks.includes(track as typeof tracks[number])) return NextResponse.json({ error: "Kurs noto‘g‘ri." }, { status: 400 });
 
   const { error } = await supabase.from("ai_tutor_profiles").upsert({
-    user_id: user.id, selected_track: track, selected_avatar: avatar, level, learning_goal: learningGoal,
+    user_id: user.id, selected_track: track, selected_avatar: selectedAvatar, level, learning_goal: learningGoal,
     focus_topic: focusTopic, updated_at: new Date().toISOString(),
   }, { onConflict: "user_id" });
   if (error) {

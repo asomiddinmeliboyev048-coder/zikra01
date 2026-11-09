@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Phone, PhoneOff, Radio, Volume2 } from "lucide-react";
 
-type Track = "english" | "russian" | "coding" | "cyber";
-type Props = { track: Track; level: string; onAvatarSpeakingChange?: (speaking: boolean) => void };
+type Track = "english" | "russian" | "uzbek" | "coding" | "cyber";
+type Props = { track: Track; level: string; avatarId?: "teacher" | "student"; onAvatarSpeakingChange?: (speaking: boolean) => void; onListeningChange?: (listening: boolean) => void; onVoiceLevelChange?: (level: number) => void; onMoodChange?: (mood: "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry") => void };
 type LiveMessage = {
   setupComplete?: Record<string, unknown>;
   inputTranscription?: { text?: string };
@@ -34,6 +34,15 @@ function floatToPcm16(input: Float32Array, inputRate: number, outputRate = 16000
   return pcm;
 }
 
+function inferTutorMood(text: string): "idle" | "thinking" | "amused" | "surprised" | "playful-angry" {
+  const value = text.toLowerCase();
+  if (/(😂|🤣|haha|hazil|kulgili|kulib|kulma)/i.test(value)) return "amused";
+  if (/(jahlim|jahl|qattiqqo‘l|ustimdan kul|xafa bo‘ldim|ranjidim)/i.test(value)) return "playful-angry";
+  if (/(voy|rostdanmi|hayrat|nimaaa|ajab|seriously|really\?)/i.test(value)) return "surprised";
+  if (/(hmm|o‘ylab ko‘ray|bir daqiqa|qiziq savol|let me think)/i.test(value)) return "thinking";
+  return "idle";
+}
+
 function toBase64(bytes: Uint8Array) {
   let binary = "";
   const chunkSize = 0x8000;
@@ -43,12 +52,13 @@ function toBase64(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }: Props) {
+export default function LiveVoicePanel({ track, level, avatarId = "teacher", onAvatarSpeakingChange, onListeningChange, onVoiceLevelChange, onMoodChange }: Props) {
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [muted, setMuted] = useState(false);
-  const [caption, setCaption] = useState("Ziyo bilan jonli gaplashishni boshlang.");
+  const tutorName = avatarId === "teacher" ? "Ziyo" : "Ziyra";
+  const voiceName = avatarId === "teacher" ? "Puck" : "Kore";
+  const [caption, setCaption] = useState(avatarId === "teacher" ? "Ziyo bilan jonli gaplashishni boshlang." : "Ziyra bilan jonli gaplashishni boshlang.");
   const [error, setError] = useState("");
-  const [transcript, setTranscript] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
@@ -66,6 +76,10 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
 
   function closeSession() {
     readyRef.current = false;
+    onAvatarSpeakingChange?.(false);
+    onListeningChange?.(false);
+    onVoiceLevelChange?.(0);
+    onMoodChange?.("idle");
     socketRef.current?.close();
     socketRef.current = null;
     processorRef.current?.disconnect();
@@ -106,7 +120,12 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
     }
     const buffer = context.createBuffer(1, samples.length, 24000);
     const channel = buffer.getChannelData(0);
-    for (let i = 0; i < samples.length; i++) channel[i] = samples[i] / 32768;
+    let energy = 0;
+    for (let i = 0; i < samples.length; i++) {
+      channel[i] = samples[i] / 32768;
+      energy += channel[i] * channel[i];
+    }
+    onVoiceLevelChange?.(Math.min(1, Math.sqrt(energy / Math.max(1, samples.length)) * 5.5));
     const source = context.createBufferSource();
     source.buffer = buffer;
     source.connect(context.destination);
@@ -121,7 +140,6 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
     if (status === "connecting" || status === "live") return;
     setStatus("connecting");
     setError("");
-    setTranscript("");
     setCaption("Mikrofon va Gemini Live ulanmoqda…");
     try {
       let savedMemory = "";
@@ -145,7 +163,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
       const tokenResponse = await fetch("/api/ai-tutor/realtime-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ track, level }),
+        body: JSON.stringify({ track, level, avatarId }),
       });
       const tokenPayload = await tokenResponse.json();
       if (!tokenResponse.ok) throw new Error(tokenPayload.error || "Gemini Live token olinmadi.");
@@ -162,12 +180,12 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
             model: tokenPayload.model || "models/gemini-3.8-live",
             generationConfig: {
               responseModalities: ["AUDIO"],
-              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
             },
             inputAudioTranscription: {},
             outputAudioTranscription: {},
             systemInstruction: {
-              parts: [{ text: "Sen Zikra AI Ustoz — Ziyo ismli tabiiy, hazilkash va mehribon murabbiysan. Foydalanuvchiga doimo o‘zbek tilida tushuntir. Tanlangan ko‘nikma: " + ({ english: "ingliz tili", russian: "rus tili", coding: "dasturlash", cyber: "kiberxavfsizlik" } as Record<Track, string>)[track] + ". Daraja: " + level + ". Ingliz yoki rus tilini o‘rgatganda mashqni shu tilda ber, ammo izoh va xatolar tahlilini o‘zbekcha qil. Dasturlash va kiberxavfsizlikda amaliy, xavfsiz misollar ishlat. Bir vaqtda bitta savol ber, javobni kut, foydalanuvchini gapini bo‘lma. O‘rinli aqlli hazillar qil, qisqa va tabiiy gapir. Xatolarni muloyim tuzat. O‘zingni AI ekaningni yashirma." }],
+              parts: [{ text: "Sen Zikra AI Ustoz — " + tutorName + " ismli samimiy, topqir, hazilkash va talabchan " + (avatarId === "teacher" ? "erkak" : "ayol") + " murabbiysan. Ovoz tembring tanlangan ustozga mos bo‘lsin. Tanlangan ko‘nikma: " + ({ english: "ingliz tili", russian: "rus tili", uzbek: "o‘zbek tili", coding: "dasturlash", cyber: "kiberxavfsizlik" } as Record<Track, string>)[track] + ". Daraja: " + level + ". O‘quvchining shaxsiy yo‘l xaritasi va oldingi suhbatlari: " + savedMemory + ". Aynan shu yo‘l xaritasidagi ko‘nikma va maqsadlar bo‘yicha dars ber; boshqa kursga o‘tma. Ingliz, rus yoki o‘zbek tilini o‘rgatganda mashqni tanlangan tilda ber, izoh va xatolar tahlilini o‘zbekcha qil. Dasturlash va kiberxavfsizlikda amaliy, xavfsiz misollar ishlat. Bir vaqtda bitta savol ber va javobni kut. Har safar bir xil salomlashma bilan boshlama: foydalanuvchining darajasi, oldingi darsi va oxirgi qiyinchiligiga qarab tabiiy, yangi boshlanish tanla. O‘rinli aqlli hazil qil. Foydalanuvchi hazillashsa, ba’zan kulib, hayron bo‘lib yoki yengil jahli chiqqandek hazilomuz munosabat bildir; hech qachon haqorat qilma. Ovoz ohangingni savol, hazil, rag‘bat va tushuntirishga mos o‘zgartir. O‘zingni AI ekaningni yashirma." }],
             },
           },
         }));
@@ -197,27 +215,31 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
             processor.connect(silentGain);
             silentGain.connect(context.destination);
             setStatus("live");
-            setCaption("Ulandik! Ziyo siz bilan salomlashmoqda…");
-            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni hozir boshlang. O‘zbek tilida qisqa, samimiy salomlashing va tanlangan ko‘nikma bo‘yicha darajamga mos bitta sodda savol bering. Tabiiy, hazilkash ohangda gapiring." }] }], turnComplete: true } }));
+            onListeningChange?.(true);
+            onMoodChange?.("idle");
+            setCaption("" + tutorName + " sizni tinglayapti…");
+            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni boshlang. Foydalanuvchining shaxsiy yo‘l xaritasi va oldingi natijalarini hisobga olib, takrorlanmagan tabiiy kirish bilan gap boshlang. Tanlangan ko‘nikmaga oid darajaga mos bitta savol yoki kichik mashq bering. Har doim bir xil salomlashuvni ishlatmang." }] }], turnComplete: true } }));
           }
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
-            setTranscript((current) => current + (current ? "\n" : "") + "Siz: " + inputText);
+            onListeningChange?.(true);
+            onMoodChange?.(inferTutorMood(inputText));
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "user", content: inputText }) });
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
-            setTranscript((current) => current + (current ? "\n" : "") + "Ziyo: " + outputText);
+            const detectedMood = inferTutorMood(outputText);
+            onMoodChange?.(detectedMood === "idle" ? "speaking" : detectedMood);
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "assistant", content: outputText }) });
-            setCaption("Ziyo gapiryapti…");
+            setCaption("" + tutorName + " gapiryapti…");
           }
-          if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); }
+          if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
-            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); playPcm(part.inlineData.data); }
-            if (part.text) setCaption("Ziyo: " + part.text);
+            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
+            if (part.text) setCaption("" + tutorName + ": " + part.text);
           }
-          if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); setCaption("Javob tugadi. Davom etavering!"); }
+          if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); setCaption("" + tutorName + " sizni tinglayapti…"); }
         } catch (cause) {
           console.error("[zikra-gemini-live-message]", cause);
         }
@@ -259,7 +281,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-sm font-black"><Radio size={16} className="text-cyan-200"/> Jonli suhbat <span className="rounded-full border border-cyan-200/20 bg-cyan-200/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-100">Gemini Live</span></div>
-          <p className="mt-1 text-[11px] text-slate-400">Matn yozish shart emas — Ziyo bilan tabiiy gaplashing.</p>
+          <p className="mt-1 text-[11px] text-slate-400">Matn yozish shart emas — {tutorName} bilan tabiiy gaplashing.</p>
         </div>
         <span className="flex items-center gap-2 text-[10px] font-bold text-slate-300"><i className={`h-2 w-2 rounded-full ${status === "live" ? "animate-pulse bg-emerald-300" : status === "error" ? "bg-rose-300" : "bg-slate-500"}`}/>{status === "live" ? "Jonli ulandi" : status === "connecting" ? "Ulanmoqda…" : status === "error" ? "Aloqa xatosi" : "Ulanishga tayyor"}</span>
       </div>
@@ -267,7 +289,6 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
         <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/30 bg-gradient-to-br from-slate-100 to-slate-500 text-slate-900 ${status === "live" ? "animate-pulse" : ""}`}><Volume2 size={21}/></div>
         <p aria-live="polite" className="text-xs leading-5 text-slate-200">{caption}</p>
       </div>
-      {transcript && <pre className="mt-3 max-h-32 overflow-y-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-black/15 p-3 text-[10px] leading-5 text-slate-300">{transcript}</pre>}
       {error && <p role="alert" className="mt-3 rounded-xl border border-rose-300/20 bg-rose-300/10 px-3 py-2 text-[11px] text-rose-200">{error}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
         {status === "live" ? <>
@@ -275,7 +296,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
           <button type="button" onClick={closeSession} className="inline-flex h-11 items-center gap-2 rounded-xl bg-rose-500/90 px-4 text-xs font-bold text-white hover:bg-rose-500"><PhoneOff size={16}/> Suhbatni tugatish</button>
         </> : <button type="button" disabled={status === "connecting"} onClick={startSession} className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-100 to-slate-300 px-5 text-xs font-black text-slate-900 shadow-lg transition hover:scale-[1.02] disabled:cursor-wait disabled:opacity-60"><Phone size={16}/> {status === "connecting" ? "Ulanmoqda…" : "Jonli suhbatni boshlash"}</button>}
       </div>
-      <p className="mt-3 text-[9px] leading-4 text-slate-500">Brauzer mikrofon ruxsatini so‘raydi. Ulanish qisqa muddatli maxfiy token bilan amalga oshadi; asosiy Gemini API kaliti brauzerga yuborilmaydi.</p>
+      <p className="mt-2 text-[8px] leading-4 text-slate-500">Mikrofon ruxsati kerak. Suhbat matni ekranda ko‘rsatilmaydi, shaxsiy o‘quv xotirasi esa profilingizda saqlanadi.</p>
     </section>
   );
 }
