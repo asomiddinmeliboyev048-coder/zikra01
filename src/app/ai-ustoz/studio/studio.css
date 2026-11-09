@@ -81,3 +81,5 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
   .stage-controls button{font-size:0;padding:8px}
   .stage-controls span{display:none}
 }
+
+.studio-topbar{grid-template-columns:1fr auto}
