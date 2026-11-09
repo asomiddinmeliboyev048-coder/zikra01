@@ -130,7 +130,12 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
         if (contextResponse.ok) {
           const contextPayload = await contextResponse.json();
           const profile = contextPayload.profile;
-          if (profile) savedMemory = " Foydalanuvchining maqsadi: " + (profile.learning_goal || "ko‘rsatilmagan") + ". Oxirgi mavzusi: " + (profile.focus_topic || "hali belgilanmagan") + ". Avvalgi o‘quv xulosasi: " + (profile.memory_summary || "hali yo‘q") + ". Shu kontekstdan davom et, lekin hozirgi suhbatda aytilgan yangi ma’lumotni ustun qo‘y.";
+          const plan = contextPayload.learningPlan;
+          if (profile) savedMemory += " Foydalanuvchining maqsadi: " + (profile.learning_goal || "ko‘rsatilmagan") + ". Oxirgi mavzusi: " + (profile.focus_topic || "hali belgilanmagan") + ". Avvalgi o‘quv xulosasi: " + (profile.memory_summary || "hali yo‘q") + ".";
+          if (plan) savedMemory += " Zikra o‘quv rejasi: " + (plan.skill_name || track) + "; maqsad: " + (plan.purpose || "ko‘rsatilmagan") + "; daraja: " + (plan.current_level || level) + "; maqsadli daraja: " + (plan.target_level || "ko‘rsatilmagan") + "; kunlik vaqt: " + (plan.daily_minutes || "ko‘rsatilmagan") + " daqiqa; uslub: " + (plan.learning_style || "aralash") + "; qiziqishlar: " + (Array.isArray(plan.interests) ? plan.interests.join(", ") : "ko‘rsatilmagan") + ".";
+          const recent = Array.isArray(contextPayload.messages) ? contextPayload.messages.slice(-12) : [];
+          if (recent.length) savedMemory += " Oxirgi suhbatdan kontekst (takrorlamasdan davom et): " + recent.map((item: { role: string; content: string }) => (item.role === "assistant" ? "Ziyo" : "O‘quvchi") + ": " + String(item.content).slice(0, 450)).join(" | ");
+          if (savedMemory) savedMemory += " Shu kontekstdan davom et, lekin hozirgi suhbatda aytilgan yangi ma’lumotni ustun qo‘y.";
         }
       } catch { /* Live session can still start if memory is temporarily unavailable. */ }
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Mikrofon uchun HTTPS va brauzer ruxsati kerak.");
