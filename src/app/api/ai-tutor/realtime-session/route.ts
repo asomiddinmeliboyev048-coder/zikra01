@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 const trackNames = {
   english: "ingliz tili",
   russian: "rus tili",
+  uzbek: "o‘zbek tili",
   coding: "dasturlash",
   cyber: "kiberxavfsizlik",
 } as const;
