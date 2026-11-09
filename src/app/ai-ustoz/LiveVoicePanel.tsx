@@ -66,6 +66,7 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
 
   function closeSession() {
     readyRef.current = false;
+    onAvatarSpeakingChange?.(false);
     socketRef.current?.close();
     socketRef.current = null;
     processorRef.current?.disconnect();
@@ -172,7 +173,10 @@ export default function LiveVoicePanel({ track, level, onAvatarSpeakingChange }:
         try {
           const message = JSON.parse(typeof event.data === "string" ? event.data : await event.data.text()) as LiveMessage;
           if (message.error?.message) {
+            console.error("[zikra-gemini-live-server-error]", message.error);
+            setStatus("error");
             setError("Gemini Live: " + message.error.message);
+            onAvatarSpeakingChange?.(false);
             return;
           }
           if (message.setupComplete) {
