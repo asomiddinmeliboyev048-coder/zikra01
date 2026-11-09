@@ -24,7 +24,19 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "So‘rov noto‘g‘ri." }, { status: 400 }); }
   const track = String(body.track || "english") as Track;
   if (!(track in trackNames)) return NextResponse.json({ error: "Ko‘nikma turi noto‘g‘ri." }, { status: 400 });
-  const level = String(body.level || "Boshlang‘ich").slice(0, 40);\n  const avatarId = body.avatarId === "student" ? "student" : "teacher";\n  const { data: profile, error: profileError } = await supabase\n    .from("ai_tutor_profiles")\n    .select("memory_summary, conversation_history, selected_track, level, avatar_id")\n    .eq("user_id", user.id)\n    .maybeSingle();\n  if (profileError) {\n    console.error("[ai-tutor-live-profile]", profileError.message);\n    return NextResponse.json({ error: "AI Ustoz xotirasi jadvali tayyor emas. Supabase migratsiyasini ishga tushiring." }, { status: 503 });\n  }\n  const history = Array.isArray(profile?.conversation_history) ? profile.conversation_history.slice(-12) : [];\n  const memory = typeof profile?.memory_summary === "string" ? profile.memory_summary.slice(0, 3000) : "";
+  const level = String(body.level || "Boshlang‘ich").slice(0, 40);
+  const avatarId = body.avatarId === "student" ? "student" : "teacher";
+  const { data: profile, error: profileError } = await supabase
+    .from("ai_tutor_profiles")
+    .select("memory_summary, conversation_history, selected_track, level, avatar_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (profileError) {
+    console.error("[ai-tutor-live-profile]", profileError.message);
+    return NextResponse.json({ error: "AI Ustoz xotirasi jadvali tayyor emas. Supabase migratsiyasini ishga tushiring." }, { status: 503 });
+  }
+  const history = Array.isArray(profile?.conversation_history) ? profile.conversation_history.slice(-12) : [];
+  const memory = typeof profile?.memory_summary === "string" ? profile.memory_summary.slice(0, 3000) : "";
 
   try {
     const now = Date.now();
@@ -54,7 +66,18 @@ export async function POST(request: Request) {
     if (typeof token !== "string" || !token.startsWith("auth_tokens/")) {
       return NextResponse.json({ error: "Gemini Live vaqtinchalik tokeni qaytmadi." }, { status: 502 });
     }
-    return NextResponse.json({\n      token,\n      model: "models/gemini-3.8-live",\n      voiceName: avatarId === "student" ? "Aoede" : "Puck",\n      context: {\n        memorySummary: memory,\n        conversationHistory: history,\n        selectedTrack: profile?.selected_track || track,\n        level: profile?.level || level,\n        avatarId: profile?.avatar_id || avatarId,\n      },\n    });
+    return NextResponse.json({
+      token,
+      model: "models/gemini-3.8-live",
+      voiceName: avatarId === "student" ? "Aoede" : "Puck",
+      context: {
+        memorySummary: memory,
+        conversationHistory: history,
+        selectedTrack: profile?.selected_track || track,
+        level: profile?.level || level,
+        avatarId: profile?.avatar_id || avatarId,
+      },
+    });
   } catch (error) {
     console.error("[zikra-gemini-live-token]", error);
     return NextResponse.json({ error: "Gemini xizmatiga ulanib bo‘lmadi." }, { status: 503 });
