@@ -168,7 +168,7 @@ export default function AiTutorStudioPage() {
             </button>
             <button type="button" className={`tutor-choice-card ${avatarId === "student" ? "selected" : ""}`} onClick={() => setAvatarId("student")}>
               <span className="choice-check">{avatarId === "student" && <Check size={17}/>}</span>
-              <div className="choice-girl-preview"><img src="/models/ziyra-preview.webp" alt="Ziyra 3D ustoz namunasi" onError={(event) => { event.currentTarget.style.display = "none"; }}/><span>Ziyra</span></div>
+              <div className="choice-girl-preview"><span>3D</span><small>ZIYRA</small></div>
               <span className="choice-name">Ziyra · 3D ustoz</span>
               <span className="choice-role">Ayol ovozi · GLB avatar</span>
               <span className="choice-description">Mavjud 3D model va uning ichki animatsiya kliplari bilan jonli suhbat.</span>
