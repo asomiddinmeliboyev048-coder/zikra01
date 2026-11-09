@@ -70,11 +70,12 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
     else current.push({ role, content: clean });
     historyRef.current = current.slice(-24);
     try {
-      await fetch("/api/ai-tutor/profile", {
+      const response = await fetch("/api/ai-tutor/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ selectedTrack: track, level, avatarId, conversationHistory: historyRef.current }),
       });
+      if (!response.ok) console.warn("[zikra-ai-tutor-memory-save] Profile migration may not be applied yet.");
     } catch (cause) { console.error("[zikra-ai-tutor-memory-save]", cause); }
   }
 
