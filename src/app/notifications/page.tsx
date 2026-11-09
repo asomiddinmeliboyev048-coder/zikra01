@@ -24,7 +24,7 @@ export default async function NotificationsPage() {
   const notifications = (data as AppNotification[]) ?? [];
 
   return (
-    <div className="min-h-screen">
+    <div className="zikra-notifications-silver min-h-screen">
       <Navbar />
       <main className="container-app max-w-2xl py-8">
         <NotificationsList

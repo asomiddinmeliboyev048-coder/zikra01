@@ -1,0 +1,122 @@
+.zikra-ai { color-scheme: dark; }
+.zikra-orb { position:relative; display:grid; width:132px; height:132px; place-items:center; isolation:isolate; }
+.zikra-orb-core { position:relative; z-index:2; display:flex; width:96px; height:96px; flex-direction:column; align-items:center; justify-content:center; gap:12px; border:1px solid rgba(255,255,255,.9); border-radius:34px; background:linear-gradient(145deg,#f8fafc 0%,#cbd5e1 34%,#8794a6 68%,#e2e8f0 100%); box-shadow:0 16px 45px rgba(0,0,0,.32),inset 0 2px 5px rgba(255,255,255,.9); transition:transform .35s ease,filter .35s ease; }
+.zikra-orb-eyes { display:flex; gap:18px; }
+.zikra-orb-eyes i { display:block; width:8px; height:12px; border-radius:50%; background:#263342; animation:zikra-blink 5s infinite; }
+.zikra-orb-smile { width:22px; height:10px; border-bottom:3px solid #334155; border-radius:0 0 20px 20px; }
+.zikra-orb-ring { position:absolute; inset:4px; z-index:1; border:1px solid rgba(226,232,240,.25); border-radius:38px; transform:rotate(24deg); }
+.zikra-orb-ring.ring-two { inset:-5px 12px; border-color:rgba(203,213,225,.18); transform:rotate(-34deg); }
+.zikra-orb-ring.ring-three { inset:12px -7px; border-color:rgba(255,255,255,.12); transform:rotate(58deg); }
+.zikra-orb.is-active .zikra-orb-core { transform:translateY(-3px) scale(1.04); filter:brightness(1.08); }
+.zikra-orb.is-active .zikra-orb-ring { animation:zikra-orbit 3.2s linear infinite; }
+.zikra-orb.is-active .ring-two { animation-direction:reverse; animation-duration:4.4s; }
+@keyframes zikra-orbit { to { transform:rotate(384deg); } }
+@keyframes zikra-blink { 0%,46%,50%,100% { transform:scaleY(1); } 48% { transform:scaleY(.12); } }
+@media (prefers-reduced-motion:reduce) { .zikra-orb *, .zikra-ai * { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+
+/* Live 3D tutor avatar — shared visual state with Gemini Live audio */
+.zikra-live-avatar {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: min(100%, 340px);
+  height: 310px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 28px;
+}
+.zikra-live-avatar model-viewer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+.zikra-live-avatar-glow {
+  position: absolute;
+  z-index: 0;
+  width: 72%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(226,232,240,.12);
+  border-radius: 50%;
+  background: radial-gradient(circle,rgba(203,213,225,.18),rgba(148,163,184,.05) 48%,transparent 72%);
+  box-shadow: 0 0 70px rgba(203,213,225,.08), inset 0 0 50px rgba(226,232,240,.06);
+  transition: transform .35s ease, opacity .35s ease;
+}
+.zikra-live-avatar.is-speaking .zikra-live-avatar-glow {
+  transform: scale(1.12);
+  opacity: 1;
+  animation: zikra-avatar-pulse 1.35s ease-in-out infinite alternate;
+}
+.zikra-live-avatar.is-listening .zikra-live-avatar-glow {
+  transform: scale(.96);
+  opacity: .72;
+}
+.zikra-live-avatar-label {
+  position: absolute;
+  z-index: 3;
+  left: 12px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  background: rgba(12,18,27,.72);
+  padding: 7px 12px;
+  color: #e2e8f0;
+  font-size: 10px;
+  font-weight: 800;
+  backdrop-filter: blur(12px);
+}
+.zikra-live-avatar-label small { color: #94a3b8; font-size: 9px; font-weight: 500; }
+.zikra-live-avatar-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+.zikra-live-avatar.is-speaking .zikra-live-avatar-dot {
+  background: #67e8f9;
+  box-shadow: 0 0 12px rgba(103,232,249,.9);
+  animation: zikra-dot-pulse .7s ease-in-out infinite alternate;
+}
+.zikra-live-avatar-loading,
+.zikra-live-avatar-error {
+  position: absolute;
+  z-index: 4;
+  color: #cbd5e1;
+  font-size: 11px;
+  text-align: center;
+}
+.zikra-live-avatar-loading.overlay { inset: auto 0 50%; transform: translateY(50%); }
+.zikra-live-avatar-error { border: 1px solid rgba(251,113,133,.2); border-radius: 12px; background: rgba(127,29,29,.28); padding: 10px; }
+.zikra-live-avatar-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 14px;
+  color: rgba(148,163,184,.55);
+  font-size: 8px;
+}
+@keyframes zikra-avatar-pulse { from { opacity: .62; } to { opacity: 1; } }
+@keyframes zikra-dot-pulse { from { transform: scale(.82); } to { transform: scale(1.2); } }
+@media (max-width: 640px) {
+  .zikra-live-avatar { height: 270px; max-width: 300px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zikra-live-avatar *, .zikra-live-avatar *::before { animation: none !important; transition: none !important; }
+}
+
+/* If a GLB has no skeletal talk clip, keep a restrained speaking cue on the model stage. */
+.zikra-live-avatar model-viewer { transform-origin: 50% 82%; }
+.zikra-live-avatar.is-speaking model-viewer {
+  animation: zikra-avatar-speaking 680ms ease-in-out infinite alternate;
+}
+@keyframes zikra-avatar-speaking {
+  from { transform: translateY(1px) scale(1); }
+  to { transform: translateY(-4px) scale(1.012); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zikra-live-avatar.is-speaking model-viewer { animation: none !important; }
+}

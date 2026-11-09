@@ -14,18 +14,16 @@ import { cn } from "@/lib/utils";
 export default function BottomNav({ profileId }: { profileId: string; unread?: number }) {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/lessons")) return null;
-
   const items = [
     { href: "/discovery", label: "Kashf", icon: DiscoverIcon },
     { href: "/videos", label: "Video", icon: VideoIcon },
     { href: "/reels", label: "Reels", icon: ReelsIcon },
     { href: "/chat", label: "Suhbat", icon: ChatIcon },
-    { href: "/lessons", label: "Rivojlanish", icon: LearnIcon },
+    { href: "/learn", label: "Rivojlanish", icon: LearnIcon },
   ];
 
   return (
-    <nav className="zikra-bottom-nav fixed inset-x-0 bottom-0 z-50 flex overflow-hidden rounded-t-[22px] border-t border-white/[0.08] bg-[#101114]/[0.97] pb-[calc(env(safe-area-inset-bottom)+6px)] shadow-[0_-14px_40px_-24px_rgba(0,0,0,0.85)] backdrop-blur-2xl md:hidden">
+    <nav className="zikra-bottom-nav fixed inset-x-2 bottom-2 z-40 flex overflow-hidden rounded-2xl border border-white/90 ring-1 ring-slate-500/25 bg-[linear-gradient(145deg,#f1f3f6_0%,#cbd1d9_24%,#aeb6c1_52%,#e7eaee_76%,#bcc4ce_100%)] pb-[calc(env(safe-area-inset-bottom)+6px)] shadow-[0_12px_34px_-12px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(71,85,105,0.2)] backdrop-blur-2xl md:hidden dark:border-white/90">
       {items.map((item) => {
         const active = item.href.startsWith("/profile")
           ? pathname.startsWith("/profile")
@@ -36,23 +34,23 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             key={item.href}
             href={item.href}
             className={cn(
-              "group relative flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5 pb-1 pt-2.5 transition-all duration-300",
-              active ? "text-emerald-400" : "text-slate-500 hover:text-slate-300"
+              "group relative flex flex-1 flex-col items-center gap-1 pb-2 pt-2.5 transition-all duration-300",
+              active ? "text-slate-950" : "text-slate-600 hover:text-slate-900"
             )}
           >
             {/* Aktiv indikator (yuqori chiziqcha) */}
             <span
               className={cn(
-                "absolute top-0 h-[3px] rounded-b-full bg-gradient-to-r from-brand to-success shadow-[0_3px_10px_rgba(11,155,136,0.45)] transition-all duration-300",
+                "absolute top-0 h-[3px] rounded-b-full bg-gradient-to-r from-slate-500 via-white to-slate-500 shadow-[0_2px_8px_rgba(71,85,105,0.5)] transition-all duration-300",
                 active ? "w-8 opacity-100" : "w-0 opacity-0"
               )}
             />
             {/* Ikonka + aktiv fon */}
             <span
               className={cn(
-                "flex h-8 w-11 items-center justify-center rounded-xl transition-all duration-300",
+                "flex h-8 w-12 items-center justify-center rounded-xl transition-all duration-300",
                 active
-                  ? "-translate-y-0.5 bg-white/[0.07] shadow-[0_8px_18px_-12px_rgba(11,155,136,0.65)]"
+                  ? "-translate-y-0.5 bg-gradient-to-b from-white via-slate-100 to-slate-300 shadow-[0_7px_16px_-8px_rgba(51,65,85,0.45)] ring-1 ring-white/90"
                   : "group-active:scale-95 group-active:bg-gray-100 dark:group-active:bg-white/5"
               )}
             >
@@ -60,7 +58,7 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
             </span>
             <span
               className={cn(
-                "max-w-full truncate text-[10px] tracking-[-0.01em] transition-all duration-300",
+                "text-[10px] tracking-[-0.01em] transition-all duration-300",
                 active ? "font-bold" : "font-medium"
               )}
             >

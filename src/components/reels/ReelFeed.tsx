@@ -40,7 +40,7 @@ export default function ReelFeed({ reels, me, initialIndex = 0 }: Props) {
   return (
     <div
       ref={scrollRef}
-      className="hide-scrollbar fixed inset-0 z-50 h-[100dvh] snap-y snap-mandatory overflow-y-scroll overscroll-none bg-black"
+      className="zikra-reels-silver hide-scrollbar fixed inset-0 z-50 h-[100dvh] snap-y snap-mandatory overflow-y-scroll overscroll-none bg-black"
     >
       {reels.map((reel) => (
         <ReelCard

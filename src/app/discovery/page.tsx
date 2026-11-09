@@ -73,7 +73,7 @@ export default async function DiscoveryPage() {
     .order("name");
 
   return (
-    <div className="min-h-screen">
+    <div className="zikra-silver min-h-screen">
       <Navbar />
       <main className="container-app py-8">
         <StoriesBar />

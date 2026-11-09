@@ -93,7 +93,7 @@ export default function NotificationsList({
   }
 
   return (
-    <div>
+    <div className="zikra-notifications-list">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Bildirishnomalar</h1>
@@ -104,7 +104,7 @@ export default function NotificationsList({
           )}
         </div>
         {unread > 0 && (
-          <button onClick={handleMarkAll} className="btn-outline text-sm">
+          <button onClick={handleMarkAll} className="zikra-silver-action btn-outline text-sm">
             Hammasini o&apos;qildim
           </button>
         )}
@@ -126,8 +126,8 @@ export default function NotificationsList({
                 className={cn(
                   "flex items-start gap-3 rounded-xl border p-4 transition",
                   n.is_read
-                    ? "border-gray-100 bg-white"
-                    : "border-brand-100 bg-brand-50/50"
+                    ? "border-slate-200 bg-white/90"
+                    : "border-slate-300 bg-slate-100/90"
                 )}
               >
                 <span className="text-xl">{ICON[n.type] ?? "🔔"}</span>
