@@ -32,8 +32,8 @@ export async function POST(request: Request) {
     .eq("user_id", user.id)
     .maybeSingle();
   if (profileError) {
-    console.error("[ai-tutor-live-profile]", profileError.message);
-    return NextResponse.json({ error: "AI Ustoz xotirasi jadvali tayyor emas. Supabase migratsiyasini ishga tushiring." }, { status: 503 });
+    // Keep live voice available even before the optional memory migration is applied.
+    console.warn("[ai-tutor-live-profile-unavailable]", profileError.message);
   }
   const history = Array.isArray(profile?.conversation_history) ? profile.conversation_history.slice(-12) : [];
   const memory = typeof profile?.memory_summary === "string" ? profile.memory_summary.slice(0, 3000) : "";
