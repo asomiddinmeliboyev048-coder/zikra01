@@ -67,6 +67,25 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   const playbackTimeRef = useRef(0);
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const readyRef = useRef(false);
+  const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
+
+  async function persistTurn(role: "user" | "assistant", content: string) {
+    const clean = content.trim().slice(0, 1200);
+    if (!clean) return;
+    const current = [...historyRef.current];
+    const last = current[current.length - 1];
+    if (last?.role === role) current[current.length - 1] = { role, content: clean };
+    else current.push({ role, content: clean });
+    historyRef.current = current.slice(-24);
+    try {
+      const response = await fetch("/api/ai-tutor/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedTrack: track, level, avatarId, conversationHistory: historyRef.current }),
+      });
+      if (!response.ok) console.warn("[zikra-ai-tutor-memory-save] Profile migration may not be applied yet.");
+    } catch (cause) { console.error("[zikra-ai-tutor-memory-save]", cause); }
+  }
 
   function stopPlayback() {
     activeSourcesRef.current.forEach((source) => { try { source.stop(); } catch { /* already stopped */ } });
@@ -138,9 +157,12 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
 
   async function startSession() {
     if (status === "connecting" || status === "live") return;
+    onListeningChange?.(false);
+    onVoiceLevelChange?.(0);
     setStatus("connecting");
     setError("");
     setCaption("Mikrofon va Gemini Live ulanmoqda…");
+    let setupTimeout: ReturnType<typeof setTimeout> | undefined;
     try {
       let savedMemory = "";
       try {
@@ -168,11 +190,22 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
       const tokenPayload = await tokenResponse.json();
       if (!tokenResponse.ok) throw new Error(tokenPayload.error || "Gemini Live token olinmadi.");
 
+      historyRef.current = Array.isArray(tokenPayload.context?.conversationHistory) ? tokenPayload.context.conversationHistory.slice(-24) : [];
+      if (tokenPayload.context?.memorySummary) savedMemory += " Qo‘shimcha xotira: " + String(tokenPayload.context.memorySummary) + ".";
+      const historyPrompt = historyRef.current.slice(-10).map((item) => (item.role === "user" ? "O‘quvchi" : "Ustoz") + ": " + item.content).join(" | ");
       const context = new AudioContext();
       contextRef.current = context;
       await context.resume();
       const socket = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tokenPayload.token));
       socketRef.current = socket;
+      setupTimeout = setTimeout(() => {
+        if (!readyRef.current && socket.readyState !== WebSocket.CLOSED) {
+          console.error("[zikra-gemini-live-timeout] setup did not complete within 15 seconds");
+          setError("Gemini Live 15 soniya ichida sessiyani tayyorlamadi. Model ruxsati va token sozlamasini tekshirish kerak.");
+          setStatus("error");
+          socket.close(4000, "setup timeout");
+        }
+      }, 15000);
 
       socket.onopen = () => {
         socket.send(JSON.stringify({
@@ -180,7 +213,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             model: tokenPayload.model || "models/gemini-3.8-live",
             generationConfig: {
               responseModalities: ["AUDIO"],
-              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: tokenPayload.voiceName || voiceName } } },
             },
             inputAudioTranscription: {},
             outputAudioTranscription: {},
@@ -195,10 +228,15 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
         try {
           const message = JSON.parse(typeof event.data === "string" ? event.data : await event.data.text()) as LiveMessage;
           if (message.error?.message) {
+            onListeningChange?.(false);
+            console.error("[zikra-gemini-live-server-error]", message.error);
+            setStatus("error");
             setError("Gemini Live: " + message.error.message);
+            onAvatarSpeakingChange?.(false);
             return;
           }
           if (message.setupComplete) {
+            if (setupTimeout) clearTimeout(setupTimeout);
             readyRef.current = true;
             const source = context.createMediaStreamSource(mic);
             const processor = context.createScriptProcessor(4096, 1, 1);
@@ -218,25 +256,42 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             onListeningChange?.(true);
             onMoodChange?.("idle");
             setCaption("" + tutorName + " sizni tinglayapti…");
-            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Suhbatni boshlang. Foydalanuvchining shaxsiy yo‘l xaritasi va oldingi natijalarini hisobga olib, takrorlanmagan tabiiy kirish bilan gap boshlang. Tanlangan ko‘nikmaga oid darajaga mos bitta savol yoki kichik mashq bering. Har doim bir xil salomlashuvni ishlatmang." }] }], turnComplete: true } }));
+            const openingStyles = [
+              "Bugungi kayfiyatga mos, quvnoq va qisqa salom bilan boshlang.",
+              "Oldingi darsdan tabiiy davom eting; yangi o‘quvchi bo‘lsa, iliq tanishing.",
+              "Yengil, o‘rinli hazil bilan kirish qiling, keyin foydali mashqqa o‘ting.",
+              "Darajaga mos qiziqarli savol bilan suhbatni oching.",
+              "Avvalgi natijani eslab, yangi kichik maqsad taklif qiling."
+            ];
+            const openingStyle = openingStyles[Math.floor(Math.random() * openingStyles.length)];
+            const hasHistory = historyRef.current.length > 0;
+            const openingPrompt = "Suhbatni boshlang. " + openingStyle + " " +
+              (hasHistory
+                ? "Bu qaytib kelgan o‘quvchi: xotiradagi kurs, daraja va oxirgi mashqni hisobga oling, avvalgi salom yoki savolni takrorlamang."
+                : "Bu yangi suhbat: kursi va darajasiga mos tabiiy, shaxsiy salom ayting.") +
+              " O‘zbek tilida gapiring, tanlangan ko‘nikma bo‘yicha darajaga mos bitta savol bering. Har safar bir xil kirish gapini ishlatmang.";
+            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: openingPrompt }] }], turnComplete: true } }));
           }
           const inputText = message.inputTranscription?.text || message.serverContent?.inputTranscription?.text;
           const outputText = message.outputTranscription?.text || message.serverContent?.outputTranscription?.text;
           if (inputText) {
             onListeningChange?.(true);
             onMoodChange?.(inferTutorMood(inputText));
+            void persistTurn("user", inputText);
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "user", content: inputText }) });
             setCaption("Sizni tinglayapman…");
+            onListeningChange?.(true);
           }
           if (outputText) {
             const detectedMood = inferTutorMood(outputText);
             onMoodChange?.(detectedMood === "idle" ? "speaking" : detectedMood);
+            void persistTurn("assistant", outputText);
             void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "assistant", content: outputText }) });
             setCaption("" + tutorName + " gapiryapti…");
           }
-          if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); }
+          if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); onListeningChange?.(true); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
-            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
+            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); onMoodChange?.("speaking"); playPcm(part.inlineData.data); }
             if (part.text) setCaption("" + tutorName + ": " + part.text);
           }
           if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); setCaption("" + tutorName + " sizni tinglayapti…"); }
@@ -251,7 +306,11 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
         setError("Gemini Live WebSocket ulanishida xatolik. Token yoki Live API endpointini tekshiring.");
       };
       socket.onclose = (event) => {
+        if (setupTimeout) clearTimeout(setupTimeout);
         readyRef.current = false;
+        onAvatarSpeakingChange?.(false);
+        onListeningChange?.(false);
+        onVoiceLevelChange?.(0);
         if (event.code !== 1000) {
           console.error("[zikra-gemini-live-close]", { code: event.code, reason: event.reason, wasClean: event.wasClean });
           setStatus("error");
