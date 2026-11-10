@@ -62,7 +62,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   const socketRef = useRef<WebSocket | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const contextRef = useRef<AudioContext | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const processorRef = useRef<AudioWorkletNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const playbackTimeRef = useRef(0);
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
@@ -239,14 +239,15 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             if (setupTimeout) clearTimeout(setupTimeout);
             readyRef.current = true;
             const source = context.createMediaStreamSource(mic);
-            const processor = context.createScriptProcessor(4096, 1, 1);
+            await context.audioWorklet.addModule("/audio/pcm-capture-processor.js");
+            const processor = new AudioWorkletNode(context, "zikra-pcm-capture");
             const silentGain = context.createGain();
             silentGain.gain.value = 0;
             sourceRef.current = source;
             processorRef.current = processor;
-            processor.onaudioprocess = (audioEvent) => {
+            processor.port.onmessage = (audioEvent: MessageEvent<Float32Array>) => {
               if (!readyRef.current || muted || socket.readyState !== WebSocket.OPEN) return;
-              const pcm = floatToPcm16(audioEvent.inputBuffer.getChannelData(0), context.sampleRate);
+              const pcm = floatToPcm16(audioEvent.data, context.sampleRate);
               socket.send(JSON.stringify({ realtimeInput: { audio: { mimeType: "audio/pcm;rate=16000", data: toBase64(new Uint8Array(pcm.buffer)) } } }));
             };
             source.connect(processor);
