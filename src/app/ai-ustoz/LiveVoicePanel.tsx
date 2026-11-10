@@ -66,6 +66,9 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const playbackTimeRef = useRef(0);
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
+  const playbackAnalyserRef = useRef<AnalyserNode | null>(null);
+  const playbackFrameRef = useRef<number | null>(null);
+  const playbackDataRef = useRef<Uint8Array | null>(null);
   const readyRef = useRef(false);
   const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
 
@@ -90,7 +93,10 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   function stopPlayback() {
     activeSourcesRef.current.forEach((source) => { try { source.stop(); } catch { /* already stopped */ } });
     activeSourcesRef.current = [];
+    if (playbackFrameRef.current !== null) cancelAnimationFrame(playbackFrameRef.current);
+    playbackFrameRef.current = null;
     playbackTimeRef.current = contextRef.current?.currentTime || 0;
+    onVoiceLevelChange?.(0);
   }
 
   function closeSession() {
@@ -139,20 +145,54 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
     }
     const buffer = context.createBuffer(1, samples.length, 24000);
     const channel = buffer.getChannelData(0);
-    let energy = 0;
-    for (let i = 0; i < samples.length; i++) {
-      channel[i] = samples[i] / 32768;
-      energy += channel[i] * channel[i];
+    for (let i = 0; i < samples.length; i++) channel[i] = samples[i] / 32768;
+    if (!playbackAnalyserRef.current) {
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.72;
+      analyser.connect(context.destination);
+      playbackAnalyserRef.current = analyser;
+      playbackDataRef.current = new Uint8Array(analyser.fftSize);
     }
-    onVoiceLevelChange?.(Math.min(1, Math.sqrt(energy / Math.max(1, samples.length)) * 5.5));
+    const analyser = playbackAnalyserRef.current;
     const source = context.createBufferSource();
     source.buffer = buffer;
-    source.connect(context.destination);
+    source.connect(analyser);
+    if (playbackFrameRef.current === null) {
+      const animateMouth = () => {
+        const data = playbackDataRef.current;
+        const active = activeSourcesRef.current.length > 0;
+        if (!data || !analyser || !active) {
+          playbackFrameRef.current = null;
+          onVoiceLevelChange?.(0);
+          return;
+        }
+        analyser.getByteTimeDomainData(data);
+        let energy = 0;
+        for (let i = 0; i < data.length; i++) {
+          const sample = (data[i] - 128) / 128;
+          energy += sample * sample;
+        }
+        const rms = Math.sqrt(energy / data.length);
+        const level = Math.max(0, Math.min(1, (rms - 0.012) * 5.2));
+        onVoiceLevelChange?.(level);
+        playbackFrameRef.current = requestAnimationFrame(animateMouth);
+      };
+      playbackFrameRef.current = requestAnimationFrame(animateMouth);
+    }
     const startAt = Math.max(context.currentTime + 0.025, playbackTimeRef.current);
     source.start(startAt);
     playbackTimeRef.current = startAt + buffer.duration;
     activeSourcesRef.current.push(source);
-    source.onended = () => { activeSourcesRef.current = activeSourcesRef.current.filter((item) => item !== source); };
+    source.onended = () => {
+      activeSourcesRef.current = activeSourcesRef.current.filter((item) => item !== source);
+      if (activeSourcesRef.current.length === 0) {
+        onAvatarSpeakingChange?.(false);
+        onVoiceLevelChange?.(0);
+        onMoodChange?.("idle");
+        onListeningChange?.(true);
+      }
+    };
   }
 
   async function startSession() {
@@ -295,7 +335,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); onMoodChange?.("speaking"); playPcm(part.inlineData.data); }
             if (part.text) setCaption("" + tutorName + ": " + part.text);
           }
-          if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); setCaption("" + tutorName + " sizni tinglayapti…"); }
+          if (message.serverContent?.turnComplete) { if (activeSourcesRef.current.length === 0) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); } setCaption("" + tutorName + " sizni tinglayapti…"); }
         } catch (cause) {
           console.error("[zikra-gemini-live-message]", cause);
         }
