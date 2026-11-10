@@ -69,6 +69,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
   const playbackAnalyserRef = useRef<AnalyserNode | null>(null);
   const playbackFrameRef = useRef<number | null>(null);
   const playbackDataRef = useRef<Uint8Array | null>(null);
+  const mouthEnvelopeRef = useRef(0);
   const readyRef = useRef(false);
   const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
 
@@ -96,6 +97,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
     if (playbackFrameRef.current !== null) cancelAnimationFrame(playbackFrameRef.current);
     playbackFrameRef.current = null;
     playbackTimeRef.current = contextRef.current?.currentTime || 0;
+    mouthEnvelopeRef.current = 0;
     onVoiceLevelChange?.(0);
   }
 
@@ -174,7 +176,12 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           energy += sample * sample;
         }
         const rms = Math.sqrt(energy / data.length);
-        const level = Math.max(0, Math.min(1, (rms - 0.012) * 5.2));
+        const target = Math.max(0, Math.min(1, (rms - 0.009) * 7.0));
+        // Smooth the envelope so the mouth follows syllables without rapid jitter.
+        const previous = mouthEnvelopeRef.current;
+        const smoothing = target > previous ? 0.24 : 0.10;
+        const level = previous + (target - previous) * smoothing;
+        mouthEnvelopeRef.current = level;
         onVoiceLevelChange?.(level);
         playbackFrameRef.current = requestAnimationFrame(animateMouth);
       };
