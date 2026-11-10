@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 
-type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry";
+type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry" | "skeptical";
 type Props = { speaking: boolean; listening: boolean; voiceLevel: number; mood: Mood };
 
 export default function ExpressiveTutorFace({ speaking, listening, voiceLevel, mood }: Props) {
