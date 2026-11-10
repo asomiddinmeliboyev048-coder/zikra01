@@ -9,7 +9,7 @@ import "./studio.css";
 
 type Track = "english" | "russian" | "uzbek" | "coding" | "cyber";
 type AvatarId = "teacher" | "student";
-type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry";
+type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry" | "skeptical";
 type ViewerElement = HTMLElement & {
   availableAnimations?: string[];
   animationName?: string;
@@ -109,7 +109,7 @@ export default function AiTutorStudioPage() {
     const talk = animations.find((name) => /talk|speak|speech|conversation|gesture/i.test(name));
     const gesture = animations.find((name) => /think|look|explain|gesture/i.test(name));
     const selected = mood === "speaking" ? (talk || idle)
-      : mood === "thinking" || mood === "surprised" || mood === "amused" || mood === "playful-angry" ? (gesture || talk || idle)
+      : mood === "thinking" || mood === "surprised" || mood === "amused" || mood === "playful-angry" || mood === "skeptical" ? (gesture || talk || idle)
       : idle;
     if (selected && viewer.animationName !== selected) {
       viewer.animationName = selected;
