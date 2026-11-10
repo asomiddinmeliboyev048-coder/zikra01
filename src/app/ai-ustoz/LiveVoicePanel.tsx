@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Phone, PhoneOff, Radio, Volume2 } from "lucide-react";
 
 type Track = "english" | "russian" | "uzbek" | "coding" | "cyber";
-type Props = { track: Track; level: string; avatarId?: "teacher" | "student"; onAvatarSpeakingChange?: (speaking: boolean) => void; onListeningChange?: (listening: boolean) => void; onVoiceLevelChange?: (level: number) => void; onMoodChange?: (mood: "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry") => void };
+type Props = { track: Track; level: string; avatarId?: "teacher" | "student"; onAvatarSpeakingChange?: (speaking: boolean) => void; onListeningChange?: (listening: boolean) => void; onVoiceLevelChange?: (level: number) => void; onMoodChange?: (mood: "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry" | "skeptical") => void };
 type LiveMessage = {
   setupComplete?: Record<string, unknown>;
   inputTranscription?: { text?: string };
@@ -34,12 +34,27 @@ function floatToPcm16(input: Float32Array, inputRate: number, outputRate = 16000
   return pcm;
 }
 
-function inferTutorMood(text: string): "idle" | "thinking" | "amused" | "surprised" | "playful-angry" {
+function inferTutorMood(text: string): "idle" | "thinking" | "amused" | "surprised" | "playful-angry" | "skeptical" {
   const value = text.toLowerCase();
   if (/(😂|🤣|haha|hazil|kulgili|kulib|kulma)/i.test(value)) return "amused";
   if (/(jahlim|jahl|qattiqqo‘l|ustimdan kul|xafa bo‘ldim|ranjidim)/i.test(value)) return "playful-angry";
   if (/(voy|rostdanmi|hayrat|nimaaa|ajab|seriously|really\?)/i.test(value)) return "surprised";
   if (/(hmm|o‘ylab ko‘ray|bir daqiqa|qiziq savol|let me think)/i.test(value)) return "thinking";
+  if (/(ishonching komilmi|shubhali|aniqmi)/i.test(value)) return "skeptical";
+  return "idle";
+}
+
+type ZiyoEmotion = "neutral" | "angry" | "happy" | "skeptical";
+type ZiyoState = "talking" | "idle";
+function parseZiyoResponse(raw: string): { emotion: ZiyoEmotion | null; state: ZiyoState | null; text: string } {
+  const emotionMatch = raw.match(/\[emotion:(neutral|angry|happy|skeptical)\]/i);
+  const stateMatch = raw.match(/\[state:(talking|idle)\]/i);
+  return { emotion: (emotionMatch?.[1]?.toLowerCase() as ZiyoEmotion | undefined) || null, state: (stateMatch?.[1]?.toLowerCase() as ZiyoState | undefined) || null, text: raw.replace(/\[(?:emotion|state):[^\]]+\]/gi, "").trim() };
+}
+function emotionToMood(emotion: ZiyoEmotion): "idle" | "amused" | "playful-angry" | "skeptical" {
+  if (emotion === "happy") return "amused";
+  if (emotion === "angry") return "playful-angry";
+  if (emotion === "skeptical") return "skeptical";
   return "idle";
 }
 
@@ -185,7 +200,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             inputAudioTranscription: {},
             outputAudioTranscription: {},
             systemInstruction: {
-              parts: [{ text: "Sen Zikra AI Ustoz — " + tutorName + " ismli samimiy, topqir, hazilkash va talabchan " + (avatarId === "teacher" ? "erkak" : "ayol") + " murabbiysan. Ovoz tembring tanlangan ustozga mos bo‘lsin. Tanlangan ko‘nikma: " + ({ english: "ingliz tili", russian: "rus tili", uzbek: "o‘zbek tili", coding: "dasturlash", cyber: "kiberxavfsizlik" } as Record<Track, string>)[track] + ". Daraja: " + level + ". O‘quvchining shaxsiy yo‘l xaritasi va oldingi suhbatlari: " + savedMemory + ". Aynan shu yo‘l xaritasidagi ko‘nikma va maqsadlar bo‘yicha dars ber; boshqa kursga o‘tma. Ingliz, rus yoki o‘zbek tilini o‘rgatganda mashqni tanlangan tilda ber, izoh va xatolar tahlilini o‘zbekcha qil. Dasturlash va kiberxavfsizlikda amaliy, xavfsiz misollar ishlat. Bir vaqtda bitta savol ber va javobni kut. Har safar bir xil salomlashma bilan boshlama: foydalanuvchining darajasi, oldingi darsi va oxirgi qiyinchiligiga qarab tabiiy, yangi boshlanish tanla. O‘rinli aqlli hazil qil. Foydalanuvchi hazillashsa, ba’zan kulib, hayron bo‘lib yoki yengil jahli chiqqandek hazilomuz munosabat bildir; hech qachon haqorat qilma. Ovoz ohangingni savol, hazil, rag‘bat va tushuntirishga mos o‘zgartir. O‘zingni AI ekaningni yashirma." }],
+              parts: [{ text: "Sen Zikra AI Ustoz — ${tutorName} ismli samimiy, jonli, hissiyotli, hazilkash va biroz talabchan shaxsiy AI murabbiysan. O‘quvchining xatolarini yumshoq kinoya bilan ko‘rsat, lekin hech qachon kamsitma yoki haqorat qilma; doimo to‘g‘ri javobni o‘rgat. Vaziyatga qarab quvon, hayron bo‘l, shubhalan yoki hazilomuz jiddiylash. Javoblaring qisqa, tabiiy va og‘zaki uslubda bo‘lsin. HAR BIR javobing boshida aynan bitta emotsiya tegi va bitta holat tegi bo‘lsin: [emotion:neutral], [emotion:angry], [emotion:happy] yoki [emotion:skeptical] ichidan bittasi va [state:talking] yoki [state:idle] ichidan bittasi. Format aynan [emotion:happy][state:talking] kabi bo‘lsin. Gapirayotgan javobda state:talking ishlat. Teglar avatar boshqaruvi uchun metadata: ularni ovoz chiqarib aytma, talaffuz qilma, izohlamа va foydalanuvchiga ko‘rinadigan matnga qo‘shma. Teglardan keyin faqat tabiiy gapni ayt. Tanlangan ko‘nikma: ({ english: 'ingliz tili', russian: 'rus tili', uzbek: 'o‘zbek tili', coding: 'dasturlash', cyber: 'kiberxavfsizlik' } as Record<Track, string>)[track]; daraja: ${level}. O‘quvchining shaxsiy yo‘l xaritasi va oldingi suhbatlari: ${savedMemory}. Shu yo‘l xaritasi bo‘yicha dars ber, boshqa kursga o‘tma. Til darslarida mashqni tanlangan tilda ber, izoh va xatolar tahlilini o‘zbekcha qil. Dasturlash va kiberxavfsizlikda amaliy, xavfsiz misollar ishlat. Bir vaqtda bitta savol ber va javobni kut. Har safar bir xil salomlashma bilan boshlama. O‘rinli aqlli hazil qil. O‘zingni AI ekaningni yashirma." }],,
             },
           },
         }));
@@ -229,15 +244,17 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             setCaption("Sizni tinglayapman…");
           }
           if (outputText) {
-            const detectedMood = inferTutorMood(outputText);
+            const parsed = parseZiyoResponse(outputText);
+            const detectedMood = parsed.emotion ? emotionToMood(parsed.emotion) : inferTutorMood(parsed.text);
             onMoodChange?.(detectedMood === "idle" ? "speaking" : detectedMood);
-            void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "assistant", content: outputText }) });
+            if (parsed.state === "talking") { onAvatarSpeakingChange?.(true); onListeningChange?.(false); }
+            void fetch("/api/ai-tutor/transcript", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "live", track, role: "assistant", content: parsed.text }) });
             setCaption("" + tutorName + " gapiryapti…");
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
             if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
-            if (part.text) setCaption("" + tutorName + ": " + part.text);
+            if (part.text) { const parsed = parseZiyoResponse(part.text); if (parsed.emotion) onMoodChange?.(emotionToMood(parsed.emotion)); if (parsed.state === "talking") { onAvatarSpeakingChange?.(true); onListeningChange?.(false); } if (parsed.text) setCaption("" + tutorName + ": " + parsed.text); }
           }
           if (message.serverContent?.turnComplete) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); setCaption("" + tutorName + " sizni tinglayapti…"); }
         } catch (cause) {
