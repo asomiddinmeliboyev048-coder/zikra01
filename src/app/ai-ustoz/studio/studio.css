@@ -293,3 +293,28 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
   .stage-simulator .expressive-eyes i{min-height:18px}
   .stage-simulator.expressive-surprised .expressive-eyes i{min-height:25px}
 }
+
+/* Ziyo v2: larger awake eyes, expressive pupils and distinct mood silhouettes. */
+.expressive-tutor .expressive-eyes{top:38%;left:19%;width:62%;align-items:center;transition:transform .24s ease,top .24s ease}
+.expressive-tutor .expressive-eyes i{position:relative;display:block;width:31%;height:15%;min-height:34px;overflow:visible;border-radius:48% 48% 44% 44%;background:linear-gradient(180deg,#fff 0%,#f5f8fc 72%,#d9e3ee 100%);box-shadow:0 2px 8px #101b2b35,inset 0 -2px 4px #aab9ca;animation:ziyo-natural-blink 6.2s infinite;transform-origin:center;transition:height .22s ease,width .22s ease,border-radius .22s ease,background .22s ease}
+.expressive-tutor .expressive-eyes i+ i{animation-delay:.16s}
+.expressive-tutor .expressive-eyes i::after{content:"";position:absolute;left:50%;top:52%;width:43%;height:64%;border-radius:50%;background:radial-gradient(circle at 34% 26%,#a8c9ed 0 9%,#527ba9 20%,#1b3554 57%,#0b1728 100%);box-shadow:0 0 0 1px #10233c25;transform:translate(-50%,-45%);transition:transform .22s ease,width .22s ease,height .22s ease}
+.expressive-tutor .expressive-eyes i::before{content:"";position:absolute;z-index:2;left:59%;top:32%;width:13%;height:18%;border-radius:50%;background:#fff;box-shadow:0 0 4px #fff9;transform:translate(-50%,-50%)}
+@keyframes ziyo-natural-blink{0%,42%,46%,100%{transform:scaleY(1)}44%{transform:scaleY(.12)}}
+.expressive-tutor.expressive-idle .expressive-eyes i,.expressive-tutor.expressive-listening .expressive-eyes i,.expressive-tutor.expressive-speaking .expressive-eyes i{height:15%;min-height:34px}
+.expressive-tutor.expressive-surprised .expressive-eyes i{height:21%;min-height:45px;width:33%;border-radius:50%}
+.expressive-tutor.expressive-amused .expressive-eyes i{height:9px;min-height:9px;width:31%;border-radius:50% 50% 65% 65%;background:#263445;box-shadow:none}
+.expressive-tutor.expressive-amused .expressive-eyes i::before,.expressive-tutor.expressive-amused .expressive-eyes i::after{display:none}
+.expressive-tutor.expressive-thinking .expressive-eyes{transform:translateY(-3px) scale(.96)}
+.expressive-tutor.expressive-skeptical .expressive-eyes i:first-child{height:10%;min-height:23px}
+.expressive-tutor.expressive-skeptical .expressive-eyes i+ i{height:17%;min-height:37px}
+.expressive-tutor.expressive-playful-angry .expressive-eyes i{height:12%;min-height:29px;border-radius:35% 35% 48% 48%;background:linear-gradient(180deg,#fff4f2,#ffd9d5);box-shadow:0 0 12px #ff3b3b30}
+.expressive-tutor.expressive-playful-angry .expressive-eyes i::after{background:radial-gradient(circle at 35% 25%,#9bb4d2,#29364a 58%,#111a28)}
+.expressive-tutor.expressive-amused .expressive-mouth{height:13%;min-height:13px;border-radius:8px 8px 48% 48%}
+.expressive-tutor.expressive-playful-angry .expressive-head{border-color:#ff6666;box-shadow:0 0 0 7px #ff45451c,0 0 42px #ff29294f,inset 0 0 34px #ff38381c}
+.expressive-tutor.expressive-playful-angry .expressive-head::before,.expressive-tutor.expressive-playful-angry .expressive-head::after{content:"";position:absolute;z-index:4;top:-12%;width:19%;height:27%;background:linear-gradient(0deg,#ff3c19 0%,#ffb12b 48%,#fff0a8 78%,transparent 100%);filter:drop-shadow(0 0 9px #ff4b19);opacity:.95;clip-path:polygon(50% 0,68% 38%,100% 58%,70% 100%,28% 83%,0 48%,35% 40%);animation:ziyo-flame .42s ease-in-out infinite alternate;transform-origin:bottom center;pointer-events:none}
+.expressive-tutor.expressive-playful-angry .expressive-head::before{left:22%;transform:rotate(-12deg)}
+.expressive-tutor.expressive-playful-angry .expressive-head::after{right:22%;height:22%;animation-delay:.2s}
+@keyframes ziyo-flame{from{transform:translateY(2px) scale(.88) rotate(-4deg)}to{transform:translateY(-5px) scale(1.08) rotate(5deg)}}
+.expressive-tutor.expressive-playful-angry .expressive-nameplate{border-color:#ff666688;color:#ffdada}
+@media(max-width:680px){.expressive-tutor .expressive-eyes i{min-height:27px}.expressive-tutor.expressive-surprised .expressive-eyes i{min-height:36px}}
