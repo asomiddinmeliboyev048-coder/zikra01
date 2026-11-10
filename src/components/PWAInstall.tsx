@@ -23,7 +23,7 @@ export default function PWAInstall() {
     }
 
     const handler = (event: Event) => {
-      event.preventDefault();
+      // Let the browser handle its native install UI; do not cancel it without prompting.
       window.__zikraBIP = event as BeforeInstallPromptEvent;
     };
     const installed = () => { window.__zikraBIP = undefined; };
