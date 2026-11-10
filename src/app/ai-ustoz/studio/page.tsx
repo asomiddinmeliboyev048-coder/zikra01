@@ -26,7 +26,7 @@ const trackNames: Record<Track, string> = {
   cyber: "Kiberxavfsizlik",
 };
 const avatars: { id: AvatarId; name: string; role: string; description: string; voice: string; src?: string }[] = [
-  { id: "teacher", name: "Ziyo", role: "Erkak ovozli AI ustoz", description: "Jonli, ifodali simulyator", voice: "Puck" },
+  { id: "teacher", name: "Ziyo", role: "Erkak ovozli 3D AI ustoz", description: "Jonli animatsiyali 3D avatar", voice: "Puck", src: "/models/teacher_joe.glb" },
   { id: "student", name: "Ziyra", role: "Ayol ovozli 3D ustoz", description: "Harakatlanuvchi 3D qahramon", voice: "Kore", src: "/models/school_girl_v21.glb" },
 ];
 const ModelViewer = "model-viewer" as unknown as ComponentType<Record<string, unknown>>;
@@ -77,7 +77,7 @@ export default function AiTutorStudioPage() {
   }, []);
 
   useEffect(() => {
-    if (!started || avatarId !== "student" || !scriptReady) return;
+    if (!started || !scriptReady) return;
     const viewer = viewerRef.current;
     if (!viewer) return;
     const onLoad = () => {
@@ -102,7 +102,7 @@ export default function AiTutorStudioPage() {
   }, [started, avatarId, scriptReady]);
 
   useEffect(() => {
-    if (avatarId !== "student") return;
+    if (!avatar.src) return;
     const viewer = viewerRef.current;
     if (!viewer || !loaded) return;
     const idle = animations.find((name) => /idle|stand|breath/i.test(name)) || animations[0];
@@ -188,7 +188,7 @@ export default function AiTutorStudioPage() {
 
   return (
     <main className="zikra-studio zikra-studio-immersive">
-      {avatarId === "student" && <Script
+      {<Script
         src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
         type="module"
         strategy="afterInteractive"
@@ -204,14 +204,12 @@ export default function AiTutorStudioPage() {
       </header>
 
       <section className="studio-layout studio-layout-single">
-        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} ${avatarId === "teacher" ? "stage-simulator" : "stage-girl"}`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
+        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} stage-girl`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
           <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : avatarId === "teacher" || loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
-          {avatarId === "teacher" ? (
-            <ExpressiveTutorFace speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood}/>
-          ) : (
+          {(
             <>
               {scriptReady ? createElement(ModelViewer, {
                 ref: (node: ViewerElement | null) => { viewerRef.current = node; },
