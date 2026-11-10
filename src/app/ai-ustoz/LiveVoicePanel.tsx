@@ -232,6 +232,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           const contextPayload = await contextResponse.json();
           const profile = contextPayload.profile;
           const plan = contextPayload.learningPlan;
+          studentName = String(profile?.full_name || profile?.display_name || profile?.name || profile?.username || "").trim().slice(0, 48);
           if (profile) savedMemory += " Foydalanuvchining maqsadi: " + (profile.learning_goal || "ko‘rsatilmagan") + ". Oxirgi mavzusi: " + (profile.focus_topic || "hali belgilanmagan") + ". Avvalgi o‘quv xulosasi: " + (profile.memory_summary || "hali yo‘q") + ".";
           if (plan) savedMemory += " Zikra o‘quv rejasi: " + (plan.skill_name || track) + "; maqsad: " + (plan.purpose || "ko‘rsatilmagan") + "; daraja: " + (plan.current_level || level) + "; maqsadli daraja: " + (plan.target_level || "ko‘rsatilmagan") + "; kunlik vaqt: " + (plan.daily_minutes || "ko‘rsatilmagan") + " daqiqa; uslub: " + (plan.learning_style || "aralash") + "; qiziqishlar: " + (Array.isArray(plan.interests) ? plan.interests.join(", ") : "ko‘rsatilmagan") + ".";
           const recent = Array.isArray(contextPayload.messages) ? contextPayload.messages.slice(-12) : [];
