@@ -90,7 +90,7 @@ export default function AiTutorStudioPage() {
     };
     const onError = () => {
       setLoaded(false);
-      setModelError("Ziyra 3D modeli yuklanmadi. GLB fayl manzilini tekshiring.");
+      setModelError("3D ustoz modeli yuklanmadi. GLB fayl manzilini tekshiring.");
     };
     viewer.addEventListener("load", onLoad);
     viewer.addEventListener("error", onError);
@@ -163,9 +163,9 @@ export default function AiTutorStudioPage() {
             <button type="button" className={`tutor-choice-card ${avatarId === "teacher" ? "selected" : ""}`} onClick={() => setAvatarId("teacher")}>
               <span className="choice-check">{avatarId === "teacher" && <Check size={17}/>}</span>
               <div className="choice-simulator-preview"><ExpressiveTutorFace speaking={false} listening={false} voiceLevel={0} mood="idle"/></div>
-              <span className="choice-name">Ziyo · Simulyator</span>
-              <span className="choice-role">Erkak ovozi · jonli mimika</span>
-              <span className="choice-description">Ko‘z pirpirashi, gapga mos og‘iz harakati va kayfiyat animatsiyalari.</span>
+              <span className="choice-name">Ziyo · 3D ustoz</span>
+              <span className="choice-role">Erkak ovozi · jonli 3D animatsiya</span>
+              <span className="choice-description">Haqiqiy 3D model, tabiiy tana harakatlari va suhbat holatiga mos animatsiyalar.</span>
             </button>
             <button type="button" className={`tutor-choice-card ${avatarId === "student" ? "selected" : ""}`} onClick={() => setAvatarId("student")}>
               <span className="choice-check">{avatarId === "student" && <Check size={17}/>}</span>
@@ -205,7 +205,7 @@ export default function AiTutorStudioPage() {
 
       <section className="studio-layout studio-layout-single">
         <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} stage-girl`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
-          <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : avatarId === "teacher" || loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
+          <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
@@ -214,7 +214,7 @@ export default function AiTutorStudioPage() {
               {scriptReady ? createElement(ModelViewer, {
                 ref: (node: ViewerElement | null) => { viewerRef.current = node; },
                 src: avatar.src,
-                alt: "Ziyra ayol 3D AI ustoz",
+                alt: avatarId === "teacher" ? "Ziyo erkak 3D AI ustoz" : "Ziyra ayol 3D AI ustoz",
                 "camera-orbit": "0deg 78deg 2.7m",
                 "field-of-view": "28deg",
                 "min-camera-orbit": "auto auto 2.7m",
@@ -230,8 +230,8 @@ export default function AiTutorStudioPage() {
                 autoplay: true,
                 ar: false,
                 style: { width: "100%", height: "100%", background: "transparent", pointerEvents: "none" },
-              }) : <div className="stage-loading"><span className="studio-spinner"/><p>Ziyra tayyorlanmoqda…</p></div>}
-              {!loaded && !modelError && <div className="stage-loading stage-loading-overlay"><span className="studio-spinner"/><p>3D avatar yuklanmoqda…</p></div>}
+              }) : <div className="stage-loading"><span className="studio-spinner"/><p>3D ustoz tayyorlanmoqda…</p></div>}
+              {!loaded && !modelError && <div className="stage-loading stage-loading-overlay"><span className="studio-spinner"/><p>3D ustoz yuklanmoqda…</p></div>}
               {modelError && <div className="stage-error"><b>3D model xatosi</b><p>{modelError}</p><small>{avatar.src}</small></div>}
             </>
           )}
