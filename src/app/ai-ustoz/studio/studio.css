@@ -211,3 +211,85 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 .expressive-skeptical .expressive-head{animation:ziyo-skeptical .8s ease-in-out 1}
 @keyframes ziyo-laugh{0%,100%{transform:translateY(0)}35%{transform:translateY(-4px) rotate(-1deg)}70%{transform:translateY(0) rotate(1deg)}}
 @keyframes ziyo-skeptical{0%,100%{transform:translateY(0) rotate(0)}35%{transform:translateY(-3px) rotate(-2deg)}70%{transform:translateY(0) rotate(1deg)}}
+
+
+/* Ziyo awake-eye redesign: larger open eyes with visible irises and pupils. */
+.stage-simulator .expressive-eyes{
+  top:40%;
+  left:22%;
+  width:56%;
+  align-items:center;
+}
+.stage-simulator .expressive-eyes i{
+  position:relative;
+  display:block;
+  width:27%;
+  height:8%;
+  min-height:22px;
+  overflow:visible;
+  border-radius:50%;
+  background:linear-gradient(180deg,#fff 0%,#edf4fb 100%);
+  box-shadow:0 1px 5px #18283b35,inset 0 -2px 3px #b7c7d8;
+  animation:expressive-blink 5.8s infinite;
+  transform-origin:center;
+}
+.stage-simulator .expressive-eyes i+ i{animation-delay:.14s}
+.stage-simulator .expressive-eyes i::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:34%;
+  height:58%;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 28%,#8299b4 0 12%,#26384e 35%,#101923 78%);
+  box-shadow:0 0 0 1px #14223522;
+  transform:translate(-50%,-42%);
+}
+.stage-simulator .expressive-eyes i::before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  left:55%;
+  top:31%;
+  width:9%;
+  height:15%;
+  border-radius:50%;
+  background:#fff;
+  transform:translate(-50%,-50%);
+}
+.stage-simulator.expressive-listening .expressive-eyes i,
+.stage-simulator.expressive-idle .expressive-eyes i,
+.stage-simulator.expressive-speaking .expressive-eyes i{
+  height:8%;
+  min-height:22px;
+}
+.stage-simulator.expressive-amused .expressive-eyes i{
+  height:7px;
+  min-height:7px;
+  border-radius:50% 50% 45% 45%;
+  background:#253140;
+  box-shadow:none;
+}
+.stage-simulator.expressive-amused .expressive-eyes i::before,
+.stage-simulator.expressive-amused .expressive-eyes i::after{display:none}
+.stage-simulator.expressive-surprised .expressive-eyes i{
+  height:11%;
+  min-height:30px;
+}
+.stage-simulator.expressive-playful-angry .expressive-eyes i{
+  height:7%;
+  min-height:18px;
+}
+.stage-simulator.expressive-skeptical .expressive-eyes i:first-child{
+  height:6%;
+  min-height:16px;
+}
+.stage-simulator.expressive-skeptical .expressive-eyes i+ i{
+  height:9%;
+  min-height:24px;
+}
+@media(max-width:680px){
+  .stage-simulator .expressive-eyes i{min-height:18px}
+  .stage-simulator.expressive-surprised .expressive-eyes i{min-height:25px}
+}
