@@ -186,3 +186,12 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 @keyframes expressive-sassy{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-5px) rotate(-1deg)}75%{transform:translateX(5px) rotate(1deg)}}
 .expressive-listening .expressive-head{animation:expressive-listen 3.2s ease-in-out infinite}
 @keyframes expressive-listen{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-1deg)}}
+
+/* Ziyo uses the expressive simulator; Ziyra keeps her existing GLB stage untouched. */
+.stage-simulator>.expressive-tutor{position:absolute;left:50%;top:46%;width:min(58vw,560px);height:min(58vw,560px);transform:translate(-50%,-50%)}
+.stage-simulator .expressive-head{width:70%;border-width:11px;box-shadow:0 0 0 15px #3b9cf225,0 0 100px #1687f34d,inset 0 -14px 28px #aab8ca55}
+.stage-simulator .expressive-mouth{transition:transform .11s cubic-bezier(.2,.7,.2,1),width .18s ease,left .18s ease,height .18s ease;will-change:transform}
+.stage-simulator.expressive-speaking .expressive-mouth{animation:none!important;transform:scaleY(var(--mouth-open,.08))}
+.stage-simulator .expressive-nameplate{bottom:0}
+.stage-simulator .expressive-orbit{animation-duration:24s}
+@media(max-width:680px){.stage-simulator>.expressive-tutor{width:min(88vw,420px);height:min(88vw,420px);top:42%}.stage-simulator .expressive-head{border-width:8px}}
