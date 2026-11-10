@@ -6,7 +6,7 @@ type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful
 type Props = { speaking: boolean; listening: boolean; voiceLevel: number; mood: Mood };
 
 export default function ExpressiveTutorFace({ speaking, listening, voiceLevel, mood }: Props) {
-  const faceMood = speaking ? "speaking" : listening ? "listening" : mood;
+  const faceMood = mood !== "idle" ? mood : speaking ? "speaking" : listening ? "listening" : "idle";
   const style = { "--mouth-open": `${Math.max(0.18, Math.min(1, voiceLevel * 1.8))}` } as CSSProperties;
   return (
     <div className={`expressive-tutor expressive-${faceMood} expressive-${mood}`} style={style} role="img" aria-label={speaking ? "Ziyo gapiryapti" : listening ? "Ziyo tinglayapti" : "Ziyo suhbatga tayyor"}>
