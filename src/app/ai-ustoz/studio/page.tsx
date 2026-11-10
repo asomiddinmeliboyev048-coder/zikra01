@@ -26,7 +26,7 @@ const trackNames: Record<Track, string> = {
   cyber: "Kiberxavfsizlik",
 };
 const avatars: { id: AvatarId; name: string; role: string; description: string; voice: string; src?: string }[] = [
-  { id: "teacher", name: "Ziyo", role: "Erkak ovozli 3D AI ustoz", description: "Jonli animatsiyali 3D avatar", voice: "Puck", src: "/models/teacher_joe.glb" },
+  { id: "teacher", name: "Ziyo", role: "Erkak ovozli AI ustoz", description: "Jonli mimika va animatsiyali simulyator", voice: "Puck" },
   { id: "student", name: "Ziyra", role: "Ayol ovozli 3D ustoz", description: "Harakatlanuvchi 3D qahramon", voice: "Kore", src: "/models/school_girl_v21.glb" },
 ];
 const ModelViewer = "model-viewer" as unknown as ComponentType<Record<string, unknown>>;
