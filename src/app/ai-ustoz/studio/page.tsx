@@ -16,7 +16,7 @@ const trackNames: Record<Track, string> = {
   coding: "Dasturlash",
   cyber: "Kiberxavfsizlik",
 };
-const avatars: { id: AvatarId; name: string; role: string; description: string; voice: string; src?: string }[] = [
+const avatars: { id: AvatarId; name: string; role: string; description: string; voice: string }[] = [
   { id: "teacher", name: "Ziyo", role: "Erkak ovozli AI ustoz", description: "Ifodali jonli avatar", voice: "Puck" },
   { id: "student", name: "Ziyra", role: "Ayol ovozli AI ustoz", description: "Ifodali jonli avatar", voice: "Kore" },
 ];
@@ -110,7 +110,7 @@ export default function AiTutorStudioPage() {
             </button>
             <button type="button" className={`tutor-choice-card ${avatarId === "student" ? "selected" : ""}`} onClick={() => setAvatarId("student")}>
               <span className="choice-check">{avatarId === "student" && <Check size={17}/>}</span>
-              <div className="choice-girl-preview"><span>3D</span><small>ZIYRA</small></div>
+              <div className="choice-simulator-preview choice-ziyra-preview"><ExpressiveTutorFace speaking={false} listening={false} voiceLevel={0} mood="idle"/></div>
               <span className="choice-name">Ziyra · 3D ustoz</span>
               <span className="choice-role">Ayol ovozi · GLB avatar</span>
               <span className="choice-description">Mavjud 3D model va uning ichki animatsiya kliplari bilan jonli suhbat.</span>
