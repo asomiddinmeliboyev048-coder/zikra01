@@ -77,7 +77,7 @@ export default function AiTutorStudioPage() {
   }, []);
 
   useEffect(() => {
-    if (!started || !scriptReady) return;
+    if (avatarId !== "student" || !started || !scriptReady) return;
     const viewer = viewerRef.current;
     if (!viewer) return;
     const onLoad = () => {
@@ -102,7 +102,7 @@ export default function AiTutorStudioPage() {
   }, [started, avatarId, scriptReady]);
 
   useEffect(() => {
-    if (!avatar.src) return;
+    if (avatarId !== "student" || !avatar.src) return;
     const viewer = viewerRef.current;
     if (!viewer || !loaded) return;
     const idle = animations.find((name) => /idle|stand|breath/i.test(name)) || animations[0];
@@ -204,12 +204,14 @@ export default function AiTutorStudioPage() {
       </header>
 
       <section className="studio-layout studio-layout-single">
-        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} stage-girl`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
+        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} ${avatarId === "student" ? "stage-girl" : "stage-simulator"}`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
           <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : avatarId === "teacher" || loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
-          {(
+          {avatarId === "teacher" ? (
+            <ExpressiveTutorFace speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood} />
+          ) : (
             <>
               {scriptReady ? createElement(ModelViewer, {
                 ref: (node: ViewerElement | null) => { viewerRef.current = node; },
