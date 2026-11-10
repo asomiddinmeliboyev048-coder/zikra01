@@ -139,7 +139,7 @@ export default function AiTutorStudioPage() {
 
       <section className="studio-layout studio-layout-single">
         <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} stage-simulator`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
-          <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
+          <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : "TAYYOR"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
