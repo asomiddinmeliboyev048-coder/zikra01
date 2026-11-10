@@ -196,3 +196,20 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 .expressive-skeptical .expressive-mouth{width:17%;left:41.5%;height:4%;border-radius:2px 2px 12px 12px;transform:scaleY(.55) rotate(-4deg)}
 .studio-ziyra-stage.mood-skeptical model-viewer{filter:contrast(1.04) saturate(.92);animation:ziyra-skeptical .7s ease-in-out 1}
 @keyframes ziyra-skeptical{0%,100%{transform:translateY(0) rotate(0)}35%{transform:translateY(-3px) rotate(-1deg)}70%{transform:translateY(0) rotate(1deg)}}
+
+/* Ziyo: readable expressions remain visible while the avatar is speaking/listening. */
+.expressive-amused .expressive-brows i:first-child{transform:translateY(-3px) rotate(-13deg)}
+.expressive-amused .expressive-brows i+ i{transform:translateY(-3px) rotate(13deg)}
+.expressive-amused .expressive-cheeks{opacity:.9}
+.expressive-amused .expressive-eyes i{height:5px;border-radius:50%}
+.expressive-playful-angry .expressive-eyes i{height:5px;transform:scaleY(.72)}
+.expressive-playful-angry .expressive-cheeks{opacity:.35}
+.expressive-skeptical .expressive-brows i:first-child{transform:translateY(-7px) rotate(-18deg)}
+.expressive-skeptical .expressive-brows i+ i{transform:translateY(3px) rotate(7deg)}
+.expressive-skeptical .expressive-eyes i:first-child{height:5px;transform:scaleY(.65)}
+.expressive-skeptical .expressive-eyes i+ i{height:10px}
+.expressive-skeptical .expressive-mouth{width:18%;left:41%;height:4%;border-radius:2px 2px 12px 12px;transform:scaleY(.45) rotate(-5deg)}
+.expressive-amused .expressive-head{animation:expressive-laugh .52s ease-in-out 3}
+.expressive-skeptical .expressive-head{animation:expressive-skeptical-tilt .8s ease-in-out 1}
+.expressive-playful-angry .expressive-head{animation:expressive-sassy .32s ease-in-out 3}
+@keyframes expressive-skeptical-tilt{0%,100%{transform:translateY(0) rotate(0)}35%{transform:translateY(-4px) rotate(-2deg)}70%{transform:translateY(0) rotate(1deg)}}
