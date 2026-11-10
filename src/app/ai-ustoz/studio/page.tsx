@@ -9,7 +9,7 @@ import "./studio.css";
 
 type Track = "english" | "russian" | "uzbek" | "coding" | "cyber";
 type AvatarId = "teacher" | "student";
-type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry";
+type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry" | "skeptical";
 type ViewerElement = HTMLElement & {
   availableAnimations?: string[];
   animationName?: string;
