@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Swords } from "lucide-react";
 import SkillDuel from "./SkillDuel";
 import AssessmentFlow from "./AssessmentFlow";
@@ -17,6 +18,8 @@ function fromDatabase(row:any):LearningPlanInput{
 }
 
 export default function LearningExperienceLab() {
+ const router=useRouter();
+ const [isEditing,setIsEditing]=useState(false);
  const [plan,setPlan]=useState<LearningPlanInput|null>(null);
  const [assessment,setAssessment]=useState<SavedAssessment>(null);
  const [loading,setLoading]=useState(true);
@@ -40,6 +43,6 @@ export default function LearningExperienceLab() {
  if(loading)return <div className="grid min-h-[100dvh] place-items-center bg-[#f7faf9]"><div className="text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-700"/><p className="mt-4 text-sm font-semibold text-slate-500">Shaxsiy o‘quv makoningiz yuklanmoqda…</p></div></div>;
  if(assessmentOpen&&plan)return <div className="fixed inset-0 z-[100] h-[100dvh] w-full overflow-y-auto overscroll-y-contain touch-pan-y bg-[#f4f8f7]"><AssessmentFlow track={plan.trackId} plan={plan} onClose={()=>{setAssessmentOpen(false);void fetch("/api/learning/assessment?track="+plan.trackId,{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(d?.assessment)setAssessment(d.assessment)}).catch(()=>{});}}/></div>;
  if(duelOpen)return <div className="fixed inset-0 z-[110] h-[100dvh] w-full overflow-hidden bg-white"><SkillDuel skill={titles[duelTrack]} onClose={()=>setDuelOpen(false)}/></div>;
- if(plan)return <LearningHub plan={plan} assessment={assessment} onEdit={()=>{setPlan(null);setAssessment(null)}} onAssess={()=>setAssessmentOpen(true)} onDuel={track=>{setDuelTrack(track);setDuelOpen(true)}}/>;
- return <LearningOnboarding onStart={(track,nextPlan)=>{setPlan(nextPlan);setDuelTrack(track);setAssessmentOpen(true);}}/>;
+ if(plan)return <LearningHub plan={plan} assessment={assessment} onEdit={()=>{setIsEditing(true);setPlan(null);setAssessment(null)}} onAssess={()=>setAssessmentOpen(true)} onDuel={track=>{setDuelTrack(track);setDuelOpen(true)}}/>;
+ return <LearningOnboarding onStart={(track,nextPlan)=>{if(isEditing){router.replace("/learn");return;}setPlan(nextPlan);setDuelTrack(track);setAssessmentOpen(true);}}/>;
 }
