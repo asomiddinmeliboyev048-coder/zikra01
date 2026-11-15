@@ -217,7 +217,7 @@ export default function AiTutorStudioPage() {
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
           {avatarId === "teacher" ? (
-            <Ziyo3DCharacter speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood} ready={threeReady}/>
+            <Ziyo3DCharacter speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood} ready={threeReady} error={modelError}/>
           ) : (
             <>
               {scriptReady ? createElement(ModelViewer, {
