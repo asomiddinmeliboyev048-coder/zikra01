@@ -229,7 +229,7 @@ export default function AiTutorStudioPage() {
                 autoplay: true,
                 ar: false,
                 style: { width: "100%", height: "100%", background: "transparent", pointerEvents: "none" },
-              }) : <div className="stage-loading"><span className="studio-spinner"/><p>Ziyra tayyorlanmoqda…</p></div>}
+              }) : <div className="stage-loading"><span className="studio-spinner"/><p>{tutorName} tayyorlanmoqda…</p></div>}
               {!loaded && !modelError && <div className="stage-loading stage-loading-overlay"><span className="studio-spinner"/><p>3D avatar yuklanmoqda…</p></div>}
               {modelError && <div className="stage-error"><b>3D model xatosi</b><p>{modelError}</p><small>{avatar.src}</small></div>}
           </>
