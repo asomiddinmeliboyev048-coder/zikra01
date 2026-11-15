@@ -337,3 +337,12 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 @keyframes ziyo-status-pulse{from{opacity:.55;transform:scale(.85)}to{opacity:1;transform:scale(1.2)}}
 @media(max-width:680px){.ziyo-preppy-scene{width:100%;height:58vh;min-height:320px;max-height:470px}.ziyo-preppy-face{width:205px;height:205px}.ziyo-state-speaking .ziyo-preppy-face{width:238px;height:185px}.ziyo-state-playful-angry .ziyo-preppy-face{width:250px;height:165px}.ziyo-state-thinking .ziyo-preppy-face{width:185px;height:235px}.ziyo-preppy-flames{top:calc(50% - 130px)}.ziyo-preppy-status{bottom:1%;font-size:10px}}
 @media(prefers-reduced-motion:reduce){.ziyo-preppy-scene *{animation:none!important;transition:none!important}}
+
+
+/* Audio activity is an overlay, so the detected emotion remains visible while speaking. */
+.ziyo-preppy-scene.is-speaking .ziyo-preppy-face{animation:ziyo-speaking-bounce .32s ease-in-out infinite alternate}
+.ziyo-preppy-scene.is-speaking:not(.ziyo-state-amused) .ziyo-mouth-neutral,.ziyo-preppy-scene.is-speaking:not(.ziyo-state-amused) .ziyo-mouth-smile{opacity:0}
+.ziyo-preppy-scene.is-speaking:not(.ziyo-state-amused) .ziyo-mouth-open{opacity:1;animation:ziyo-mouth-talk .19s ease-in-out infinite alternate}
+.ziyo-preppy-scene.is-speaking .ziyo-preppy-status i{animation:ziyo-status-pulse .35s ease-in-out infinite alternate}
+.ziyo-preppy-scene.is-listening .ziyo-preppy-glow{opacity:.88}
+.ziyo-preppy-scene.is-listening .ziyo-preppy-face{filter:drop-shadow(0 0 12px color-mix(in srgb,var(--ziyo-accent) 22%,transparent))}
