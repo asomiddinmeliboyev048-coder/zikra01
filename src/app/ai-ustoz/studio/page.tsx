@@ -47,6 +47,7 @@ export default function AiTutorStudioPage() {
   const [threeReady, setThreeReady] = useState(false);
   const [animations, setAnimations] = useState<string[]>([]);
   const [modelError, setModelError] = useState("");
+  const [threeError, setThreeError] = useState("");
   const [profileError, setProfileError] = useState("");
   const [profileReady, setProfileReady] = useState(false);
   const viewerRef = useRef<ViewerElement | null>(null);
@@ -193,7 +194,7 @@ export default function AiTutorStudioPage() {
         src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
         strategy="afterInteractive"
         onReady={() => setThreeReady(true)}
-        onError={() => setModelError("Ziyo 3D moduli yuklanmadi. Internet aloqasini tekshiring.")}
+        onError={() => setThreeError("Ziyo 3D moduli yuklanmadi. Internet aloqasini tekshiring.")}
       />
       {<Script
         src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
@@ -217,7 +218,7 @@ export default function AiTutorStudioPage() {
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
           {avatarId === "teacher" ? (
-            <Ziyo3DCharacter speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood} ready={threeReady} error={modelError}/>
+            <Ziyo3DCharacter speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood} ready={threeReady} error={threeError}/>
           ) : (
             <>
               {scriptReady ? createElement(ModelViewer, {
