@@ -355,7 +355,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           }
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); onListeningChange?.(true); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
-            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); onMoodChange?.("speaking"); playPcm(part.inlineData.data); }
+            if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
             if (part.text) { const parsed = parseZiyoResponse(part.text); if (parsed.emotion) onMoodChange?.(emotionToMood(parsed.emotion)); if (parsed.text) setCaption("" + tutorName + ": " + parsed.text); }
           }
           if (message.serverContent?.turnComplete) { if (activeSourcesRef.current.length === 0) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); } setCaption("" + tutorName + " sizni tinglayapti…"); }
