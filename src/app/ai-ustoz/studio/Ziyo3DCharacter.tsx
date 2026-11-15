@@ -3,13 +3,13 @@
 import { useEffect, useRef } from "react";
 
 type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry" | "skeptical";
-type Props = { speaking: boolean; listening: boolean; voiceLevel: number; mood: Mood; ready: boolean };
+type Props = { speaking: boolean; listening: boolean; voiceLevel: number; mood: Mood; ready: boolean; error?: string };
 
 declare global {
   interface Window { THREE?: any; }
 }
 
-export default function Ziyo3DCharacter({ speaking, listening, voiceLevel, mood, ready }: Props) {
+export default function Ziyo3DCharacter({ speaking, listening, voiceLevel, mood, ready, error }: Props) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const liveRef = useRef({ speaking, listening, voiceLevel, mood });
   liveRef.current = { speaking, listening, voiceLevel, mood };
@@ -24,7 +24,7 @@ export default function Ziyo3DCharacter({ speaking, listening, voiceLevel, mood,
     camera.position.set(0, 2.45, 9.2);
     camera.lookAt(0, 1.85, 0);
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
+    let renderer: any;\n    try {\n      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });\n    } catch {\n      return;\n    }
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
     renderer.shadowMap.enabled = true;
