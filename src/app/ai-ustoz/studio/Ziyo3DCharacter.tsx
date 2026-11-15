@@ -29,6 +29,7 @@ export default function Ziyo3DCharacter({ speaking, listening, voiceLevel, mood,
     try {
       renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
     } catch {
+      setRenderFailed(true);
       return;
     }
     renderer.setClearColor(0x000000, 0);
@@ -263,8 +264,9 @@ export default function Ziyo3DCharacter({ speaking, listening, voiceLevel, mood,
     <div className={"ziyo-three-character ziyo-three-" + (speaking ? "speaking" : listening ? "listening" : mood)} role="img" aria-label={label}>
       <div className="ziyo-three-halo"/>
       <div ref={mountRef} className="ziyo-three-canvas"/>
-      {!ready && <div className="ziyo-three-loading"><span/>Ziyo 3D sahnasi yuklanmoqda…</div>}
-      {ready && !window.THREE && <div className="ziyo-three-loading">3D modul yuklanmadi. Sahifani yangilang.</div>}
+      {!ready && !error && <div className="ziyo-three-loading"><span/>Ziyo 3D sahnasi yuklanmoqda…</div>}
+      {(error || renderFailed) && <div className="ziyo-three-loading" role="alert">{error || "Qurilmangizda 3D grafikani ishga tushirib bo‘lmadi."}</div>}
+      {ready && !window.THREE && <div className="ziyo-three-loading" role="alert">3D modul yuklanmadi. Sahifani yangilang.</div>}
       <div className="ziyo-three-status"><i/>{label}</div>
     </div>
   );
