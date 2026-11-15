@@ -40,9 +40,11 @@ export default function BottomNav({ profileId }: { profileId: string; unread?: n
   return (
     <nav className="zikra-bottom-nav fixed inset-x-2 bottom-2 z-40 flex overflow-hidden rounded-2xl border border-white/90 ring-1 ring-slate-500/25 bg-[linear-gradient(145deg,#f1f3f6_0%,#cbd1d9_24%,#aeb6c1_52%,#e7eaee_76%,#bcc4ce_100%)] pb-[calc(env(safe-area-inset-bottom)+6px)] shadow-[0_12px_34px_-12px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.95),inset_0_-1px_0_rgba(71,85,105,0.2)] backdrop-blur-2xl md:hidden dark:border-white/90">
       {items.map((item) => {
-        const active = item.href.startsWith("/profile")
-          ? pathname.startsWith("/profile")
-          : pathname.startsWith(item.href);
+        const active = item.href === "/learn"
+          ? pathname.startsWith("/learn") || pathname.startsWith("/lessons")
+          : item.href.startsWith("/profile")
+            ? pathname.startsWith("/profile")
+            : pathname.startsWith(item.href);
         const Icon = item.icon;
         return (
           <Link
