@@ -26,7 +26,7 @@ const trackNames: Record<Track, string> = {
   cyber: "Kiberxavfsizlik",
 };
 const avatars: { id: AvatarId; name: string; role: string; description: string; voice: string; src?: string }[] = [
-  { id: "teacher", name: "Ziyo", role: "Erkak ovozli AI ustoz", description: "Jonli mimika va animatsiyali simulyator", voice: "Puck" },
+  { id: "teacher", name: "Ziyo", role: "Erkak ovozli 3D AI ustoz", description: "Haqiqiy 3D avatar va jonli ovozli suhbat", voice: "Puck", src: "/models/teacher_joe.glb" },
   { id: "student", name: "Ziyra", role: "Ayol ovozli 3D ustoz", description: "Harakatlanuvchi 3D qahramon", voice: "Kore", src: "/models/school_girl_v21.glb" },
 ];
 const ModelViewer = "model-viewer" as unknown as ComponentType<Record<string, unknown>>;
@@ -77,7 +77,7 @@ export default function AiTutorStudioPage() {
   }, []);
 
   useEffect(() => {
-    if (avatarId !== "student" || !started || !scriptReady) return;
+    if (!started || !scriptReady) return;
     const viewer = viewerRef.current;
     if (!viewer) return;
     const onLoad = () => {
@@ -90,7 +90,7 @@ export default function AiTutorStudioPage() {
     };
     const onError = () => {
       setLoaded(false);
-      setModelError("Ziyra 3D modeli yuklanmadi. GLB fayl manzilini tekshiring.");
+      setModelError(tutorName + " 3D modeli yuklanmadi. GLB fayl manzilini tekshiring.");
     };
     viewer.addEventListener("load", onLoad);
     viewer.addEventListener("error", onError);
@@ -99,10 +99,10 @@ export default function AiTutorStudioPage() {
       viewer.removeEventListener("load", onLoad);
       viewer.removeEventListener("error", onError);
     };
-  }, [started, avatarId, scriptReady]);
+  }, [started, avatarId, scriptReady, tutorName]);
 
   useEffect(() => {
-    if (avatarId !== "student" || !avatar.src) return;
+    if (!avatar.src) return;
     const viewer = viewerRef.current;
     if (!viewer || !loaded) return;
     const idle = animations.find((name) => /idle|stand|breath/i.test(name)) || animations[0];
@@ -163,9 +163,9 @@ export default function AiTutorStudioPage() {
             <button type="button" className={`tutor-choice-card ${avatarId === "teacher" ? "selected" : ""}`} onClick={() => setAvatarId("teacher")}>
               <span className="choice-check">{avatarId === "teacher" && <Check size={17}/>}</span>
               <div className="choice-simulator-preview"><ExpressiveTutorFace speaking={false} listening={false} voiceLevel={0} mood="idle"/></div>
-              <span className="choice-name">Ziyo · Simulyator</span>
-              <span className="choice-role">Erkak ovozi · jonli mimika</span>
-              <span className="choice-description">Ko‘z pirpirashi, gapga mos og‘iz harakati va kayfiyat animatsiyalari.</span>
+              <span className="choice-name">Ziyo · 3D ustoz</span>
+              <span className="choice-role">Erkak ovozi · GLB avatar</span>
+              <span className="choice-description">Haqiqiy 3D qahramon, ovozga mos holat va mavjud model animatsiyalari.</span>
             </button>
             <button type="button" className={`tutor-choice-card ${avatarId === "student" ? "selected" : ""}`} onClick={() => setAvatarId("student")}>
               <span className="choice-check">{avatarId === "student" && <Check size={17}/>}</span>
@@ -204,19 +204,16 @@ export default function AiTutorStudioPage() {
       </header>
 
       <section className="studio-layout studio-layout-single">
-        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} ${avatarId === "student" ? "stage-girl" : "stage-simulator"}`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
+        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} stage-3d-avatar`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
           <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : avatarId === "teacher" || loaded ? "TAYYOR" : "YUKLANMOQDA"}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
-          {avatarId === "teacher" ? (
-            <ExpressiveTutorFace speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood} />
-          ) : (
-            <>
+          <>
               {scriptReady ? createElement(ModelViewer, {
                 ref: (node: ViewerElement | null) => { viewerRef.current = node; },
                 src: avatar.src,
-                alt: "Ziyra ayol 3D AI ustoz",
+                alt: avatar.name + " 3D AI ustoz",
                 "camera-orbit": "0deg 78deg 2.7m",
                 "field-of-view": "28deg",
                 "min-camera-orbit": "auto auto 2.7m",
@@ -235,8 +232,7 @@ export default function AiTutorStudioPage() {
               }) : <div className="stage-loading"><span className="studio-spinner"/><p>Ziyra tayyorlanmoqda…</p></div>}
               {!loaded && !modelError && <div className="stage-loading stage-loading-overlay"><span className="studio-spinner"/><p>3D avatar yuklanmoqda…</p></div>}
               {modelError && <div className="stage-error"><b>3D model xatosi</b><p>{modelError}</p><small>{avatar.src}</small></div>}
-            </>
-          )}
+          </>
           <div className="stage-caption"><span className="caption-icon"><Sparkles size={15}/></span><div><b>{tutorName}</b><small>{skillLabel} · {speaking ? "Sizga javob beryapti" : listening ? "Sizni tinglayapti" : "Shaxsiy AI ustozingiz"}</small></div></div>
           <div className="studio-live-dock studio-live-dock-compact">
             <LiveVoicePanel
