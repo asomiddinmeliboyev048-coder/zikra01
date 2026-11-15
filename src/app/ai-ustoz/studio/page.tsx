@@ -4,7 +4,6 @@ import Script from "next/script";
 import { createElement, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import { Check, Maximize2, Moon, Sparkles, Sun } from "lucide-react";
 import LiveVoicePanel from "../LiveVoicePanel";
-import ExpressiveTutorFace from "./ExpressiveTutorFace";
 import ZiyoCharacter from "./ZiyoCharacter";
 import "./studio.css";
 
