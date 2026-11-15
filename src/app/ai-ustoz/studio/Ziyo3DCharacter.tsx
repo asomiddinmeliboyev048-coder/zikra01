@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful-angry" | "skeptical";
 type Props = { speaking: boolean; listening: boolean; voiceLevel: number; mood: Mood; ready: boolean; error?: string };
@@ -11,6 +11,7 @@ declare global {
 
 export default function Ziyo3DCharacter({ speaking, listening, voiceLevel, mood, ready, error }: Props) {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const [renderFailed, setRenderFailed] = useState(false);
   const liveRef = useRef({ speaking, listening, voiceLevel, mood });
   liveRef.current = { speaking, listening, voiceLevel, mood };
 
