@@ -253,3 +253,21 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 @keyframes ziyo-status-pulse{from{opacity:.6;transform:scale(.88)}to{opacity:1;transform:scale(1.18)}}
 @media(max-width:640px){.ziyo-character{width:100%;height:70%;min-height:260px}.ziyo-character-status{bottom:0;font-size:10px;padding:9px 13px}}
 @media(prefers-reduced-motion:reduce){.ziyo-character *,.ziyo-character:before{animation:none!important;transition:none!important}}
+
+
+/* Procedural 3D Ziyo mascot stage. Canvas is rendered by Three.js and driven by Gemini Live state. */
+.ziyo-three-character{position:relative;z-index:2;display:flex;width:min(100%,620px);height:calc(100% - 180px);min-height:360px;align-items:center;justify-content:center;isolation:isolate}
+.ziyo-three-canvas{position:absolute;inset:0;z-index:2}
+.ziyo-three-canvas canvas{display:block;width:100%;height:100%;outline:none}
+.ziyo-three-halo{position:absolute;z-index:0;width:min(82%,500px);aspect-ratio:1;border:1px solid rgba(126,242,215,.13);border-radius:50%;background:radial-gradient(circle,rgba(20,185,151,.19),rgba(21,107,107,.08) 48%,transparent 72%);box-shadow:0 0 90px rgba(27,199,164,.1),inset 0 0 50px rgba(166,255,235,.05);animation:ziyo-three-halo 4.8s ease-in-out infinite}
+.ziyo-three-status{position:absolute;z-index:4;left:50%;bottom:2px;display:flex;align-items:center;gap:9px;white-space:nowrap;transform:translateX(-50%);padding:10px 17px;border:1px solid rgba(203,213,225,.18);border-radius:999px;background:rgba(13,23,33,.82);color:#e4f5f1;font-size:11px;font-weight:750;backdrop-filter:blur(16px);box-shadow:0 10px 35px rgba(0,0,0,.18)}
+.ziyo-three-status i{width:8px;height:8px;border-radius:50%;background:#8fe7ca;box-shadow:0 0 12px #8fe7ca}
+.ziyo-three-speaking .ziyo-three-status i{background:#34d5b0;box-shadow:0 0 16px #34d5b0;animation:ziyo-three-pulse .55s ease-in-out infinite alternate}
+.ziyo-three-listening .ziyo-three-status i{animation:ziyo-three-pulse 1.4s ease-in-out infinite alternate}
+.ziyo-three-loading{position:absolute;z-index:5;display:flex;align-items:center;gap:10px;color:#d7e4e9;font-size:12px}
+.ziyo-three-loading span{width:18px;height:18px;border:2px solid #9cebd933;border-top-color:#9cebd9;border-radius:50%;animation:studio-spin .8s linear infinite}
+.choice-simulator-preview img{display:block;width:100%;height:100%;object-fit:contain;padding:5px}
+@keyframes ziyo-three-halo{0%,100%{transform:scale(.94);opacity:.7}50%{transform:scale(1.05);opacity:1}}
+@keyframes ziyo-three-pulse{from{opacity:.58;transform:scale(.86)}to{opacity:1;transform:scale(1.18)}}
+@media(max-width:680px){.ziyo-three-character{width:100%;height:calc(100% - 185px);min-height:330px}.ziyo-three-halo{width:92%}.ziyo-three-status{bottom:2px;font-size:10px;padding:9px 13px}}
+@media(prefers-reduced-motion:reduce){.ziyo-three-character *,.ziyo-three-halo{animation:none!important;transition:none!important}}
