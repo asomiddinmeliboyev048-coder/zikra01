@@ -4,7 +4,7 @@ type Mood = "idle" | "speaking" | "thinking" | "amused" | "surprised" | "playful
 type Props = { speaking: boolean; listening: boolean; voiceLevel: number; mood: Mood };
 
 export default function ZiyoPreppyAvatar({ speaking, listening, voiceLevel, mood }: Props) {
-  const state = speaking ? "speaking" : listening ? "listening" : mood;
+  const state = mood !== "idle" && mood !== "speaking" ? mood : speaking ? "speaking" : listening ? "listening" : "idle";
   const angry = state === "playful-angry";
   const happy = state === "amused";
   const surprised = state === "surprised";
@@ -12,7 +12,7 @@ export default function ZiyoPreppyAvatar({ speaking, listening, voiceLevel, mood
   const skeptical = state === "skeptical";
   const level = Math.max(0, Math.min(1, voiceLevel));
   return (
-    <div className={`ziyo-preppy-scene ziyo-state-${state}`} role="img" aria-label={speaking ? "Ziyo gapiryapti" : listening ? "Ziyo tinglayapti" : "Ziyo AI ustoz"}>
+    <div className={`ziyo-preppy-scene ziyo-state-${state} ${speaking ? "is-speaking" : ""} ${listening ? "is-listening" : ""}`} role="img" aria-label={speaking ? "Ziyo gapiryapti" : listening ? "Ziyo tinglayapti" : "Ziyo AI ustoz"}>
       <div className="ziyo-preppy-glow"/>
       <div className="ziyo-preppy-shadow"/>
       <div className="ziyo-preppy-flames" aria-hidden="true"><i/><i/><i/><i/><i/></div>
