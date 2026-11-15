@@ -1,10 +1,9 @@
 "use client";
 
-import Script from "next/script";
 import { createElement, useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import { Check, Maximize2, Moon, Sparkles, Sun } from "lucide-react";
 import LiveVoicePanel from "../LiveVoicePanel";
-import Ziyo3DCharacter from "./Ziyo3DCharacter";
+import ZiyoPreppyAvatar from "./ZiyoPreppyAvatar";
 import "./studio.css";
 
 type Track = "english" | "russian" | "uzbek" | "coding" | "cyber";
@@ -44,10 +43,8 @@ export default function AiTutorStudioPage() {
   const [mood, setMood] = useState<Mood>("idle");
   const [loaded, setLoaded] = useState(false);
   const [scriptReady, setScriptReady] = useState(false);
-  const [threeReady, setThreeReady] = useState(false);
   const [animations, setAnimations] = useState<string[]>([]);
   const [modelError, setModelError] = useState("");
-  const [threeError, setThreeError] = useState("");
   const [profileError, setProfileError] = useState("");
   const [profileReady, setProfileReady] = useState(false);
   const viewerRef = useRef<ViewerElement | null>(null);
@@ -190,19 +187,7 @@ export default function AiTutorStudioPage() {
 
   return (
     <main className="zikra-studio zikra-studio-immersive">
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
-        strategy="afterInteractive"
-        onReady={() => setThreeReady(true)}
-        onError={() => setThreeError("Ziyo 3D moduli yuklanmadi. Internet aloqasini tekshiring.")}
-      />
-      {<Script
-        src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
-        type="module"
-        strategy="afterInteractive"
-        onReady={() => setScriptReady(true)}
-        onError={() => setModelError("3D ko‘rish moduli yuklanmadi. Internet aloqasini tekshiring.")}
-      />}
+      <Script src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js" type="module" strategy="afterInteractive" onReady={() => setScriptReady(true)} onError={() => setModelError("3D ko‘rish moduli yuklanmadi. Internet aloqasini tekshiring.")}/>
       <header className="studio-topbar studio-topbar-immersive">
         <div className="studio-brand"><span><Sparkles size={18}/></span><div><b>Zikra AI Ustoz</b><small>{tutorName.toUpperCase()} · JONLI MURABBIY</small></div></div>
         <div className="studio-top-actions">
@@ -212,13 +197,13 @@ export default function AiTutorStudioPage() {
       </header>
 
       <section className="studio-layout studio-layout-single">
-        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood} stage-3d-avatar`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
-          <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : avatarId === "teacher" ? (threeReady ? "TAYYOR" : "YUKLANMOQDA") : (loaded ? "TAYYOR" : "YUKLANMOQDA")}</b></div>
+        <div className={`zikra-studio-stage studio-ziyra-stage ${darkStage ? "stage-dark" : "stage-light"} ${speaking ? "avatar-speaking" : ""} mood-${mood}`} style={{ "--voice-level": voiceLevel } as CSSProperties}>
+          <div className="stage-label"><span className="stage-live-dot"/><span>{tutorName.toUpperCase()} AI</span><b>{speaking ? "GAPIRYAPTI" : listening ? "TINGLAYAPTI" : avatarId === "teacher" ? "TAYYOR" : (loaded ? "TAYYOR" : "YUKLANMOQDA")}</b></div>
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
           {avatarId === "teacher" ? (
-            <Ziyo3DCharacter speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood} ready={threeReady} error={threeError}/>
+            <ZiyoPreppyAvatar speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood}/>
           ) : (
             <>
               {scriptReady ? createElement(ModelViewer, {
