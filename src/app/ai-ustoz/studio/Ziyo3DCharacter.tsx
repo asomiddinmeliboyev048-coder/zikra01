@@ -24,7 +24,12 @@ export default function Ziyo3DCharacter({ speaking, listening, voiceLevel, mood,
     camera.position.set(0, 2.45, 9.2);
     camera.lookAt(0, 1.85, 0);
 
-    let renderer: any;\n    try {\n      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });\n    } catch {\n      return;\n    }
+    let renderer: any;
+    try {
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
+    } catch {
+      return;
+    }
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
     renderer.shadowMap.enabled = true;
