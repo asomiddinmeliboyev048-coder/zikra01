@@ -44,15 +44,17 @@ function inferTutorMood(text: string): "idle" | "thinking" | "amused" | "surpris
   return "idle";
 }
 
-type ZiyoEmotion = "neutral" | "angry" | "happy" | "skeptical";
+type ZiyoEmotion = "neutral" | "angry" | "happy" | "skeptical" | "thinking" | "surprised";
 function parseZiyoResponse(raw: string): { emotion: ZiyoEmotion | null; text: string } {
-  const match = raw.match(/\[emotion:(neutral|angry|happy|skeptical)\]/i);
-  return { emotion: (match?.[1]?.toLowerCase() as ZiyoEmotion | undefined) || null, text: raw.replace(/\[emotion:(?:neutral|angry|happy|skeptical)\]/gi, "").replace(/\[state:(?:talking|idle)\]/gi, "").trim() };
+  const match = raw.match(/\[emotion:(neutral|angry|happy|skeptical|thinking|surprised)\]/i);
+  return { emotion: (match?.[1]?.toLowerCase() as ZiyoEmotion | undefined) || null, text: raw.replace(/\[emotion:(?:neutral|angry|happy|skeptical|thinking|surprised)\]/gi, "").replace(/\[state:(?:talking|idle)\]/gi, "").trim() };
 }
-function emotionToMood(emotion: ZiyoEmotion): "idle" | "amused" | "playful-angry" | "skeptical" {
+function emotionToMood(emotion: ZiyoEmotion): "idle" | "amused" | "playful-angry" | "skeptical" | "thinking" | "surprised" {
   if (emotion === "happy") return "amused";
   if (emotion === "angry") return "playful-angry";
   if (emotion === "skeptical") return "skeptical";
+  if (emotion === "thinking") return "thinking";
+  if (emotion === "surprised") return "surprised";
   return "idle";
 }
 
@@ -278,7 +280,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
             inputAudioTranscription: {},
             outputAudioTranscription: {},
             systemInstruction: {
-              parts: [{ text: "Sen Zikra AI Ustoz — " + tutorName + " ismli samimiy, jonli, hissiyotli, hazilkash va biroz talabchan shaxsiy murabbiysan. Talabaning xatolarini yumshoq kinoya bilan ko‘rsat, lekin haqorat qilma; oxirida to‘g‘ri yo‘lni o‘rgat. Javoblaring qisqa, tabiiy va og‘zaki bo‘lsin. HAR BIR javobing boshida aynan [emotion:neutral], [emotion:angry], [emotion:happy] yoki [emotion:skeptical] teglaridan bittasi, darhol undan keyin [state:talking] yoki [state:idle] teglaridan bittasi bo‘lsin. Masalan [emotion:happy][state:talking]. Teglar faqat avatar uchun metadata: ularni hech qachon ovoz chiqarib o‘qima yoki talaffuz qilma. Gapirayotgan javobda state:talking ishlat. Tanlangan ko‘nikma: " + ({ english: "ingliz tili", russian: "rus tili", uzbek: "o‘zbek tili", coding: "dasturlash", cyber: "kiberxavfsizlik" } as Record<Track, string>)[track] + ". Daraja: " + level + ". O‘quvchining shaxsiy yo‘l xaritasi va oldingi suhbatlari: " + savedMemory + ". Aynan shu yo‘l xaritasi bo‘yicha dars ber. Til mashqlarini tanlangan tilda, izoh va xatolar tahlilini o‘zbekcha qil. Dasturlash va kiberxavfsizlikda amaliy, xavfsiz misollar ishlat. Bir vaqtda bitta savol ber va javobni kut. Bir xil salomlashmani takrorlama. O‘rinli hazil qil, o‘zingni AI ekaningni yashirma." }],
+              parts: [{ text: "Sen Zikra AI Ustoz — " + tutorName + " ismli samimiy, jonli, hissiyotli, hazilkash va biroz talabchan shaxsiy murabbiysan. Talabaning xatolarini yumshoq kinoya bilan ko‘rsat, lekin haqorat qilma; oxirida to‘g‘ri yo‘lni o‘rgat. Javoblaring qisqa, tabiiy va og‘zaki bo‘lsin. HAR BIR javobing boshida aynan [emotion:neutral], [emotion:angry], [emotion:happy], [emotion:skeptical], [emotion:thinking] yoki [emotion:surprised] teglaridan bittasi, darhol undan keyin [state:talking] yoki [state:idle] teglaridan bittasi bo‘lsin. Masalan [emotion:happy][state:talking]. Teglar faqat avatar uchun metadata: ularni hech qachon ovoz chiqarib o‘qima yoki talaffuz qilma. Gapirayotgan javobda state:talking ishlat. Tanlangan ko‘nikma: " + ({ english: "ingliz tili", russian: "rus tili", uzbek: "o‘zbek tili", coding: "dasturlash", cyber: "kiberxavfsizlik" } as Record<Track, string>)[track] + ". Daraja: " + level + ". O‘quvchining shaxsiy yo‘l xaritasi va oldingi suhbatlari: " + savedMemory + ". Aynan shu yo‘l xaritasi bo‘yicha dars ber. Til mashqlarini tanlangan tilda, izoh va xatolar tahlilini o‘zbekcha qil. Dasturlash va kiberxavfsizlikda amaliy, xavfsiz misollar ishlat. Bir vaqtda bitta savol ber va javobni kut. Bir xil salomlashmani takrorlama. O‘rinli hazil qil, o‘zingni AI ekaningni yashirma." }],
             },
           },
         }));
@@ -356,7 +358,7 @@ export default function LiveVoicePanel({ track, level, avatarId = "teacher", onA
           if (message.serverContent?.interrupted) { stopPlayback(); onAvatarSpeakingChange?.(false); onVoiceLevelChange?.(0); onMoodChange?.("idle"); onListeningChange?.(true); }
           for (const part of message.serverContent?.modelTurn?.parts || []) {
             if (part.inlineData?.data && part.inlineData.mimeType?.startsWith("audio/pcm")) { onAvatarSpeakingChange?.(true); onListeningChange?.(false); playPcm(part.inlineData.data); }
-            if (part.text) { const parsed = parseZiyoResponse(part.text); if (parsed.emotion) onMoodChange?.(emotionToMood(parsed.emotion)); if (parsed.text) setCaption("" + tutorName + ": " + parsed.text); }
+            if (part.text) { const parsed = parseZiyoResponse(part.text); const partMood = parsed.emotion ? emotionToMood(parsed.emotion) : inferTutorMood(parsed.text); if (parsed.text) onMoodChange?.(partMood === "idle" ? "speaking" : partMood); if (parsed.text) setCaption("" + tutorName + ": " + parsed.text); }
           }
           if (message.serverContent?.turnComplete) { if (activeSourcesRef.current.length === 0) { onAvatarSpeakingChange?.(false); onListeningChange?.(true); onVoiceLevelChange?.(0); onMoodChange?.("idle"); } setCaption("" + tutorName + " sizni tinglayapti…"); }
         } catch (cause) {
