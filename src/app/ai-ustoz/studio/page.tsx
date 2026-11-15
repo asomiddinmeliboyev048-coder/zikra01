@@ -5,6 +5,7 @@ import { createElement, useCallback, useEffect, useRef, useState, type Component
 import { Check, Maximize2, Moon, Sparkles, Sun } from "lucide-react";
 import LiveVoicePanel from "../LiveVoicePanel";
 import ExpressiveTutorFace from "./ExpressiveTutorFace";
+import ZiyoCharacter from "./ZiyoCharacter";
 import "./studio.css";
 
 type Track = "english" | "russian" | "uzbek" | "coding" | "cyber";
@@ -26,7 +27,7 @@ const trackNames: Record<Track, string> = {
   cyber: "Kiberxavfsizlik",
 };
 const avatars: { id: AvatarId; name: string; role: string; description: string; voice: string; src?: string }[] = [
-  { id: "teacher", name: "Ziyo", role: "Erkak ovozli 3D AI ustoz", description: "Haqiqiy 3D avatar va jonli ovozli suhbat", voice: "Puck", src: "/models/teacher_joe.glb" },
+  { id: "teacher", name: "Ziyo", role: "Original animatsion AI ustoz", description: "Zikra uchun maxsus yaratilgan jonli qahramon", voice: "Puck" },
   { id: "student", name: "Ziyra", role: "Ayol ovozli 3D ustoz", description: "Harakatlanuvchi 3D qahramon", voice: "Kore", src: "/models/school_girl_v21.glb" },
 ];
 const ModelViewer = "model-viewer" as unknown as ComponentType<Record<string, unknown>>;
@@ -162,10 +163,10 @@ export default function AiTutorStudioPage() {
           <div className="tutor-choice-grid">
             <button type="button" className={`tutor-choice-card ${avatarId === "teacher" ? "selected" : ""}`} onClick={() => setAvatarId("teacher")}>
               <span className="choice-check">{avatarId === "teacher" && <Check size={17}/>}</span>
-              <div className="choice-simulator-preview"><ExpressiveTutorFace speaking={false} listening={false} voiceLevel={0} mood="idle"/></div>
-              <span className="choice-name">Ziyo · 3D ustoz</span>
-              <span className="choice-role">Erkak ovozi · GLB avatar</span>
-              <span className="choice-description">Haqiqiy 3D qahramon, ovozga mos holat va mavjud model animatsiyalari.</span>
+              <div className="choice-simulator-preview"><ZiyoCharacter speaking={false} listening={false} voiceLevel={0} mood="idle"/></div>
+              <span className="choice-name">Ziyo · Original qahramon</span>
+              <span className="choice-role">Erkak ovozi · jonli animatsiya</span>
+              <span className="choice-description">Zikra uchun maxsus yaratilgan, ovoz va hissiyotga javob beradigan animatsion ustoz.</span>
             </button>
             <button type="button" className={`tutor-choice-card ${avatarId === "student" ? "selected" : ""}`} onClick={() => setAvatarId("student")}>
               <span className="choice-check">{avatarId === "student" && <Check size={17}/>}</span>
@@ -209,7 +210,10 @@ export default function AiTutorStudioPage() {
           <div className="stage-aura stage-aura-one"/>
           <div className="stage-aura stage-aura-two"/>
           <div className="stage-floor"/>
-          <>
+          {avatarId === "teacher" ? (
+            <ZiyoCharacter speaking={speaking} listening={listening} voiceLevel={voiceLevel} mood={mood}/>
+          ) : (
+            <>
               {scriptReady ? createElement(ModelViewer, {
                 ref: (node: ViewerElement | null) => { viewerRef.current = node; },
                 src: avatar.src,
@@ -232,7 +236,8 @@ export default function AiTutorStudioPage() {
               }) : <div className="stage-loading"><span className="studio-spinner"/><p>{tutorName} tayyorlanmoqda…</p></div>}
               {!loaded && !modelError && <div className="stage-loading stage-loading-overlay"><span className="studio-spinner"/><p>3D avatar yuklanmoqda…</p></div>}
               {modelError && <div className="stage-error"><b>3D model xatosi</b><p>{modelError}</p><small>{avatar.src}</small></div>}
-          </>
+            </>
+          )}
           <div className="stage-caption"><span className="caption-icon"><Sparkles size={15}/></span><div><b>{tutorName}</b><small>{skillLabel} · {speaking ? "Sizga javob beryapti" : listening ? "Sizni tinglayapti" : "Shaxsiy AI ustozingiz"}</small></div></div>
           <div className="studio-live-dock studio-live-dock-compact">
             <LiveVoicePanel
