@@ -346,3 +346,49 @@ model-viewer{position:relative;z-index:2;width:min(100%,1050px);height:calc(100%
 .ziyo-preppy-scene.is-speaking .ziyo-preppy-status i{animation:ziyo-status-pulse .35s ease-in-out infinite alternate}
 .ziyo-preppy-scene.is-listening .ziyo-preppy-glow{opacity:.88}
 .ziyo-preppy-scene.is-listening .ziyo-preppy-face{filter:drop-shadow(0 0 12px color-mix(in srgb,var(--ziyo-accent) 22%,transparent))}
+
+
+/* Ziyo expression polish: smooth morphing, audio-reactive speech and state-specific motion. */
+.ziyo-preppy-scene{--ziyo-voice-level:0;--ziyo-voice-intensity:.25}
+.ziyo-preppy-face{will-change:width,height,border-radius,transform;transition:width .58s cubic-bezier(.2,.8,.2,1),height .58s cubic-bezier(.2,.8,.2,1),border-radius .58s cubic-bezier(.2,.8,.2,1),transform .42s cubic-bezier(.2,.8,.2,1),border-color .35s ease,box-shadow .45s ease}
+.ziyo-preppy-features g,.ziyo-preppy-features path,.ziyo-preppy-features ellipse{transition:opacity .2s ease,transform .24s ease}
+.ziyo-preppy-speaking-waves{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .18s ease}
+.ziyo-preppy-speaking-waves i{position:absolute;display:block;width:5px;height:17px;border-radius:8px;background:linear-gradient(180deg,#7debd5,var(--ziyo-accent));box-shadow:0 0 12px color-mix(in srgb,var(--ziyo-accent) 42%,transparent);transform:scaleY(calc(.35 + var(--ziyo-voice-level)*1.4));transition:transform .075s linear}
+.ziyo-preppy-speaking-waves i:nth-child(1){left:12%;top:43%}
+.ziyo-preppy-speaking-waves i:nth-child(2){left:17%;top:35%;height:23px}
+.ziyo-preppy-speaking-waves i:nth-child(3){left:22%;top:29%;height:13px}
+.ziyo-preppy-speaking-waves i:nth-child(4){right:12%;top:43%}
+.ziyo-preppy-speaking-waves i:nth-child(5){right:17%;top:35%;height:23px}
+.ziyo-preppy-speaking-waves i:nth-child(6){right:22%;top:29%;height:13px}
+.ziyo-preppy-speaking-waves i:nth-child(7){left:50%;top:17%;height:10px}
+.ziyo-preppy-thinking-bubble{position:absolute;z-index:4;top:12%;right:15%;display:flex;align-items:center;gap:5px;padding:10px 12px;border:1px solid #ffffffa8;border-radius:18px;background:#ffffffeb;box-shadow:0 8px 22px #07152218;opacity:0;transform:translateY(8px) scale(.8);transition:opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+.ziyo-preppy-thinking-bubble:after{content:"";position:absolute;bottom:-6px;left:12px;width:10px;height:10px;background:#ffffffeb;border-right:1px solid #ffffffa8;border-bottom:1px solid #ffffffa8;transform:rotate(45deg)}
+.ziyo-preppy-thinking-bubble i{width:5px;height:5px;border-radius:50%;background:#9b82ef;animation:ziyo-think-dot .9s ease-in-out infinite alternate}
+.ziyo-preppy-thinking-bubble i:nth-child(2){animation-delay:.18s}.ziyo-preppy-thinking-bubble i:nth-child(3){animation-delay:.36s}
+.ziyo-preppy-scene.is-speaking .ziyo-preppy-speaking-waves{opacity:calc(.25 + var(--ziyo-voice-level)*.75)}
+.ziyo-preppy-scene.is-speaking .ziyo-preppy-face{animation:ziyo-speaking-bounce .38s ease-in-out infinite alternate}
+.ziyo-preppy-scene.is-speaking .ziyo-mouth-open{opacity:1;transform-box:fill-box;transform-origin:center;transform:scaleY(calc(.35 + var(--ziyo-voice-level)*1.55));animation:none;transition:transform .075s linear}
+.ziyo-preppy-scene.is-speaking .ziyo-mouth-speech-line{opacity:calc(var(--ziyo-voice-level)*.9)}
+.ziyo-preppy-scene.is-speaking .ziyo-preppy-orbit{animation-duration:5s;opacity:calc(.3 + var(--ziyo-voice-level)*.45)}
+.ziyo-preppy-scene.is-listening .ziyo-preppy-face{animation:ziyo-listen-breathe 2.8s ease-in-out infinite}
+.ziyo-preppy-scene.is-listening .ziyo-face-normal-eyes{animation:ziyo-natural-blink 5.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.ziyo-preppy-scene.is-listening .ziyo-preppy-glow{opacity:.9;transform:scale(1.08)}
+.ziyo-state-thinking .ziyo-preppy-thinking-bubble{opacity:1;transform:translateY(0) scale(1)}
+.ziyo-state-thinking .ziyo-preppy-orbit{border-style:dotted;animation-duration:8s}
+.ziyo-state-amused .ziyo-preppy-face{animation:ziyo-happy-bob .65s ease-in-out infinite alternate}
+.ziyo-state-amused .ziyo-preppy-sparkles{animation:ziyo-sparkle-in .4s ease-out both}
+.ziyo-state-surprised .ziyo-preppy-face{animation:ziyo-surprise-pop .48s cubic-bezier(.2,1.5,.4,1) both}
+.ziyo-state-playful-angry .ziyo-preppy-flames{filter:saturate(1.2);animation:ziyo-flame-rise .55s ease-in-out infinite alternate}
+.ziyo-state-playful-angry .ziyo-preppy-face{animation:ziyo-angry-pulse .42s ease-in-out infinite alternate}
+.ziyo-state-skeptical .ziyo-preppy-face{transform:translateY(-13px) rotate(-3deg)}
+.ziyo-state-skeptical .ziyo-preppy-orbit{border-style:dashed;animation-duration:12s}
+.ziyo-state-idle .ziyo-preppy-face{animation:ziyo-face-float 3.8s ease-in-out infinite}
+@keyframes ziyo-natural-blink{0%,41%,45%,78%,82%,100%{transform:scaleY(1)}43%,80%{transform:scaleY(.08)}}
+@keyframes ziyo-think-dot{from{opacity:.35;transform:translateY(2px)}to{opacity:1;transform:translateY(-3px)}}
+@keyframes ziyo-happy-bob{from{transform:translateY(-13px) rotate(-1deg) scale(1)}to{transform:translateY(-20px) rotate(1deg) scale(1.025)}}
+@keyframes ziyo-surprise-pop{0%{transform:translateY(-14px) scale(.84)}65%{transform:translateY(-20px) scale(1.09)}100%{transform:translateY(-14px) scale(1.04)}}
+@keyframes ziyo-angry-pulse{from{transform:translateY(-10px) scaleX(1)}to{transform:translateY(-13px) scaleX(1.035)}}
+@keyframes ziyo-flame-rise{from{transform:translateX(-50%) translateY(0) scale(1)}to{transform:translateX(-50%) translateY(-7px) scale(1.04)}}
+@keyframes ziyo-sparkle-in{from{transform:scale(.7);opacity:.2}to{transform:scale(1);opacity:1}}
+@media(max-width:680px){.ziyo-preppy-speaking-waves i{width:4px;height:13px}.ziyo-preppy-thinking-bubble{top:9%;right:10%;padding:8px 10px}}
+@media(prefers-reduced-motion:reduce){.ziyo-preppy-speaking-waves i{transition:none}}
