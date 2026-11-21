@@ -6,7 +6,7 @@ import { Bot, ChevronDown, MessageCircle, Plus, Send, Sparkles, UserRound, Video
 
 type Conversation = { id: string; title: string; created_at: string; updated_at: string };
 type Message = { role: "user" | "assistant"; content: string };
-type Mentor = { id: string; full_name: string; username: string | null; avatar_url: string | null; bio: string | null; skills: string[] };
+type Mentor = { id: string; full_name: string; username: string | null; avatar_url: string | null; bio: string | null; skills: string[]; skillIds: string[] };
 type RecommendedVideo = { id: string; title: string; thumbnail_url: string | null; skill_id: string | null };
 
 const starters = [
@@ -26,6 +26,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
   const [error, setError] = useState("");
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [videos, setVideos] = useState<RecommendedVideo[]>([]);
+  const [requestStates, setRequestStates] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const loadConversations = useCallback(async () => {
@@ -63,6 +64,27 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
       if (!response.ok) throw new Error(payload.error || "Suhbat ochilmadi.");
       setMessages(payload.messages || []);
     } catch (e) { setError(e instanceof Error ? e.message : "Suhbat ochilmadi."); }
+  }
+
+  async function requestMentor(mentor: Mentor) {
+    const skillId = mentor.skillIds[0];
+    if (!skillId) return;
+    const approved = window.confirm(`${mentor.full_name} ga mentorlik so‘rovini yuborishni tasdiqlaysizmi?`);
+    if (!approved) return;
+    setRequestStates((current) => ({ ...current, [mentor.id]: "sending" }));
+    try {
+      const response = await fetch("/api/zikra-ai/mentor-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentorId: mentor.id, skillId, message: "Salom! Zikra AI tavsiyasi orqali sizdan ushbu ko‘nikmani o‘rganmoqchiman." }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "So‘rov yuborilmadi.");
+      setRequestStates((current) => ({ ...current, [mentor.id]: payload.alreadySent ? "pending" : "sent" }));
+    } catch (e) {
+      setRequestStates((current) => ({ ...current, [mentor.id]: "error" }));
+      setError(e instanceof Error ? e.message : "Mentor so‘rovini yuborib bo‘lmadi.");
+    }
   }
 
   function newConversation() {
@@ -142,7 +164,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
             {item.role === "user" && <div className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-slate-300"><UserRound size={16}/></div>}
           </div>)}
           {loading && <div className="flex items-center gap-3"><div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white"><Bot size={17}/></div><div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500 dark:bg-white/[0.06]"><span className="inline-flex items-center gap-2"><Loader2 size={15} className="animate-spin"/> Zikra AI javob tayyorlamoqda…</span></div></div>}
-          {!!mentors.length && <div className="ml-11 max-w-2xl rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-400/15 dark:bg-emerald-400/5"><div className="mb-3 flex items-center gap-2 text-sm font-bold text-emerald-900 dark:text-emerald-200"><GraduationCap size={17}/> Sizga mos mentorlar</div><div className="space-y-3">{mentors.map((mentor) => <div key={mentor.id} className="flex items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-100 text-sm font-bold text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-100">{mentor.avatar_url ? <img src={mentor.avatar_url} alt="" className="h-full w-full object-cover"/> : mentor.full_name.slice(0,1)}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{mentor.full_name}</p><p className="truncate text-xs text-slate-500">{mentor.skills.join(" · ")}</p></div><Link href={`/profile/${mentor.id}`} className="shrink-0 rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800">Profil</Link></div>)}</div></div>}
+          {!!mentors.length && <div className="ml-11 max-w-2xl rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-400/15 dark:bg-emerald-400/5"><div className="mb-3 flex items-center gap-2 text-sm font-bold text-emerald-900 dark:text-emerald-200"><GraduationCap size={17}/> Sizga mos mentorlar</div><div className="space-y-3">{mentors.map((mentor) => <div key={mentor.id} className="flex items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-100 text-sm font-bold text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-100">{mentor.avatar_url ? <img src={mentor.avatar_url} alt="" className="h-full w-full object-cover"/> : mentor.full_name.slice(0,1)}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{mentor.full_name}</p><p className="truncate text-xs text-slate-500">{mentor.skills.join(" · ")}</p></div><div className="flex shrink-0 items-center gap-1.5"><Link href={`/profile/${mentor.id}`} className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-400/20 dark:text-emerald-200">Profil</Link><button onClick={() => void requestMentor(mentor)} disabled={!mentor.skillIds.length || ["sending", "sent", "pending"].includes(requestStates[mentor.id])} className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-50">{requestStates[mentor.id] === "sending" ? "Yuborilmoqda…" : requestStates[mentor.id] === "sent" || requestStates[mentor.id] === "pending" ? "So‘rov yuborildi" : "So‘rov yuborish"}</button></div></div>)}</div></div>}
           {!!videos.length && <div className="ml-11 max-w-2xl rounded-2xl border border-blue-200 bg-blue-50/70 p-4 dark:border-blue-400/15 dark:bg-blue-400/5"><div className="mb-3 flex items-center gap-2 text-sm font-bold text-blue-900 dark:text-blue-200"><Video size={17}/> Mos video darslar</div><div className="space-y-2">{videos.map((video) => <Link key={video.id} href="/videos" className="flex items-center gap-3 rounded-xl bg-white/70 p-2.5 text-sm font-semibold text-slate-800 hover:bg-white dark:bg-white/5 dark:text-slate-100 dark:hover:bg-white/10">{video.thumbnail_url ? <img src={video.thumbnail_url} alt="" className="h-12 w-16 rounded-lg object-cover"/> : <div className="grid h-12 w-16 place-items-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-200"><Video size={18}/></div>}<span className="min-w-0 flex-1 truncate">{video.title}</span><ChevronDown className="-rotate-90 text-slate-400" size={16}/></Link>)}</div></div>}
           {error && <p role="alert" className="ml-11 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">{error}</p>}
         </div>
