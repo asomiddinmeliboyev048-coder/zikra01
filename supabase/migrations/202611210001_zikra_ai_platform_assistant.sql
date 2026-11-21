@@ -120,7 +120,7 @@ drop policy if exists "Zikra AI users insert own messages" on public.zikra_ai_me
 create policy "Zikra AI users insert own messages"
   on public.zikra_ai_messages for insert to authenticated
   with check (
-    auth.uid() = user_id and exists (
+    auth.uid() = user_id and role = 'user' and exists (
       select 1 from public.zikra_ai_conversations c
       where c.id = conversation_id and c.user_id = auth.uid()
     )
