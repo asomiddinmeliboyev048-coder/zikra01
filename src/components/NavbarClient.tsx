@@ -19,6 +19,7 @@ const NAV = [
   { href: "/videos", label: "Video darslar" },
   { href: "/reels", label: "Reels" },
   { href: "/chat", label: "Suhbatlar" },
+  { href: "/zikra-ai", label: "Zikra AI" },
 ];
 
 export default function NavbarClient({ profile, unread }: Props) {
