@@ -14,10 +14,18 @@ function jsonError(message: string, status: number) {
 }
 
 async function getRecommendations(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, message: string) {
-  const { data: ownSkills } = await supabase
+  const { data: ownSkills, error: ownSkillsError } = await supabase
     .from("user_skills")
     .select("skill_id,type,skill:skills(id,name,category)")
     .eq("user_id", userId);
+
+  if (ownSkillsError) {
+    console.error("[zikra-ai] user skills lookup failed", {
+      code: ownSkillsError.code,
+      message: ownSkillsError.message,
+      details: ownSkillsError.details,
+    });
+  }
 
   const rows = (ownSkills || []) as unknown as Array<{
     skill_id: string; type: string; skill: { id: string; name: string; category: string | null } | null;
@@ -161,7 +169,7 @@ export async function POST(request: Request) {
     supabase.from("zikra_project_knowledge").select("title,content,category")
       .eq("status", "published").limit(20),
     supabase.from("profiles").select("full_name,username,bio,city").eq("id", user.id).maybeSingle(),
-    /mentor|ustoz|o‘rgat|o'rgat|o‘rgan|o'rgan|dars|video|hamkor/i.test(message)
+    /mentor|ustoz|o‘rgat|o'rgat|o‘rgan|o'rgan|dars|video|hamkor|profil|profile|ko‘nik|konik|skill|mos|tavsiya|topib ber|izlab ber/i.test(message)
       ? getRecommendations(supabase, user.id, message)
       : Promise.resolve({ mentors: [], videos: [], learningSkills: [] }),
   ]);
@@ -181,7 +189,7 @@ ZIKRA PLATFORMASI HAQIDAGI TASDIQLANGAN BILIMLAR:
 ${knowledgeText || "Hozircha platforma bilimlar bazasi to‘ldirilmagan. Kodda tasdiqlanmagan funksiyalarni bor deb aytma."}
 SO‘ROVGA MOS TOPILGAN MA'LUMOTLAR:
 ${recommendationText || "Hozircha mos mentor yoki video tavsiyasi topilmadi."}
-Agar foydalanuvchi mentor bilan bog‘lanishni xohlasa, avval mos mentorni ko‘rsat va “So‘rov yuborish” tasdig‘ini so‘ra. Hozircha faqat tavsiya ber; so‘rov yuborish funksiyasi alohida tasdiqlash interfeysi orqali bajariladi.`;
+Agar foydalanuvchi o‘z ko‘nikmalariga mos mentor yoki profil so‘rasa, avval SO‘ROVGA MOS TOPILGAN MA'LUMOTLAR bo‘limini tekshir. Agar foydalanuvchining o‘rganish ko‘nikmalari ro‘yxati bo‘sh bo‘lsa, “Profilingizda hozircha o‘rganmoqchi bo‘lgan ko‘nikmalar ko‘rinmayapti” deb aniq ayt va /onboarding orqali profil ko‘nikmalarini to‘ldirishni tavsiya qil; o‘zingda mavjud bo‘lmagan profil yoki ko‘nikmalarni uydirma. Agar ro‘yxat bor, lekin mos mentor topilmagan bo‘lsa, qaysi ko‘nikma bo‘yicha qidirishni aniqlashtir. Agar foydalanuvchi mentor bilan bog‘lanishni xohlasa, avval mos mentorni ko‘rsat va “So‘rov yuborish” tasdig‘ini so‘ra. Hozircha faqat tavsiya ber; so‘rov yuborish funksiyasi alohida tasdiqlash interfeysi orqali bajariladi.`;
 
   const contents = (history || []).map((row) => ({
     role: row.role === "assistant" ? "model" : "user",
