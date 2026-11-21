@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Bot, ChevronDown, MessageCircle, Plus, Send, Sparkles, UserRound, Video, GraduationCap, Loader2 } from "lucide-react";
+import { Bot, ChevronDown, Clock3, Menu, Plus, Send, Sparkles, UserRound, Video, GraduationCap, Loader2, X } from "lucide-react";
 
 type Conversation = { id: string; title: string; created_at: string; updated_at: string };
 type Message = { role: "user" | "assistant"; content: string };
@@ -27,6 +27,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [videos, setVideos] = useState<RecommendedVideo[]>([]);
   const [requestStates, setRequestStates] = useState<Record<string, string>>({});
+  const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const loadConversations = useCallback(async () => {
@@ -56,6 +57,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
   async function openConversation(id: string) {
     setError("");
     setConversationId(id);
+    setHistoryOpen(false);
     setMentors([]);
     setVideos([]);
     try {
@@ -89,6 +91,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
 
   function newConversation() {
     setConversationId("");
+    setHistoryOpen(false);
     setMessages([]);
     setMentors([]);
     setVideos([]);
@@ -126,7 +129,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
   }
 
   return (
-    <section className="zikra-ai-shell grid h-full min-h-0 w-full flex-1 overflow-hidden lg:grid-cols-[260px_minmax(0,1fr)]">
+    <section className="zikra-ai-shell relative grid h-full min-h-0 w-full flex-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)]">
       <aside className="hidden border-r border-slate-200/70 bg-white/55 p-4 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/25 lg:flex lg:flex-col">
         <div className="mb-5 flex items-center gap-3 px-1">
           <div className="zikra-ai-mark grid h-11 w-11 place-items-center rounded-2xl text-white"><Bot size={22}/></div>
@@ -141,22 +144,24 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
         <div className="zikra-ai-side-note mt-4 rounded-2xl p-3"><div className="mb-1 flex items-center gap-2 text-cyan-800 dark:text-cyan-200"><Sparkles size={15}/><b className="text-xs">Platforma bo‘yicha yordam</b></div><p className="text-xs leading-relaxed text-cyan-900/70 dark:text-cyan-100/60">Mentorlar, video darslar va Zikra imkoniyatlarini toping.</p></div>
       </aside>
 
+      {historyOpen && <div className="absolute inset-0 z-30 flex lg:hidden"><button aria-label="Tarixni yopish" onClick={() => setHistoryOpen(false)} className="absolute inset-0 bg-slate-950/35 backdrop-blur-[2px]"/><aside className="relative z-10 flex h-full w-[min(86%,340px)] flex-col border-r border-slate-200 bg-white/95 p-4 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/95"><div className="mb-5 flex items-center justify-between"><div className="flex items-center gap-2 font-bold text-slate-800 dark:text-white"><Clock3 size={18}/> Suhbatlar tarixi</div><button onClick={() => setHistoryOpen(false)} aria-label="Yopish" className="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-white/10"><X size={18}/></button></div><button onClick={newConversation} className="zikra-ai-new mb-4 flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold"><Plus size={17}/> Yangi suhbat</button><div className="min-h-0 flex-1 space-y-1 overflow-y-auto">{conversations.map((item) => <button key={item.id} onClick={() => void openConversation(item.id)} className={`w-full rounded-xl px-3 py-3 text-left text-sm transition ${conversationId === item.id ? "bg-slate-200/80 text-slate-900 dark:bg-white/10 dark:text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"}`}><span className="block truncate">{item.title}</span></button>)}{!conversations.length && <p className="px-2 py-3 text-xs text-slate-400">Hozircha suhbatlar yo‘q.</p>}</div><p className="mt-4 text-xs leading-relaxed text-slate-400">Zikra imkoniyatlari, mentorlar va video darslar bo‘yicha yordam.</p></aside></div>}
+
       <div className="flex min-h-0 min-w-0 flex-col bg-transparent">
-        <header className="zikra-ai-header flex items-center justify-between border-b px-4 py-3 sm:px-6">
-          <div className="zikra-ai-result-card flex items-center gap-3 rounded-xl p-2.5">
+        <header className="zikra-ai-header flex items-center justify-between border-b px-3 py-2.5 sm:px-6 sm:py-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3"><button onClick={() => setHistoryOpen(true)} aria-label="Suhbatlar tarixini ochish" className="zikra-ai-icon-btn grid h-10 w-10 shrink-0 place-items-center rounded-xl lg:hidden"><Menu size={19}/></button><div className="zikra-ai-result-card flex min-w-0 items-center gap-3 rounded-xl p-2.5">
             <div className="zikra-ai-mark grid h-10 w-10 place-items-center rounded-2xl text-white lg:hidden"><Bot size={20}/></div>
-            <div><h1 className="font-bold text-slate-900 dark:text-white">Zikra AI</h1><p className="text-xs text-slate-500">Salom, {userName.split(" ")[0]}! Platforma yordamchingiz</p></div>
-          </div>
-          <button onClick={newConversation} className="zikra-ai-new inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold lg:hidden"><Plus size={15}/> Yangi</button>
+            <div className="min-w-0"><h1 className="font-bold text-slate-900 dark:text-white">Zikra AI</h1><p className="truncate text-xs text-slate-500">Platforma yordamchisi · {userName.split(" ")[0]}</p></div>
+          </div></div>
+          <button onClick={newConversation} className="zikra-ai-new inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold"><Plus size={15}/><span className="hidden sm:inline">Yangi suhbat</span><span className="sm:hidden">Yangi</span></button>
         </header>
 
         <div ref={scrollRef} className="zikra-ai-messages min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-5 pb-8 sm:px-8 lg:px-12">
           {booting ? <div className="flex h-full items-center justify-center text-sm text-slate-400"><Loader2 className="mr-2 animate-spin" size={18}/> Zikra AI tayyorlanmoqda…</div> : null}
-          {!messages.length && !booting && <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center py-8 sm:py-12">
-            <div className="zikra-ai-hero-icon mx-auto mb-5 grid h-14 w-14 place-items-center rounded-[20px] text-white sm:h-16 sm:w-16"><Sparkles size={30}/></div>
-            <h2 className="zikra-ai-gradient-text text-center text-2xl font-bold tracking-tight sm:text-3xl">Zikra’da nimani izlayapsiz?</h2>
-            <p className="mx-auto mb-6 mt-2 max-w-lg text-center text-sm leading-relaxed text-slate-500 dark:text-slate-400 sm:mb-8">Men sizga platformani tushuntiraman, mos mentorlar va video darslarni topishga yordam beraman.</p>
-            <div className="grid gap-2.5 sm:grid-cols-2">{starters.map((item) => <button key={item} onClick={() => void sendMessage(undefined, item)} className="zikra-ai-prompt rounded-2xl p-4 text-left text-sm font-semibold transition sm:p-5">{item}<span className="mt-2 block text-xs font-normal text-slate-400">So‘rash uchun bosing →</span></button>)}</div>
+          {!messages.length && !booting && <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center py-5 sm:py-10">
+            <div className="zikra-ai-hero-icon mx-auto mb-4 grid h-12 w-12 place-items-center rounded-[18px] text-white sm:mb-5 sm:h-14 sm:w-14"><Sparkles size={26}/></div>
+            <h2 className="zikra-ai-gradient-text text-center text-[1.65rem] font-bold tracking-tight sm:text-3xl">Bugun nimada yordam beray?</h2>
+            <p className="mx-auto mb-5 mt-2 max-w-lg text-center text-sm leading-relaxed text-slate-500 dark:text-slate-400 sm:mb-7">Zikra imkoniyatlari, sizga mos mentorlar va o‘quv materiallarini bir joyda toping.</p>
+            <div className="grid gap-2 sm:grid-cols-2">{starters.map((item, index) => <button key={item} onClick={() => void sendMessage(undefined, item)} className="zikra-ai-prompt group flex min-h-[76px] items-center gap-3 rounded-2xl p-3.5 text-left text-sm font-semibold transition sm:p-4"><span className="zikra-ai-prompt-icon grid h-9 w-9 shrink-0 place-items-center rounded-xl">{index === 0 ? <Sparkles size={17}/> : index === 1 ? <GraduationCap size={18}/> : index === 2 ? <Video size={17}/> : <Bot size={17}/>}</span><span className="min-w-0 flex-1">{item}<span className="mt-1 block text-xs font-normal text-slate-400">Boshlash uchun bosing</span></span><ChevronDown className="-rotate-90 text-slate-400 transition group-hover:translate-x-0.5" size={16}/></button>)}</div>
           </div>}
           {messages.map((item, index) => <div key={index} className={`flex gap-3 ${item.role === "user" ? "justify-end" : "justify-start"}`}>
             {item.role === "assistant" && <div className="zikra-ai-mark mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white"><Bot size={17}/></div>}
@@ -174,7 +179,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
             <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} rows={1} maxLength={5000} placeholder="Zikra haqida so‘rang yoki mentor qidiring…" className="max-h-40 min-h-11 flex-1 resize-none bg-transparent px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100" />
             <button type="submit" disabled={!input.trim() || loading} aria-label="Xabar yuborish" className="zikra-ai-send grid h-11 w-11 shrink-0 place-items-center rounded-xl text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"><Send size={18}/></button>
           </div>
-          <p className="mx-auto mt-2 max-w-3xl text-center text-[10px] text-slate-400">Zikra AI xatolanishi mumkin. Muhim ma’lumotlarni platformadagi rasmiy sahifalardan tekshiring.</p>
+          <p className="mx-auto mt-2 max-w-3xl text-center text-[10px] text-slate-400">Zikra AI xatolanishi mumkin. Muhim ma’lumotlarni tekshirib oling.</p>
         </form>
       </div>
     </section>
