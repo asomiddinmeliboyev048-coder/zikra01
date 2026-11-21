@@ -35,6 +35,21 @@ grant execute on function public.zikra_ai_save_assistant_message(uuid, text) to 
 
 
 -- Publish a small, code-verified starter knowledge base.
+-- Older installations may already have this table without the newer knowledge columns.
+-- CREATE TABLE IF NOT EXISTS does not add columns to an existing table.
+alter table public.zikra_project_knowledge
+  add column if not exists slug text,
+  add column if not exists category text not null default 'platform',
+  add column if not exists source_path text,
+  add column if not exists status text not null default 'draft',
+  add column if not exists version integer not null default 1,
+  add column if not exists created_at timestamptz not null default now(),
+  add column if not exists updated_at timestamptz not null default now();
+
+create unique index if not exists zikra_project_knowledge_slug_uidx
+  on public.zikra_project_knowledge(slug)
+  where slug is not null;
+
 insert into public.zikra_project_knowledge(slug,title,content,category,source_path,status)
 values
 ('platform-overview','Zikra platformasi','Zikra — foydalanuvchilar o‘zaro ko‘nikma o‘rgatishi va o‘rganishi uchun mo‘ljallangan P2P ta’lim platformasi. Foydalanuvchilar profil yaratadi, o‘rgata oladigan va o‘rganmoqchi bo‘lgan ko‘nikmalarini belgilaydi, mos hamkorlarni topadi.','platform','README.md','published'),
