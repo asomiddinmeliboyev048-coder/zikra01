@@ -126,7 +126,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
   }
 
   return (
-    <section className="grid min-h-[calc(100dvh-6rem)] flex-1 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl shadow-slate-200/50 dark:border-white/10 dark:bg-[#101a2b] dark:shadow-black/20 lg:grid-cols-[280px_minmax(0,1fr)]">
+    <section className="grid h-full min-h-0 w-full flex-1 overflow-hidden bg-white dark:bg-[#101a2b] lg:grid-cols-[280px_minmax(0,1fr)] lg:border-x lg:border-slate-200 lg:shadow-xl lg:shadow-slate-200/40 lg:dark:border-white/10">
       <aside className="hidden border-r border-slate-100 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/[0.025] lg:flex lg:flex-col">
         <div className="mb-5 flex items-center gap-3 px-1">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"><Bot size={22}/></div>
@@ -141,7 +141,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
         <div className="mt-4 rounded-2xl border border-cyan-100 bg-cyan-50 p-3 dark:border-cyan-400/10 dark:bg-cyan-400/5"><div className="mb-1 flex items-center gap-2 text-cyan-800 dark:text-cyan-200"><Sparkles size={15}/><b className="text-xs">Platforma bo‘yicha yordam</b></div><p className="text-xs leading-relaxed text-cyan-900/70 dark:text-cyan-100/60">Mentorlar, video darslar va Zikra imkoniyatlarini toping.</p></div>
       </aside>
 
-      <div className="flex min-h-[70vh] min-w-0 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-col">
         <header className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-white/10 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white lg:hidden"><Bot size={20}/></div>
@@ -150,7 +150,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
           <button onClick={newConversation} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5 lg:hidden"><Plus size={15}/> Yangi</button>
         </header>
 
-        <div ref={scrollRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-7">
+        <div ref={scrollRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 pb-6 sm:px-7">
           {booting ? <div className="flex h-full items-center justify-center text-sm text-slate-400"><Loader2 className="mr-2 animate-spin" size={18}/> Zikra AI tayyorlanmoqda…</div> : null}
           {!messages.length && !booting && <div className="mx-auto flex min-h-full max-w-2xl flex-col justify-center">
             <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-[22px] bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-xl shadow-cyan-500/20"><Sparkles size={30}/></div>
@@ -169,7 +169,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
           {error && <p role="alert" className="ml-11 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">{error}</p>}
         </div>
 
-        <form onSubmit={(event) => void sendMessage(event)} className="border-t border-slate-100 p-3 dark:border-white/10 sm:p-5">
+        <form onSubmit={(event) => void sendMessage(event)} className="shrink-0 border-t border-slate-100 bg-white p-3 dark:border-white/10 dark:bg-[#101a2b] sm:p-5">
           <div className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 shadow-inner focus-within:border-cyan-400 focus-within:ring-4 focus-within:ring-cyan-500/10 dark:border-white/10 dark:bg-white/[0.04]">
             <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} rows={1} maxLength={5000} placeholder="Zikra haqida so‘rang yoki mentor qidiring…" className="max-h-36 min-h-11 flex-1 resize-y bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-white" />
             <button type="submit" disabled={!input.trim() || loading} aria-label="Xabar yuborish" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"><Send size={18}/></button>
