@@ -895,3 +895,47 @@ body {
   .zikra-ai-composer {padding-top:.65rem;}
 }
 @media(prefers-reduced-motion:reduce){.zikra-ai-hero-icon{animation:none}.zikra-ai-prompt,.zikra-ai-result-card{transition:none}}
+
+
+/* ZIKRA AI — focused, full-viewport assistant experience */
+body:has(.zikra-ai-page) { overflow: hidden; padding-bottom: 0 !important; }
+body:has(.zikra-ai-page) .zikra-navbar,
+body:has(.zikra-ai-page) .zikra-bottom-nav { display: none !important; }
+body:has(.zikra-ai-page) .zikra-ai-page { min-height: 100dvh; height: 100dvh; overflow: hidden; }
+body:has(.zikra-ai-page) .zikra-ai-page > main { height: 100dvh; }
+.zikra-ai-shell { min-height: 0; isolation: isolate; }
+.zikra-ai-header { min-height: 64px; }
+.zikra-ai-icon-btn {
+  color: #526174;
+  border: 1px solid rgba(148,163,184,.22);
+  background: linear-gradient(145deg,rgba(255,255,255,.95),rgba(226,232,240,.82));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9),0 8px 18px -15px rgba(30,41,59,.5);
+}
+.dark .zikra-ai-icon-btn { color:#e2e8f0; border-color:rgba(203,213,225,.14); background:linear-gradient(145deg,#354154,#202a39); }
+.zikra-ai-prompt { color:#344155; }
+.dark .zikra-ai-prompt { color:#e5eaf1; }
+.zikra-ai-prompt-icon { color:#526174; }
+.dark .zikra-ai-prompt-icon { color:#e2e8f0; }
+.zikra-ai-composer { padding-bottom: max(.85rem, env(safe-area-inset-bottom)); }
+.zikra-ai-composer > div { max-width: 860px; min-height: 60px; border-radius: 24px; }
+.zikra-ai-composer textarea { max-height: 180px; line-height: 1.55; }
+.zikra-ai-send { width: 44px; height: 44px; border-radius: 15px; }
+.zikra-ai-messages > div { animation: zikra-ai-message-in .24s ease-out both; }
+@keyframes zikra-ai-message-in { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
+@media (min-width: 1024px) {
+  .zikra-ai-shell > aside { padding: 1.25rem; }
+  .zikra-ai-messages { padding-left: clamp(2rem,6vw,6rem); padding-right: clamp(2rem,6vw,6rem); }
+}
+@media (max-width: 640px) {
+  .zikra-ai-header { min-height: 58px; padding-top: .45rem; padding-bottom: .45rem; }
+  .zikra-ai-messages { padding-left: 1rem; padding-right: 1rem; }
+  .zikra-ai-messages > div { gap: .55rem; }
+  .zikra-ai-shell .zikra-ai-bubble { max-width: calc(100% - 2.6rem); padding: .85rem .95rem; line-height: 1.7; }
+  .zikra-ai-shell .zikra-ai-recommendation { margin-left: 0; max-width: 100%; }
+  .zikra-ai-shell .zikra-ai-hero-icon { margin-bottom: .9rem; }
+  .zikra-ai-composer { padding-left: .75rem; padding-right: .75rem; }
+  .zikra-ai-composer > div { min-height: 56px; border-radius: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zikra-ai-messages > div { animation: none; }
+}
