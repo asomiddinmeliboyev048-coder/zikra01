@@ -12,11 +12,11 @@ export default async function ZikraAIPage() {
   if (!profile) redirect("/login");
 
   return (
-    <>
+    <div className="zikra-ai-page min-h-[100dvh]">
       <Navbar />
-      <main className="flex h-[calc(100dvh-4rem)] min-h-0 w-full flex-col overflow-hidden">
+      <main className="flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden">
         <ZikraAIChat userName={profile.full_name} />
       </main>
-    </>
+    </div>
   );
 }
