@@ -28,7 +28,7 @@ async function getRecommendations(supabase: Awaited<ReturnType<typeof createClie
   const selectedSkills = relevant.length ? relevant : wanted.slice(0, 3);
   const skillIds = selectedSkills.map((s) => s.id);
 
-  let mentors: Array<{ id: string; full_name: string; username: string | null; avatar_url: string | null; bio: string | null; skills: string[] }> = [];
+  let mentors: Array<{ id: string; full_name: string; username: string | null; avatar_url: string | null; bio: string | null; skills: string[]; skillIds: string[] }> = [];
   let videos: Array<{ id: string; title: string; thumbnail_url: string | null; skill_id: string | null }> = [];
 
   if (skillIds.length) {
@@ -52,6 +52,7 @@ async function getRecommendations(supabase: Awaited<ReturnType<typeof createClie
       mentors = (profiles || []).map((p) => ({
         ...p,
         skills: teachingRows.filter((r) => r.user_id === p.id).map((r) => r.skill?.name).filter(Boolean) as string[],
+        skillIds: Array.from(new Set(teachingRows.filter((r) => r.user_id === p.id).map((r) => r.skill_id))),
       }));
     }
 
@@ -152,7 +153,9 @@ export async function POST(request: Request) {
     supabase.from("zikra_project_knowledge").select("title,content,category")
       .eq("status", "published").limit(20),
     supabase.from("profiles").select("full_name,username,bio,city").eq("id", user.id).maybeSingle(),
-    getRecommendations(supabase, user.id, message),
+    /mentor|ustoz|o‘rgat|o'rgat|o‘rgan|o'rgan|dars|video|hamkor/i.test(message)
+      ? getRecommendations(supabase, user.id, message)
+      : Promise.resolve({ mentors: [], videos: [], learningSkills: [] }),
   ]);
 
   const knowledgeText = (knowledge || []).map((k) => `[${k.category}] ${k.title}: ${k.content}`).join("\n").slice(0, 14000);
