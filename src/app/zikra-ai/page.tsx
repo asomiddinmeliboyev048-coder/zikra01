@@ -14,7 +14,7 @@ export default async function ZikraAIPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-7xl flex-col px-3 py-4 sm:px-6 lg:px-8">
+      <main className="flex h-[calc(100dvh-4rem)] min-h-0 w-full flex-col overflow-hidden">
         <ZikraAIChat userName={profile.full_name} />
       </main>
     </>
