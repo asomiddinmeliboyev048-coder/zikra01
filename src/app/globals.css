@@ -808,3 +808,90 @@ body {
 .story-active body {
   padding-bottom: 0 !important;
 }
+
+
+/* Zikra AI — premium responsive assistant workspace */
+.zikra-ai-shell {
+  color: #263140;
+  background:
+    radial-gradient(48rem 30rem at 88% -8%, rgba(203,213,225,.46), transparent 65%),
+    radial-gradient(36rem 26rem at 0% 100%, rgba(226,232,240,.56), transparent 70%),
+    linear-gradient(145deg,#f8fafc 0%,#edf1f5 48%,#f9fafb 100%);
+}
+.dark .zikra-ai-shell {
+  color: #e8edf4;
+  background:
+    radial-gradient(48rem 30rem at 88% -8%, rgba(100,116,139,.18), transparent 65%),
+    linear-gradient(145deg,#171d27 0%,#10151d 55%,#1b2330 100%);
+}
+.zikra-ai-shell > aside {
+  border-color: rgba(148,163,184,.25);
+  background: linear-gradient(180deg,rgba(248,250,252,.88),rgba(232,237,243,.72));
+  backdrop-filter: blur(22px);
+}
+.dark .zikra-ai-shell > aside { background:rgba(17,24,39,.55); border-color:rgba(203,213,225,.12); }
+.zikra-ai-mark,.zikra-ai-avatar {
+  background:linear-gradient(145deg,#64748b 0%,#334155 52%,#94a3b8 100%);
+  box-shadow:0 10px 25px -14px rgba(51,65,85,.75),inset 0 1px 0 rgba(255,255,255,.4);
+}
+.zikra-ai-new {
+  color:#273243; border:1px solid rgba(255,255,255,.95);
+  background:linear-gradient(145deg,#fff 0%,#e8edf3 48%,#d3dae4 100%);
+  box-shadow:0 8px 22px -17px rgba(30,41,59,.6),inset 0 1px 0 white;
+}
+.zikra-ai-new:hover { transform:translateY(-1px); box-shadow:0 13px 26px -18px rgba(30,41,59,.62); }
+.dark .zikra-ai-new {color:#e8edf4;background:linear-gradient(145deg,#3b4656,#242d3a);border-color:rgba(203,213,225,.18);}
+.zikra-ai-side-note {
+  color:#465467; border:1px solid rgba(255,255,255,.9);
+  background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(220,226,234,.72));
+  box-shadow:inset 0 1px 0 white,0 12px 30px -24px rgba(30,41,59,.45);
+}
+.dark .zikra-ai-side-note {color:#dbe3ed;background:linear-gradient(145deg,rgba(71,85,105,.32),rgba(30,41,59,.45));border-color:rgba(203,213,225,.12);}
+.zikra-ai-header {
+  border-color:rgba(148,163,184,.2);
+  background:rgba(250,251,253,.78);
+  backdrop-filter:blur(22px);
+}
+.dark .zikra-ai-header {background:rgba(17,24,39,.68);border-color:rgba(203,213,225,.1);}
+.zikra-ai-online {color:#526174;background:#e7ecf2;border:1px solid rgba(148,163,184,.25);}
+.zikra-ai-messages {scrollbar-width:thin;scrollbar-color:rgba(100,116,139,.25) transparent;}
+.zikra-ai-hero-icon {
+  background:linear-gradient(145deg,#94a3b8 0%,#475569 52%,#cbd5e1 100%);
+  box-shadow:0 22px 42px -22px rgba(51,65,85,.72),inset 0 1px 0 rgba(255,255,255,.65);
+  animation:zikra-ai-float 5s ease-in-out infinite;
+}
+@keyframes zikra-ai-float {0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.zikra-ai-gradient-text {background:linear-gradient(100deg,#475569,#94a3b8 55%,#64748b);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.zikra-ai-prompt {
+  border:1px solid rgba(255,255,255,.95);
+  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(231,236,243,.84));
+  box-shadow:0 12px 30px -26px rgba(30,41,59,.6),inset 0 1px 0 white;
+}
+.zikra-ai-prompt:hover {transform:translateY(-3px);border-color:rgba(100,116,139,.4);box-shadow:0 20px 38px -27px rgba(30,41,59,.5);}
+.dark .zikra-ai-prompt {background:linear-gradient(145deg,rgba(51,65,85,.5),rgba(30,41,59,.55));border-color:rgba(203,213,225,.12);}
+.zikra-ai-prompt-icon {color:#526174;background:linear-gradient(145deg,#fff,#dce2ea);box-shadow:inset 0 1px 0 white,0 7px 16px -12px rgba(30,41,59,.5);}
+.dark .zikra-ai-prompt-icon {color:#e2e8f0;background:linear-gradient(145deg,#64748b,#334155);}
+.zikra-ai-bubble {border:1px solid rgba(148,163,184,.18);box-shadow:0 12px 30px -26px rgba(30,41,59,.45);}
+.zikra-ai-user-bubble {color:white;background:linear-gradient(135deg,#334155,#64748b);border-color:rgba(255,255,255,.18);border-radius:22px 22px 7px 22px;box-shadow:0 14px 30px -20px rgba(51,65,85,.75);}
+.zikra-ai-assistant-bubble {color:#334155;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(238,242,247,.95));border-color:rgba(255,255,255,.96);border-radius:22px 22px 22px 7px;}
+.dark .zikra-ai-assistant-bubble {color:#e5eaf1;background:linear-gradient(145deg,rgba(51,65,85,.52),rgba(30,41,59,.65));border-color:rgba(203,213,225,.12);}
+.zikra-ai-recommendation {border:1px solid rgba(255,255,255,.95);background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(231,236,243,.72));box-shadow:0 16px 38px -30px rgba(30,41,59,.45),inset 0 1px 0 white;}
+.dark .zikra-ai-recommendation {background:rgba(30,41,59,.5);border-color:rgba(203,213,225,.12);}
+.zikra-ai-result-card {border:1px solid rgba(148,163,184,.18);background:rgba(255,255,255,.78);transition:transform .2s ease,box-shadow .2s ease;}
+.zikra-ai-result-card:hover {transform:translateY(-2px);box-shadow:0 12px 24px -18px rgba(30,41,59,.45);}
+.dark .zikra-ai-result-card {background:rgba(15,23,42,.35);border-color:rgba(203,213,225,.12);}
+.zikra-ai-outline-btn {color:#475569;border:1px solid rgba(100,116,139,.3);background:linear-gradient(145deg,#fff,#e8edf3);}
+.zikra-ai-primary-btn,.zikra-ai-send {background:linear-gradient(145deg,#64748b,#334155);box-shadow:0 10px 22px -13px rgba(51,65,85,.7),inset 0 1px 0 rgba(255,255,255,.25);}
+.zikra-ai-primary-btn:hover,.zikra-ai-send:hover {filter:brightness(1.08);}
+.zikra-ai-composer {border-color:rgba(148,163,184,.2);background:rgba(249,250,252,.88);backdrop-filter:blur(22px);}
+.zikra-ai-composer > div {border-color:rgba(148,163,184,.28);background:linear-gradient(145deg,#fff,#eef2f6);box-shadow:0 10px 28px -22px rgba(30,41,59,.5),inset 0 1px 0 white;}
+.zikra-ai-composer > div:focus-within {border-color:rgba(100,116,139,.55);--tw-ring-color:rgba(100,116,139,.12);}
+.dark .zikra-ai-composer {background:rgba(17,24,39,.88);border-color:rgba(203,213,225,.1);}
+.dark .zikra-ai-composer > div {background:linear-gradient(145deg,#263244,#1b2533);border-color:rgba(203,213,225,.16);}
+@media(max-width:640px) {
+  .zikra-ai-shell {background:linear-gradient(180deg,#f8fafc,#edf1f5 65%,#f8fafc);}
+  .zikra-ai-messages {padding-top:1.25rem;padding-bottom:1.5rem;}
+  .zikra-ai-shell .zikra-ai-bubble {max-width:calc(100% - 2.5rem);padding:1rem 1.05rem;font-size:14px;line-height:1.8;}
+  .zikra-ai-composer {padding-top:.65rem;}
+}
+@media(prefers-reduced-motion:reduce){.zikra-ai-hero-icon{animation:none}.zikra-ai-prompt,.zikra-ai-result-card{transition:none}}
