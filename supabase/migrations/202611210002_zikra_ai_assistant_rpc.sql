@@ -46,9 +46,10 @@ alter table public.zikra_project_knowledge
   add column if not exists created_at timestamptz not null default now(),
   add column if not exists updated_at timestamptz not null default now();
 
-create unique index if not exists zikra_project_knowledge_slug_uidx
-  on public.zikra_project_knowledge(slug)
-  where slug is not null;
+-- ON CONFLICT (slug) requires a non-partial unique index/constraint.
+drop index if exists public.zikra_project_knowledge_slug_uidx;
+create unique index zikra_project_knowledge_slug_uidx
+  on public.zikra_project_knowledge(slug);
 
 insert into public.zikra_project_knowledge(slug,title,content,category,source_path,status)
 values
