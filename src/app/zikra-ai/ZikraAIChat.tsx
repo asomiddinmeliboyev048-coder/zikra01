@@ -126,7 +126,7 @@ export default function ZikraAIChat({ userName }: { userName: string }) {
   }
 
   return (
-    <section className="grid h-full min-h-0 w-full flex-1 overflow-hidden bg-white dark:bg-[#101a2b] lg:grid-cols-[280px_minmax(0,1fr)] lg:border-x lg:border-slate-200 lg:shadow-xl lg:shadow-slate-200/40 lg:dark:border-white/10">
+    <section className="zikra-ai-shell grid h-full min-h-0 w-full flex-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)]">
       <aside className="hidden border-r border-slate-100 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/[0.025] lg:flex lg:flex-col">
         <div className="mb-5 flex items-center gap-3 px-1">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"><Bot size={22}/></div>
