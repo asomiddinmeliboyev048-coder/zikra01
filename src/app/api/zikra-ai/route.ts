@@ -139,7 +139,15 @@ export async function POST(request: Request) {
   const { error: userInsertError } = await supabase.from("zikra_ai_messages").insert({
     conversation_id: conversationId, user_id: user.id, role: "user", content: message,
   });
-  if (userInsertError) return jsonError("Xabarni saqlab bo‘lmadi.", 503);
+  if (userInsertError) {
+    console.error("[zikra-ai] user message insert failed", {
+      code: userInsertError.code,
+      message: userInsertError.message,
+      details: userInsertError.details,
+      hint: userInsertError.hint,
+    });
+    return jsonError("Xabarni saqlab bo‘lmadi. Server loglarida xatoning kodi va sababi yozildi.", 503);
+  }
 
   const [
     { data: history },
